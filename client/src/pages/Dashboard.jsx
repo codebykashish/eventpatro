@@ -33,10 +33,12 @@ const Dashboard = () => {
               <span className="detail-label">Full Name:</span>
               <span className="detail-value">{user?.firstName} {user?.lastName}</span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Student ID:</span>
-              <span className="detail-value code-font">{user?.studentId}</span>
-            </div>
+            {user?.role === 'student' && user?.studentId && (
+              <div className="detail-item">
+                <span className="detail-label">Student ID:</span>
+                <span className="detail-value code-font">{user?.studentId}</span>
+              </div>
+            )}
             <div className="detail-item">
               <span className="detail-label">College Email:</span>
               <span className="detail-value">{user?.email}</span>

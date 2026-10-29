@@ -16,8 +16,13 @@ const userSchema = new mongoose.Schema(
     },
     studentId: {
       type: String,
-      required: [true, 'Student ID is required'],
+      // Student ID is only required for student accounts
+      required: function () {
+        return this.role === 'student'
+      },
+      // Sparse index ensures uniqueness among students without blocking admins without studentId
       unique: true,
+      sparse: true,
       trim: true,
       uppercase: true,
     },

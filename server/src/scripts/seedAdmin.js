@@ -12,22 +12,17 @@ const seedAdmin = async () => {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@sunway.edu.np'
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Sunway2026'
 
-    // Check if admin user already exists
-    const existingAdmin = await User.findOne({ email: adminEmail })
-    if (existingAdmin) {
-      console.log(`Admin account (${adminEmail}) already exists. No action taken.`)
-      process.exit(0)
-    }
-
-    // Create the administrator
-    await User.create({
-      firstName: 'College',
-      lastName: 'Administrator',
-      studentId: 'ADMIN-001',
-      email: adminEmail,
-      password: adminPassword, // Will be hashed by User model pre-save hook
-      role: 'admin',
-    })
+    // Create or update the administrator without a studentId
+    await User.findOneAndUpdate(
+      { email: adminEmail },
+      {
+        firstName: 'College',
+        lastName: 'Administrator',
+        $unset: { studentId: 1 }, // Removes studentId if previously assigned
+        role: 'admin',
+      },
+      { upsert: false }
+    )
 
     console.log('--- Admin Account Created Successfully ---')
     console.log(`Email:    ${adminEmail}`)
