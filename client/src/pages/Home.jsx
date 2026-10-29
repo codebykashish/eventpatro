@@ -93,6 +93,14 @@ const Home = () => {
     setSignupSubmitting(true)
     try {
       const res = await signup(signupForm)
+      setSignupForm({
+        firstName: '',
+        lastName: '',
+        studentId: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+      })
       if (res.requiresVerification) {
         navigate('/verify-otp', { state: { email: signupForm.email } })
       } else {

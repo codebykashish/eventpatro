@@ -22,6 +22,12 @@ const Login = () => {
     }
   }, [isAuthenticated, user, navigate])
 
+  // Clear credentials when mounting Login page
+  useEffect(() => {
+    setEmail('')
+    setPassword('')
+  }, [])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -29,6 +35,8 @@ const Login = () => {
 
     try {
       const user = await login(email, password)
+      setEmail('')
+      setPassword('')
       if (user.role === 'admin') {
         navigate('/admin')
       } else {
@@ -66,13 +74,14 @@ const Login = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="clean-form">
+          <form onSubmit={handleSubmit} className="clean-form" autoComplete="off">
             {/* Email input */}
             <div className="clean-field">
               <label htmlFor="email">Email Address</label>
               <input
                 id="email"
                 type="email"
+                autoComplete="off"
                 placeholder="name@sunway.edu.np"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -87,6 +96,7 @@ const Login = () => {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

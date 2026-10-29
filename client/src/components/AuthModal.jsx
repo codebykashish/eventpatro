@@ -20,25 +20,6 @@ const AuthModal = () => {
   // Mode: 'login' | 'signup' | 'verify'
   const [mode, setMode] = useState(authModal.mode || 'login')
 
-  useEffect(() => {
-    if (authModal.isOpen) {
-      setMode(authModal.mode || 'login')
-      setError('')
-      setSuccess('')
-    }
-  }, [authModal.isOpen, authModal.mode])
-
-  // Close when pressing Escape key
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && authModal.isOpen) {
-        closeAuthModal()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [authModal.isOpen, closeAuthModal])
-
   // Login form state
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
@@ -67,6 +48,54 @@ const AuthModal = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  // Clean reset function for all credentials and form states
+  const resetFormFields = () => {
+    setLoginEmail('')
+    setLoginPassword('')
+    setShowLoginPassword(false)
+    setRememberMe(false)
+    setSignupData({
+      firstName: '',
+      lastName: '',
+      studentId: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    })
+    setShowSignupPassword(false)
+    setShowConfirmPassword(false)
+    setVerifyEmail('')
+    setOtpDigits(['', '', '', '', '', ''])
+    setError('')
+    setSuccess('')
+  }
+
+  const handleClose = () => {
+    resetFormFields()
+    closeAuthModal()
+  }
+
+  // When modal opens or closes, wipe clean all form fields so past credentials never persist
+  useEffect(() => {
+    if (authModal.isOpen) {
+      setMode(authModal.mode || 'login')
+      resetFormFields()
+    } else {
+      resetFormFields()
+    }
+  }, [authModal.isOpen, authModal.mode])
+
+  // Close when pressing Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && authModal.isOpen) {
+        handleClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [authModal.isOpen])
+
   // Resend countdown timer
   useEffect(() => {
     if (mode === 'verify' && resendTimer > 0) {
@@ -93,6 +122,7 @@ const AuthModal = () => {
     setIsSubmitting(true)
     try {
       const loggedInUser = await login(loginEmail, loginPassword)
+      resetFormFields()
       closeAuthModal()
       navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard')
     } catch (err) {
@@ -185,6 +215,7 @@ const AuthModal = () => {
     setIsSubmitting(true)
     try {
       const loggedInUser = await verifyOtp(verifyEmail, code)
+      resetFormFields()
       closeAuthModal()
       navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard')
     } catch (err) {
@@ -207,13 +238,13 @@ const AuthModal = () => {
   }
 
   return (
-    <div className="auth-overlay-backdrop" onClick={closeAuthModal}>
+    <div className="auth-overlay-backdrop" onClick={handleClose}>
       <div className="auth-overlay-card-wrapper" onClick={(e) => e.stopPropagation()}>
         {/* Floating close button */}
         <button
           type="button"
           className="auth-overlay-close-btn"
-          onClick={closeAuthModal}
+          onClick={handleClose}
           aria-label="Close dialog"
         >
           <X size={18} />
@@ -254,12 +285,13 @@ const AuthModal = () => {
             {/* ── 1. LOGIN MODE ── */}
             {mode === 'login' && (
               <>
-                <form onSubmit={handleLoginSubmit} className="clean-form">
+                <form onSubmit={handleLoginSubmit} className="clean-form" autoComplete="off">
                   <div className="clean-field">
                     <label htmlFor="modal-login-email">Email Address</label>
                     <input
                       id="modal-login-email"
                       type="email"
+                      autoComplete="off"
                       placeholder="name@sunway.edu.np"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
@@ -273,6 +305,7 @@ const AuthModal = () => {
                       <input
                         id="modal-login-pwd"
                         type={showLoginPassword ? 'text' : 'password'}
+                        autoComplete="new-password"
                         placeholder="Enter your password"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
@@ -317,10 +350,9 @@ const AuthModal = () => {
                     type="button"
                     className="modal-text-link"
                     onClick={() => {
+                      resetFormFields()
                       setMode('signup')
                       switchAuthModalMode('signup')
-                      setError('')
-                      setSuccess('')
                     }}
                   >
                     Register here
@@ -474,10 +506,9 @@ const AuthModal = () => {
                     type="button"
                     className="modal-text-link"
                     onClick={() => {
+                      resetFormFields()
                       setMode('login')
                       switchAuthModalMode('login')
-                      setError('')
-                      setSuccess('')
                     }}
                   >
                     Log in
