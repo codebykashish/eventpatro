@@ -45,6 +45,9 @@
 - Phase 3, Task 3.6: `FormBuilder.jsx` + `FormBuilder.css` — reusable admin form-question builder component; integrated into `CreateEvent.jsx` and `EditEvent.jsx` ✅
 - Phase 3, Task 3.7: Student `Dashboard.jsx` upgraded — "My Registrations" section fetches and shows all registrations with live status badges, reg codes, event links, active/past separation ✅
 - Phase 3, Task 3.8: `EventCard.jsx` redesigned to match Pinterest card inspiration — 220px cover image with gradient overlay, title + description excerpt, meta row, divider, pill-shaped dark CTA button; visitors get auth modal, logged-in users go to event detail ✅
+- Phase 3, Task 3.9: Sticky Navbar upgrade — navbar now smoothly follows user as they scroll down with `position: fixed`, glassmorphism backdrop filter, and elevated scrolled state ✅
+- Phase 3, Task 3.10: 'How It Works' 3-card continuous triptych — cohesive panoramic artwork split into 3 cards that together form an unbroken scene matching the student journey (Sign-up & Verify, Workshop Discovery, Portfolio & Celebration) ✅
+- Phase 3, Task 3.11: Full-Screen Form Section above Contacts — converted embedded form into an immersive full-screen section with rich auditorium background image, dark crimson gradient overlay, student perks list, stats row, and floating glass enrollment card ✅
 
 
 ---

@@ -335,7 +335,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 4. How It Works (Few Steps to Begin) ───────────────────────────── */}
+      {/* ── 4. How It Works (Triptych Shared Panorama Across 3 Cards) ──────── */}
       <section id="how-it-works" className="how-it-works-section">
         <div className="section-container">
           <div className="how-header-centered">
@@ -344,81 +344,156 @@ const Home = () => {
               Few steps to <span className="brand-cursive brand-red-text">begin</span>
             </h2>
             <p className="how-subtitle">
-              Join the student community in less than two minutes.
+              Join the Sunway student community in three effortless steps.
             </p>
           </div>
 
           <div className="how-steps-grid">
+            {/* Step 1: Left 1/3 of continuous panoramic artwork */}
             <div className="how-step-card step-one">
-              <div className="step-number-badge">01</div>
-              <h3 className="step-title">Create your student account</h3>
-              <p className="step-description">
-                Sign up with your Sunway College email address. Verify your 6-digit code to activate
-                your student profile.
-              </p>
+              <div className="how-step-media">
+                <div className="how-step-img-slice slice-one" />
+                <span className="step-number-badge">01</span>
+                <span className="step-slice-label">Step 1 • Profile Setup</span>
+              </div>
+              <div className="how-step-body">
+                <h3 className="step-title">Create Your Student Account</h3>
+                <p className="step-description">
+                  Sign up with your Sunway College email. Quick 6-digit OTP verification activates your official student profile in under 60 seconds.
+                </p>
+                <div className="how-step-action-pill">
+                  <span>Fast 60-Sec Activation</span>
+                  <ArrowRight size={14} />
+                </div>
+              </div>
             </div>
 
+            {/* Step 2: Middle 1/3 of continuous panoramic artwork */}
             <div className="how-step-card step-two">
-              <div className="step-number-badge">02</div>
-              <h3 className="step-title">Discover & choose your event</h3>
-              <p className="step-description">
-                Filter by technical workshops, sports, seminars, or cultural meets. Check live countdowns
-                and remaining spots.
-              </p>
+              <div className="how-step-media">
+                <div className="how-step-img-slice slice-two" />
+                <span className="step-number-badge">02</span>
+                <span className="step-slice-label">Step 2 • Registration</span>
+              </div>
+              <div className="how-step-body">
+                <h3 className="step-title">Discover & Reserve Seats</h3>
+                <p className="step-description">
+                  Explore workshops, hackathons, guest lectures, and cultural fests. Check live countdowns and claim your spot before deadlines pass.
+                </p>
+                <div className="how-step-action-pill">
+                  <span>One-Click Registration</span>
+                  <ArrowRight size={14} />
+                </div>
+              </div>
             </div>
 
+            {/* Step 3: Right 1/3 of continuous panoramic artwork */}
             <div className="how-step-card step-three">
-              <div className="step-number-badge">03</div>
-              <h3 className="step-title">Attend & build your portfolio</h3>
-              <p className="step-description">
-                Check in at the venue, connect with peers and mentors, and view your verified attendance
-                history on your dashboard.
-              </p>
+              <div className="how-step-media">
+                <div className="how-step-img-slice slice-three" />
+                <span className="step-number-badge">03</span>
+                <span className="step-slice-label">Step 3 • Recognition</span>
+              </div>
+              <div className="how-step-body">
+                <h3 className="step-title">Attend & Build Portfolio</h3>
+                <p className="step-description">
+                  Check in at campus venues, collaborate with mentors, and earn verified participation records displayed on your personal dashboard.
+                </p>
+                <div className="how-step-action-pill">
+                  <span>Verified Attendance</span>
+                  <ArrowRight size={14} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 5. Embedded Sign-Up Section with Split Photo Banner ─────────────── */}
-      <section className="embedded-signup-section">
-        <div className="section-container">
-          <div className="embedded-signup-card">
-            {/* Left Photo & Perks Column */}
-            <div className="signup-perks-column">
-              <img
-                src="/signup_banner.jpg"
-                alt="Students on campus celebrating together"
-                className="signup-perks-bg"
-              />
-              <div className="signup-perks-overlay" />
+      {/* ── 5. Full-Screen Embedded Sign-Up Section with Background Image ─── */}
+      <section className="fullscreen-signup-section">
+        {/* Fullscreen background photo */}
+        <img
+          src="/signup_fullscreen_bg.jpg"
+          alt="Sunway College event symposium amphitheater"
+          className="fullscreen-signup-bg"
+          loading="lazy"
+        />
+        {/* Cinematic dark crimson & obsidian overlay */}
+        <div className="fullscreen-signup-overlay" />
 
-              <div className="signup-perks-content">
-                <span className="perks-badge">CAMPUS COMMUNITY</span>
-                <h3 className="perks-heading">
-                  Join 1,200+ students actively shaping campus life.
-                </h3>
-                <ul className="perks-list">
-                  <li>
-                    <Check size={16} className="perk-check-icon" />
-                    <span>Free registration for all campus workshops</span>
-                  </li>
-                  <li>
-                    <Check size={16} className="perk-check-icon" />
-                    <span>Official attendance records for student portfolios</span>
-                  </li>
-                  <li>
-                    <Check size={16} className="perk-check-icon" />
-                    <span>Instant priority access to limited-seat hackathons</span>
-                  </li>
-                </ul>
-                <div className="perks-footer-note">
-                  * Exclusively for Sunway College Kathmandu students
+        <div className="fullscreen-signup-container">
+          <div className="fullscreen-signup-grid">
+            {/* Left Perks & Campus Community */}
+            <div className="fullscreen-perks-pane">
+              <span className="fullscreen-perks-badge">
+                <Sparkles size={13} className="badge-sparkle-icon" />
+                <span>EXCLUSIVE FOR SUNWAY STUDENTS</span>
+              </span>
+              <h2 className="fullscreen-perks-heading">
+                Step into the center of campus life.
+              </h2>
+              <p className="fullscreen-perks-sub">
+                Create your student profile today to unlock priority workshop seats, automated countdown reminders, and your verified extracurricular portfolio.
+              </p>
+
+              <div className="fullscreen-perks-cards-list">
+                <div className="fullscreen-perk-item">
+                  <div className="fullscreen-perk-icon-wrap">
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <h4 className="perk-title">100% Free Campus Access</h4>
+                    <p className="perk-desc">
+                      One-click registration for all student clubs, tech workshops, hackathons, and guest seminars.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="fullscreen-perk-item">
+                  <div className="fullscreen-perk-icon-wrap">
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <h4 className="perk-title">Verified Attendance Records</h4>
+                    <p className="perk-desc">
+                      Build an authentic extracurricular credentials transcript directly on your student dashboard.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="fullscreen-perk-item">
+                  <div className="fullscreen-perk-icon-wrap">
+                    <Check size={16} />
+                  </div>
+                  <div>
+                    <h4 className="perk-title">Live Countdown Tracking</h4>
+                    <p className="perk-desc">
+                      Instant seat vacancy indicators and deadline countdowns so you never miss out again.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="fullscreen-stats-row">
+                <div className="fullscreen-stat-box">
+                  <span className="stat-number">1,200+</span>
+                  <span className="stat-label">Sunway Students</span>
+                </div>
+                <div className="fullscreen-stat-divider" />
+                <div className="fullscreen-stat-box">
+                  <span className="stat-number">50+</span>
+                  <span className="stat-label">Events / Year</span>
+                </div>
+                <div className="fullscreen-stat-divider" />
+                <div className="fullscreen-stat-box">
+                  <span className="stat-number">100%</span>
+                  <span className="stat-label">Free Access</span>
                 </div>
               </div>
             </div>
 
-            {/* Right Quick Sign Up Form Column */}
-            <div className="signup-form-column">
+            {/* Right Floating Glassmorphic Form Card */}
+            <div className="fullscreen-form-card">
               <div className="quick-form-header">
                 <span className="form-eyebrow">FAST ENROLLMENT</span>
                 <h3 className="quick-form-title">

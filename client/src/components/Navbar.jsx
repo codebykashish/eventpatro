@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { LogOut, User as UserIcon, Shield, AlertTriangle, Search, PlusCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -7,10 +7,20 @@ import './Navbar.css'
 const Navbar = () => {
   const { user, isAuthenticated, isAdmin, logout, openAuthModal } = useAuth()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
   const isHomePage = location.pathname === '/'
+
+  // Track window scroll to smoothly elevate floating sticky navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Smoothly scroll to a section on the landing page with animation
   const scrollToSection = (e, sectionId) => {
@@ -41,7 +51,11 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className={`navbar ${isHomePage ? 'navbar-hero-overlay' : ''}`}>
+      <nav
+        className={`navbar ${isHomePage ? 'navbar-hero-overlay' : ''} ${
+          isScrolled ? 'navbar-scrolled' : ''
+        }`}
+      >
         <div className="navbar-container">
           {/* Brand identity without icon, written in cursive */}
           <Link to="/" onClick={(e) => scrollToSection(e, 'home')} className="nav-brand">

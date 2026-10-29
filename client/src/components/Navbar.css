@@ -18,27 +18,45 @@
   transition: all 0.25s ease;
 }
 
-/* Floating overlay navbar over full-screen hero */
+/* Floating overlay navbar over full-screen hero — sticky nature that follows scroll */
 .navbar.navbar-hero-overlay {
-  position: absolute;
-  top: 24px;
+  position: fixed;
+  top: 18px;
   left: 0;
   right: 0;
   background: transparent;
   border-bottom: none;
-  z-index: 50;
+  z-index: 1000;
   padding: 0 20px;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navbar.navbar-hero-overlay .navbar-container {
+  pointer-events: auto;
   max-width: 1080px;
   background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 999px;
   padding: 10px 24px;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* When user scrolls down, navbar seamlessly follows and stays elevated */
+.navbar.navbar-hero-overlay.navbar-scrolled {
+  top: 12px;
+}
+
+.navbar.navbar-hero-overlay.navbar-scrolled .navbar-container {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 16px 42px rgba(44, 32, 35, 0.12), 0 2px 10px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(220, 210, 215, 0.9);
+  padding: 8px 24px;
 }
 
 /* Brand title without icon written in cursive */

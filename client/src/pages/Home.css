@@ -477,167 +477,328 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 28px;
+  align-items: stretch;
 }
 
 .how-step-card {
-  padding: 38px 30px;
+  background: #ffffff;
   border-radius: 24px;
+  padding: 16px;
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  justify-content: space-between;
+  border: 1px solid #f0e6e7;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+  overflow: hidden;
 }
 
 .how-step-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 45px rgba(136, 20, 33, 0.1);
+  border-color: rgba(136, 20, 33, 0.25);
 }
 
-.how-step-card.step-one {
-  background-color: #fbf5f2;
-}
-
-.how-step-card.step-two {
-  background-color: #f4ede9;
-}
-
-.how-step-card.step-three {
-  background-color: #ede2dd;
-}
-
-.step-number-badge {
-  font-size: 20px;
-  font-weight: 800;
-  color: #881421;
-  font-family: var(--font-cursive);
+/* Image window holding 1/3 of the panoramic artwork — triptych unbroken image */
+.how-step-media {
+  position: relative;
+  height: 230px;
+  border-radius: 18px;
+  overflow: hidden;
+  background-color: #241417;
   margin-bottom: 20px;
-  width: 44px;
-  height: 44px;
+}
+
+.how-step-img-slice {
+  position: absolute;
+  inset: 0;
+  background-image: url('/how_it_works_panorama.jpg');
+  background-size: 300% 100%;
+  background-repeat: no-repeat;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.how-step-card:hover .how-step-img-slice {
+  transform: scale(1.06);
+}
+
+/* Left, middle, right slice coordinates for continuous image */
+.how-step-img-slice.slice-one {
+  background-position: 0% 50%;
+}
+
+.how-step-img-slice.slice-two {
+  background-position: 50% 50%;
+}
+
+.how-step-img-slice.slice-three {
+  background-position: 100% 50%;
+}
+
+/* Frosted glass step number badge on top-left of image */
+.step-number-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  font-size: 15px;
+  font-weight: 800;
+  color: #881421;
+  font-family: var(--font-cursive);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  z-index: 2;
+}
+
+/* Category tag pill on bottom-left of image */
+.step-slice-label {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  padding: 4px 12px;
+  background: rgba(18, 9, 12, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  z-index: 2;
+}
+
+.how-step-body {
+  padding: 4px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .step-title {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 800;
-  color: #1f2937;
+  color: #111827;
   letter-spacing: -0.01em;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   line-height: 1.3;
 }
 
 .step-description {
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.6;
-  color: #4b5563;
-  margin: 0;
+  color: #6b7280;
+  margin: 0 0 20px;
+  flex: 1;
 }
 
-/* ─── 5. Embedded Sign-Up Section ────────────────────────────────────────── */
-.embedded-signup-section {
-  padding: 40px 0 100px;
-  background-color: #faf8f7;
+.how-step-action-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #faf4f5;
+  color: #881421;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid rgba(136, 20, 33, 0.12);
+  transition: all 0.2s ease;
 }
 
-.embedded-signup-card {
-  background-color: #ffffff;
-  border-radius: 32px;
-  overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f0e6e7;
-  display: grid;
-  grid-template-columns: 1.05fr 1.25fr;
-  min-height: 580px;
-}
-
-/* Left Perks Column */
-.signup-perks-column {
-  position: relative;
-  padding: 48px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+.how-step-card:hover .how-step-action-pill {
+  background: #881421;
   color: #ffffff;
-  overflow: hidden;
+  border-color: #881421;
 }
 
-.signup-perks-bg {
+/* ─── 5. Full-Screen Embedded Sign-Up Section with Background Image ─────────── */
+.fullscreen-signup-section {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 100px 0;
+  background-color: #12090c;
+}
+
+.fullscreen-signup-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  filter: brightness(0.85);
+  transform: scale(1.02);
 }
 
-.signup-perks-overlay {
+.fullscreen-signup-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(20, 10, 12, 0.94) 0%, rgba(136, 20, 33, 0.72) 65%, rgba(0, 0, 0, 0.45) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(17, 7, 10, 0.92) 0%,
+    rgba(136, 20, 33, 0.80) 50%,
+    rgba(10, 5, 8, 0.94) 100%
+  );
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
 }
 
-.signup-perks-content {
+.fullscreen-signup-container {
   position: relative;
   z-index: 2;
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
-.perks-badge {
-  display: inline-block;
+.fullscreen-signup-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 56px;
+  align-items: center;
+}
+
+/* Left Perks Column */
+.fullscreen-perks-pane {
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-perks-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.12em;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  padding: 4px 12px;
-  border-radius: 999px;
-  margin-bottom: 14px;
-}
-
-.perks-heading {
-  font-size: 28px;
-  font-weight: 800;
-  line-height: 1.3;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #ffffff;
-  margin: 0 0 22px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  margin-bottom: 20px;
+  width: fit-content;
 }
 
-.perks-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 28px;
+.fullscreen-perks-heading {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0 0 18px;
+}
+
+.fullscreen-perks-sub {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 32px;
+}
+
+.fullscreen-perks-cards-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  margin-bottom: 36px;
 }
 
-.perks-list li {
+.fullscreen-perk-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.fullscreen-perk-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #ffffff;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 14.5px;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.perk-check-icon {
-  color: #86efac;
+  justify-content: center;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.perks-footer-note {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.65);
+.perk-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 3px;
 }
 
-/* Right Quick Sign Up Form */
-.signup-form-column {
-  padding: 48px 44px;
+.perk-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.45;
+  margin: 0;
+}
+
+.fullscreen-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.fullscreen-stat-box {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+}
+
+.stat-number {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.fullscreen-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Right Glassmorphic Form Card */
+.fullscreen-form-card {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: 28px;
+  padding: 40px 36px;
+  box-shadow: 0 28px 65px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .quick-form-header {
@@ -940,8 +1101,13 @@
   .how-steps-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .embedded-signup-card {
+  .fullscreen-signup-section {
+    min-height: auto;
+    padding: 70px 0;
+  }
+  .fullscreen-signup-grid {
     grid-template-columns: 1fr;
+    gap: 40px;
   }
   .footer-contact-grid {
     grid-template-columns: 1fr 1fr;
@@ -987,8 +1153,19 @@
   .how-steps-grid {
     grid-template-columns: 1fr;
   }
-  .signup-form-column {
-    padding: 32px 20px;
+  .how-step-img-slice {
+    background-size: cover !important;
+    background-position: center !important;
+  }
+  .fullscreen-perks-heading {
+    font-size: 30px;
+  }
+  .fullscreen-form-card {
+    padding: 28px 20px;
+  }
+  .fullscreen-stats-row {
+    flex-wrap: wrap;
+    gap: 16px;
   }
   .quick-row {
     grid-template-columns: 1fr;
