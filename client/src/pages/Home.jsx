@@ -226,7 +226,6 @@ const Home = () => {
                   className="btn-explore-more"
                 >
                   <span>Explore More Events</span>
-                  <ArrowRight size={17} />
                 </button>
               </div>
             </>
