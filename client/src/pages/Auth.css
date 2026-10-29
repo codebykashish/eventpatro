@@ -320,50 +320,7 @@
   cursor: not-allowed;
 }
 
-/* Divider with 'or' */
-.auth-or-divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 4px 0;
-}
 
-.auth-or-divider::before,
-.auth-or-divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.auth-or-divider span {
-  padding: 0 12px;
-  color: #9ca3af;
-  font-size: 12px;
-  text-transform: lowercase;
-}
-
-/* Continue with Google button */
-.btn-google-auth {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  color: #374151;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.btn-google-auth:hover {
-  background-color: #f9fafb;
-  border-color: #9ca3af;
-}
 
 /* Footer switch link */
 .auth-switch-footer {
