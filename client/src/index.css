@@ -1,0 +1,62 @@
+/* Design tokens defined in design.md */
+:root {
+  /* Brand colors */
+  --color-primary: #881421;      /* Dominant burgundy for primary actions */
+  --color-secondary: #c12a37;    /* Secondary red for highlights */
+  --color-blush: #f7e4e5;        /* Pale blush for badges and icon backgrounds */
+
+  /* Neutral surfaces and text */
+  --color-bg: #faf5f3;           /* Warm off-white page background */
+  --color-card: #fffdfc;         /* Card and form surface */
+  --color-text: #2c2023;         /* Main headings and body text */
+  --color-muted: #74696b;        /* Supporting text and metadata */
+  --color-border: #e9dcdd;       /* Divider and outline border */
+
+  /* Status colors */
+  --color-success: #1b7a42;
+  --color-warning: #b25e00;
+  --color-error: #b91c1c;
+
+  /* Typography */
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /* Layout and shapes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --max-width: 1200px;
+}
+
+/* Base reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Button reset helper */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}

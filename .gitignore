@@ -1,0 +1,23 @@
+# Node dependencies — never commit these; they are reinstalled with npm install
+node_modules/
+
+# Environment files — contain real secrets; never commit
+.env
+.env.local
+.env.production
+
+# Build output
+dist/
+build/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Uploaded files (profile pictures etc.) — stored locally, not in git
+server/uploads/
