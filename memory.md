@@ -32,6 +32,8 @@
 - Phase 2, Task 2.6: Built Create Event page (`/admin/events/new`) and Edit Event page (`/admin/events/:id/edit`) with validation and delete action ✅
 - Phase 2, Task 2.7: Built Admin Event Management portal in `AdminDashboard.jsx` with live metrics, event table, quick view/edit/delete actions, and confirmation modals ✅
 - Phase 2, Task 2.8: Created event seeding script (`npm run seed:events`) with 4 realistic Sunway College events ✅
+- Phase 2, Task 2.9: Redesigned landing page matching the inspiration reference (full-bleed campus hero, floating search & browse bar, 3-card upcoming showcase with live "N days remaining" countdown tags, "Why Eventpatro?" pillars, CTA card, and footer) ✅
+- Phase 2, Task 2.10: Implemented global `AuthModal` overlay (`backdrop-filter: blur(8px)`) with instant click-outside / Escape dismissal and seamless Sign In / Register / OTP verification tab flow ✅
 
 ---
 
