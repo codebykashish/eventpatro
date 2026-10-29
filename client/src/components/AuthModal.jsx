@@ -1,25 +1,23 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  X,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  CheckCircle2,
-  Landmark,
-  ShieldCheck,
-  Check,
-} from 'lucide-react'
+import { X, Eye, EyeOff, AlertCircle, CheckCircle2, Check, Landmark } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import '../pages/Auth.css'
 import './AuthModal.css'
 
 const AuthModal = () => {
-  const { authModal, closeAuthModal, switchAuthModalMode, login, signup, verifyOtp, resendOtp } =
-    useAuth()
+  const {
+    authModal,
+    closeAuthModal,
+    switchAuthModalMode,
+    login,
+    signup,
+    verifyOtp,
+    resendOtp,
+  } = useAuth()
 
-  // Internal mode: 'login' | 'signup' | 'verify'
+  // Mode: 'login' | 'signup' | 'verify'
   const [mode, setMode] = useState(authModal.mode || 'login')
 
-  // Synchronize with external context mode changes
   useEffect(() => {
     if (authModal.isOpen) {
       setMode(authModal.mode || 'login')
@@ -28,7 +26,7 @@ const AuthModal = () => {
     }
   }, [authModal.isOpen, authModal.mode])
 
-  // Close on Escape key
+  // Close when pressing Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape' && authModal.isOpen) {
@@ -39,9 +37,14 @@ const AuthModal = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [authModal.isOpen, closeAuthModal])
 
-  // Form states
-  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
-  const [signupForm, setSignupForm] = useState({
+  // Login form state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
+
+  // Signup form state
+  const [signupData, setSignupData] = useState({
     firstName: '',
     lastName: '',
     studentId: '',
@@ -49,19 +52,20 @@ const AuthModal = () => {
     password: '',
     confirmPassword: '',
   })
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', ''])
-  const [verifyEmail, setVerifyEmail] = useState('')
-
-  const [showPassword, setShowPassword] = useState(false)
+  const [showSignupPassword, setShowSignupPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // OTP state
+  const [verifyEmail, setVerifyEmail] = useState('')
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', ''])
+  const [resendTimer, setResendTimer] = useState(60)
+  const otpInputRefs = useRef([])
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [resendTimer, setResendTimer] = useState(60)
 
-  const otpInputRefs = useRef([])
-
-  // Resend timer countdown
+  // Resend countdown timer
   useEffect(() => {
     if (mode === 'verify' && resendTimer > 0) {
       const interval = setInterval(() => setResendTimer((prev) => prev - 1), 1000)
@@ -71,28 +75,28 @@ const AuthModal = () => {
 
   if (!authModal.isOpen) return null
 
-  // Password criteria for signup
-  const password = signupForm.password
-  const criteria = {
-    length: password.length >= 8,
-    upper: /[A-Z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[^A-Za-z0-9]/.test(password),
+  // Password criteria check for signup
+  const pwd = signupData.password
+  const passwordStats = {
+    length: pwd.length >= 8,
+    hasUpper: /[A-Z]/.test(pwd),
+    hasLower: /[a-z]/.test(pwd),
+    hasNumber: /[0-9]/.test(pwd),
   }
 
-  // Handle Login Submit
+  // Handle Login Submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setIsSubmitting(true)
     try {
-      await login(loginForm.email, loginForm.password)
+      await login(loginEmail, loginPassword)
       closeAuthModal()
     } catch (err) {
       if (err.isUnverified) {
-        setVerifyEmail(err.email || loginForm.email)
+        setVerifyEmail(err.email || loginEmail)
         setMode('verify')
-        setError('Please enter the 6-digit code sent to your email.')
+        setError('Please enter the 6-digit verification code sent to your email.')
       } else {
         setError(err.message || 'Login failed')
       }
@@ -101,26 +105,31 @@ const AuthModal = () => {
     }
   }
 
-  // Handle Signup Submit
+  // Handle Signup Submission
   const handleSignupSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (signupForm.password !== signupForm.confirmPassword) {
+    if (signupData.password !== signupData.confirmPassword) {
       setError('Passwords do not match')
       return
     }
 
-    if (!criteria.length || !criteria.upper || !criteria.number || !criteria.special) {
+    if (
+      !passwordStats.length ||
+      !passwordStats.hasUpper ||
+      !passwordStats.hasLower ||
+      !passwordStats.hasNumber
+    ) {
       setError('Please satisfy all password security requirements')
       return
     }
 
     setIsSubmitting(true)
     try {
-      const res = await signup(signupForm)
+      const res = await signup(signupData)
       if (res.requiresVerification) {
-        setVerifyEmail(signupForm.email)
+        setVerifyEmail(signupData.email)
         setMode('verify')
         setResendTimer(60)
         setSuccess('Account created! Please check your email for the 6-digit code.')
@@ -134,14 +143,14 @@ const AuthModal = () => {
     }
   }
 
-  // Handle OTP digit changes
+  // OTP input handlers
   const handleOtpChange = (index, value) => {
-    const cleanVal = value.replace(/[^0-9]/g, '')
-    if (!cleanVal && value) return
-    const newDigits = [...otpDigits]
-    newDigits[index] = cleanVal ? cleanVal[cleanVal.length - 1] : ''
-    setOtpDigits(newDigits)
-    if (cleanVal && index < 5) {
+    const clean = value.replace(/[^0-9]/g, '')
+    if (!clean && value) return
+    const nextDigits = [...otpDigits]
+    nextDigits[index] = clean ? clean[clean.length - 1] : ''
+    setOtpDigits(nextDigits)
+    if (clean && index < 5) {
       otpInputRefs.current[index + 1]?.focus()
     }
   }
@@ -156,13 +165,12 @@ const AuthModal = () => {
     e.preventDefault()
     const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6)
     if (!pasted) return
-    const newDigits = pasted.split('').concat(Array(6 - pasted.length).fill(''))
-    setOtpDigits(newDigits)
+    const nextDigits = pasted.split('').concat(Array(6 - pasted.length).fill(''))
+    setOtpDigits(nextDigits)
     const nextIdx = Math.min(pasted.length, 5)
     otpInputRefs.current[nextIdx]?.focus()
   }
 
-  // Handle OTP Submit
   const handleVerifySubmit = async (e) => {
     e.preventDefault()
     const code = otpDigits.join('')
@@ -182,13 +190,12 @@ const AuthModal = () => {
     }
   }
 
-  // Handle Resend OTP
-  const handleResend = async () => {
+  const handleResendOtp = async () => {
     if (resendTimer > 0 || isSubmitting) return
     setError('')
     try {
       await resendOtp(verifyEmail)
-      setSuccess('A new 6-digit code has been sent to your email.')
+      setSuccess('A new 6-digit verification code has been sent to your email.')
       setResendTimer(60)
     } catch (err) {
       setError(err.message || 'Failed to resend code')
@@ -196,309 +203,331 @@ const AuthModal = () => {
   }
 
   return (
-    <div className="auth-modal-overlay" onClick={closeAuthModal}>
-      <div className="auth-modal-card" onClick={(e) => e.stopPropagation()}>
-        {/* Close Button */}
+    <div className="auth-overlay-backdrop" onClick={closeAuthModal}>
+      <div className="auth-overlay-card-wrapper" onClick={(e) => e.stopPropagation()}>
+        {/* Floating close button */}
         <button
           type="button"
-          className="auth-modal-close"
+          className="auth-overlay-close-btn"
           onClick={closeAuthModal}
-          aria-label="Close"
+          aria-label="Close dialog"
         >
           <X size={18} />
         </button>
 
-        {/* Left Side: Burgundy Brand Panel */}
-        <div className="auth-modal-brand">
-          <div className="modal-brand-badge">
-            <Landmark size={22} color="#fff" />
-            <span>Eventpatro</span>
-          </div>
-          <h3 className="modal-brand-title">Your Campus. Our Events.</h3>
-          <p className="modal-brand-desc">
-            Discover workshops, seminars, and hackathons that help you learn, grow, and belong.
-          </p>
-
-          <div className="modal-brand-perks">
-            <div className="perk-row">
-              <ShieldCheck size={16} />
-              <span>Verified Sunway College Access</span>
-            </div>
-            <div className="perk-row">
-              <Check size={16} />
-              <span>1-Click Event Registrations</span>
-            </div>
-            <div className="perk-row">
-              <Check size={16} />
-              <span>Real-time Attendance & Alerts</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side: Interactive Auth Form */}
-        <div className="auth-modal-content">
-          {/* Mode Switch Tabs (hidden during OTP verify) */}
-          {mode !== 'verify' && (
-            <div className="auth-modal-tabs">
-              <button
-                type="button"
-                className={`modal-tab ${mode === 'login' ? 'active' : ''}`}
-                onClick={() => {
-                  setMode('login')
-                  switchAuthModalMode('login')
-                  setError('')
-                }}
-              >
-                Sign In
-              </button>
-              <button
-                type="button"
-                className={`modal-tab ${mode === 'signup' ? 'active' : ''}`}
-                onClick={() => {
-                  setMode('signup')
-                  switchAuthModalMode('signup')
-                  setError('')
-                }}
-              >
-                Create Account
-              </button>
-            </div>
-          )}
-
-          {/* Feedback banners */}
-          {error && (
-            <div className="modal-banner banner-error">
-              <AlertCircle size={15} /> <span>{error}</span>
-            </div>
-          )}
-          {success && (
-            <div className="modal-banner banner-success">
-              <CheckCircle2 size={15} /> <span>{success}</span>
-            </div>
-          )}
-
-          {/* ── Mode 1: Login Form ── */}
-          {mode === 'login' && (
-            <form onSubmit={handleLoginSubmit} className="modal-form">
-              <div className="modal-field">
-                <label>Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. kashish@sunway.edu.np"
-                  value={loginForm.email}
-                  onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
-                />
+        {/* Form card only — no red image panel, consistent size */}
+        <div className="auth-main-card">
+          <div className="auth-form-panel">
+            {/* Header with App Branding and red Eventpatro */}
+            <div className="form-header">
+              <div className="brand-badge-pill">
+                <Landmark size={15} color="#881421" />
+                <span>Eventpatro</span>
               </div>
+              <h2>
+                Welcome to <span className="brand-red-text">Eventpatro</span>
+              </h2>
+              <p className="form-subtitle">
+                {mode === 'login'
+                  ? 'Login to your account'
+                  : mode === 'signup'
+                  ? 'Create your student account'
+                  : 'Verify your email address'}
+              </p>
+            </div>
 
-              <div className="modal-field">
-                <label>Password</label>
-                <div className="modal-input-wrapper">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    placeholder="Enter your password"
-                    value={loginForm.password}
-                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                  />
+            {/* Error & Success banners */}
+            {error && (
+              <div className="auth-clean-error">
+                <AlertCircle size={16} />
+                <span>{error}</span>
+              </div>
+            )}
+            {success && (
+              <div className="auth-clean-success">
+                <CheckCircle2 size={16} />
+                <span>{success}</span>
+              </div>
+            )}
+
+            {/* ── 1. LOGIN MODE ── */}
+            {mode === 'login' && (
+              <>
+                <form onSubmit={handleLoginSubmit} className="clean-form">
+                  <div className="clean-field">
+                    <label htmlFor="modal-login-email">Email Address</label>
+                    <input
+                      id="modal-login-email"
+                      type="email"
+                      placeholder="name@sunway.edu.np"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="clean-field">
+                    <label htmlFor="modal-login-pwd">Password</label>
+                    <div className="password-input-wrap">
+                      <input
+                        id="modal-login-pwd"
+                        type={showLoginPassword ? 'text' : 'password'}
+                        placeholder="Enter your password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="eye-toggle-btn"
+                        onClick={() => setShowLoginPassword((prev) => !prev)}
+                        title={showLoginPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="form-row-between">
+                    <label className="checkbox-wrap">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Remember me</span>
+                    </label>
+                    <span
+                      className="link-subtle"
+                      onClick={() => alert('Please contact administrator to reset password.')}
+                    >
+                      Forgot password?
+                    </span>
+                  </div>
+
+                  <button type="submit" className="btn-primary-action" disabled={isSubmitting}>
+                    {isSubmitting ? 'Logging in...' : 'Login'}
+                  </button>
+                </form>
+
+                <div className="auth-switch-footer">
+                  <span>Don't have an account? </span>
                   <button
                     type="button"
-                    className="modal-eye-btn"
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex="-1"
+                    className="modal-text-link"
+                    onClick={() => {
+                      setMode('signup')
+                      switchAuthModalMode('signup')
+                      setError('')
+                      setSuccess('')
+                    }}
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    Register here
                   </button>
                 </div>
-              </div>
+              </>
+            )}
 
-              <button type="submit" className="btn-modal-submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
-              </button>
-
-              <div className="modal-footer-switch">
-                <span>New to Eventpatro? </span>
-                <button
-                  type="button"
-                  className="modal-link-btn"
-                  onClick={() => {
-                    setMode('signup')
-                    switchAuthModalMode('signup')
-                    setError('')
-                  }}
-                >
-                  Create an account
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* ── Mode 2: Signup Form ── */}
-          {mode === 'signup' && (
-            <form onSubmit={handleSignupSubmit} className="modal-form">
-              <div className="modal-row-2">
-                <div className="modal-field">
-                  <label>First Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Kashish"
-                    value={signupForm.firstName}
-                    onChange={(e) => setSignupForm({ ...signupForm, firstName: e.target.value })}
-                  />
-                </div>
-                <div className="modal-field">
-                  <label>Last Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Dhami"
-                    value={signupForm.lastName}
-                    onChange={(e) => setSignupForm({ ...signupForm, lastName: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="modal-row-2">
-                <div className="modal-field">
-                  <label>Student ID</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="SUN12345"
-                    value={signupForm.studentId}
-                    onChange={(e) => setSignupForm({ ...signupForm, studentId: e.target.value })}
-                  />
-                </div>
-                <div className="modal-field">
-                  <label>College / Personal Email</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="name@gmail.com"
-                    value={signupForm.email}
-                    onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="modal-row-2">
-                <div className="modal-field">
-                  <label>Password</label>
-                  <div className="modal-input-wrapper">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      placeholder="Min 8 characters"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                    />
-                    <button
-                      type="button"
-                      className="modal-eye-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                      tabIndex="-1"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+            {/* ── 2. SIGNUP MODE ── */}
+            {mode === 'signup' && (
+              <>
+                <form onSubmit={handleSignupSubmit} className="clean-form">
+                  {/* First Name & Last Name in one row */}
+                  <div className="clean-row">
+                    <div className="clean-field">
+                      <label htmlFor="modal-signup-fname">First Name</label>
+                      <input
+                        id="modal-signup-fname"
+                        type="text"
+                        placeholder="Hari"
+                        value={signupData.firstName}
+                        onChange={(e) =>
+                          setSignupData({ ...signupData, firstName: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div className="clean-field">
+                      <label htmlFor="modal-signup-lname">Last Name</label>
+                      <input
+                        id="modal-signup-lname"
+                        type="text"
+                        placeholder="Sharma"
+                        value={signupData.lastName}
+                        onChange={(e) =>
+                          setSignupData({ ...signupData, lastName: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="modal-field">
-                  <label>Confirm Password</label>
-                  <div className="modal-input-wrapper">
-                    <input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      required
-                      placeholder="Confirm password"
-                      value={signupForm.confirmPassword}
-                      onChange={(e) =>
-                        setSignupForm({ ...signupForm, confirmPassword: e.target.value })
-                      }
-                    />
-                    <button
-                      type="button"
-                      className="modal-eye-btn"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      tabIndex="-1"
-                    >
-                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
+                  {/* Student ID & Email in one row for compact matching card height */}
+                  <div className="clean-row">
+                    <div className="clean-field">
+                      <label htmlFor="modal-signup-stuId">Student ID</label>
+                      <input
+                        id="modal-signup-stuId"
+                        type="text"
+                        placeholder="STU-2024-001"
+                        value={signupData.studentId}
+                        onChange={(e) =>
+                          setSignupData({ ...signupData, studentId: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div className="clean-field">
+                      <label htmlFor="modal-signup-email">Email Address</label>
+                      <input
+                        id="modal-signup-email"
+                        type="email"
+                        placeholder="name@sunway.edu.np"
+                        value={signupData.email}
+                        onChange={(e) =>
+                          setSignupData({ ...signupData, email: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
                   </div>
+
+                  {/* Password & Confirm Password in one row */}
+                  <div className="clean-row">
+                    <div className="clean-field">
+                      <label htmlFor="modal-signup-pwd">Password</label>
+                      <div className="password-input-wrap">
+                        <input
+                          id="modal-signup-pwd"
+                          type={showSignupPassword ? 'text' : 'password'}
+                          placeholder="Min 8 chars"
+                          value={signupData.password}
+                          onChange={(e) =>
+                            setSignupData({ ...signupData, password: e.target.value })
+                          }
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="eye-toggle-btn"
+                          onClick={() => setShowSignupPassword((prev) => !prev)}
+                          title={showSignupPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showSignupPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="clean-field">
+                      <label htmlFor="modal-signup-cpwd">Confirm Password</label>
+                      <div className="password-input-wrap">
+                        <input
+                          id="modal-signup-cpwd"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          placeholder="Repeat password"
+                          value={signupData.confirmPassword}
+                          onChange={(e) =>
+                            setSignupData({ ...signupData, confirmPassword: e.target.value })
+                          }
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="eye-toggle-btn"
+                          onClick={() => setShowConfirmPassword((prev) => !prev)}
+                          title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Password criteria chips */}
+                  {signupData.password.length > 0 && (
+                    <div className="clean-checklist">
+                      <span className={`check-rule ${passwordStats.length ? 'rule-met' : ''}`}>
+                        <Check size={13} /> 8+ chars
+                      </span>
+                      <span className={`check-rule ${passwordStats.hasUpper ? 'rule-met' : ''}`}>
+                        <Check size={13} /> Upper
+                      </span>
+                      <span className={`check-rule ${passwordStats.hasLower ? 'rule-met' : ''}`}>
+                        <Check size={13} /> Lower
+                      </span>
+                      <span className={`check-rule ${passwordStats.hasNumber ? 'rule-met' : ''}`}>
+                        <Check size={13} /> Number
+                      </span>
+                    </div>
+                  )}
+
+                  <button type="submit" className="btn-primary-action" disabled={isSubmitting}>
+                    {isSubmitting ? 'Creating account...' : 'Create Account'}
+                  </button>
+                </form>
+
+                <div className="auth-switch-footer">
+                  <span>Already have an account? </span>
+                  <button
+                    type="button"
+                    className="modal-text-link"
+                    onClick={() => {
+                      setMode('login')
+                      switchAuthModalMode('login')
+                      setError('')
+                      setSuccess('')
+                    }}
+                  >
+                    Log in
+                  </button>
                 </div>
-              </div>
+              </>
+            )}
 
-              {/* Password criteria chips */}
-              <div className="modal-criteria-wrap">
-                <span className={`criteria-chip ${criteria.length ? 'met' : ''}`}>8+ Chars</span>
-                <span className={`criteria-chip ${criteria.upper ? 'met' : ''}`}>Uppercase</span>
-                <span className={`criteria-chip ${criteria.number ? 'met' : ''}`}>Number</span>
-                <span className={`criteria-chip ${criteria.special ? 'met' : ''}`}>Special</span>
-              </div>
+            {/* ── 3. VERIFY OTP MODE ── */}
+            {mode === 'verify' && (
+              <>
+                <form onSubmit={handleVerifySubmit} className="clean-form">
+                  <div className="otp-boxes-container" onPaste={handleOtpPaste}>
+                    {otpDigits.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => (otpInputRefs.current[idx] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                        className="otp-digit-box"
+                        autoFocus={idx === 0}
+                      />
+                    ))}
+                  </div>
 
-              <button type="submit" className="btn-modal-submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating account...' : 'Complete Registration'}
-              </button>
+                  <button type="submit" className="btn-primary-action" disabled={isSubmitting}>
+                    {isSubmitting ? 'Verifying...' : 'Verify Email & Continue'}
+                  </button>
+                </form>
 
-              <div className="modal-footer-switch">
-                <span>Already have an account? </span>
-                <button
-                  type="button"
-                  className="modal-link-btn"
-                  onClick={() => {
-                    setMode('login')
-                    switchAuthModalMode('login')
-                    setError('')
-                  }}
-                >
-                  Sign in
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* ── Mode 3: OTP Verification Form ── */}
-          {mode === 'verify' && (
-            <div className="modal-otp-wrap">
-              <h4 className="modal-otp-title">Verify Email Address</h4>
-              <p className="modal-otp-desc">
-                We sent a 6-digit code to <strong>{verifyEmail}</strong>
-              </p>
-
-              <form onSubmit={handleVerifySubmit} className="modal-form">
-                <div className="modal-otp-boxes" onPaste={handleOtpPaste}>
-                  {otpDigits.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={(el) => (otpInputRefs.current[idx] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpChange(idx, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(idx, e.target)}
-                      className="modal-otp-box"
-                      autoFocus={idx === 0}
-                    />
-                  ))}
-                </div>
-
-                <button type="submit" className="btn-modal-submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Verifying...' : 'Verify & Continue'}
-                </button>
-
-                <div className="modal-resend-row">
+                <div className="otp-resend-area">
                   {resendTimer > 0 ? (
-                    <span className="resend-countdown">Resend code in {resendTimer}s</span>
+                    <span className="otp-timer-text">Resend code in {resendTimer}s</span>
                   ) : (
-                    <button type="button" onClick={handleResend} className="btn-resend-link">
-                      Resend Verification Code
+                    <button
+                      type="button"
+                      onClick={handleResendOtp}
+                      className="btn-resend-clean"
+                      disabled={isSubmitting}
+                    >
+                      Resend Code
                     </button>
                   )}
                 </div>
-              </form>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

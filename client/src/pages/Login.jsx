@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Landmark } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import CampusIllustration from '../components/CampusIllustration'
 import './Auth.css'
 
 const Login = () => {
@@ -42,25 +41,16 @@ const Login = () => {
   return (
     <div className="auth-clean-page">
       <div className="auth-main-card">
-        {/* Left branding panel in college burgundy with line illustration */}
-        <div className="auth-theme-panel">
-          <div className="panel-brand-header">
-            <div className="brand-logomark">
-              <span className="brand-dot"></span>
-              <span className="brand-text">Eventpatro</span>
-            </div>
-            <p className="brand-tagline">Discover. Participate. Grow.</p>
-          </div>
-
-          <div className="panel-illustration-wrap">
-            <CampusIllustration />
-          </div>
-        </div>
-
-        {/* Right form panel in pure clean white */}
+        {/* Clean form card without red image panel */}
         <div className="auth-form-panel">
           <div className="form-header">
-            <h2>Welcome Back</h2>
+            <div className="brand-badge-pill">
+              <Landmark size={15} color="#881421" />
+              <span>Eventpatro</span>
+            </div>
+            <h2>
+              Welcome to <span className="brand-red-text">Eventpatro</span>
+            </h2>
             <p className="form-subtitle">Login to your account</p>
           </div>
 

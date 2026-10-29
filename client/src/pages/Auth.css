@@ -1,4 +1,4 @@
-/* Clean auth page container without red tint */
+/* Clean auth page container */
 .auth-clean-page {
   min-height: calc(100vh - 70px);
   background-color: #f3f4f6;
@@ -8,102 +8,67 @@
   padding: 40px 20px;
 }
 
-/* Main split card */
+/* Main single-column card with identical width for Login and Signup */
 .auth-main-card {
   width: 100%;
-  max-width: 960px;
+  max-width: 460px;
+  min-height: 520px;
   background-color: #ffffff;
   border-radius: 20px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.08);
   display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid #e5e7eb;
+  margin: 0 auto;
 }
 
-/* Left branding panel in theme burgundy */
-.auth-theme-panel {
-  flex: 0 0 42%;
-  background: linear-gradient(170deg, #881421 0%, #6b0c16 100%);
-  color: #ffffff;
-  padding: 44px 36px;
+/* Form panel in pure clean white with vertical flex spacing */
+.auth-form-panel {
+  width: 100%;
+  flex: 1;
+  background-color: #ffffff;
+  padding: 36px 32px 30px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: relative;
-}
-
-/* Brand header */
-.panel-brand-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.brand-logomark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand-dot {
-  width: 10px;
-  height: 10px;
-  background-color: #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-}
-
-.brand-text {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-  color: #ffffff;
-}
-
-.brand-tagline {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 400;
-  letter-spacing: 0.2px;
-}
-
-/* Illustration at bottom of left panel */
-.panel-illustration-wrap {
-  width: 100%;
-  margin-top: 40px;
-}
-
-.campus-line-art {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* Right form panel in pure clean white */
-.auth-form-panel {
-  flex: 1;
-  background-color: #ffffff;
-  padding: 44px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .form-header {
   margin-bottom: 22px;
+  text-align: center;
+}
+
+.brand-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: #fdf2f4;
+  color: #881421;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  border: 1px solid #fce7eb;
 }
 
 .form-header h2 {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 800;
   color: #111827;
-  margin-bottom: 4px;
-  letter-spacing: -0.3px;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.brand-red-text {
+  color: #881421;
 }
 
 .form-subtitle {
-  font-size: 13px;
+  font-size: 13.5px;
   color: #6b7280;
+  margin: 0;
 }
 
 /* Error message banner */
@@ -117,21 +82,7 @@
   padding: 10px 14px;
   border-radius: 8px;
   font-size: 13px;
-  margin-bottom: 16px;
-}
-
-/* Dev-mode OTP hint banner (amber/yellow) */
-.auth-dev-hint {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #fffbeb;
-  border: 1px solid #fbbf24;
-  color: #92400e;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 /* Success message banner */
@@ -145,7 +96,7 @@
   padding: 10px 14px;
   border-radius: 8px;
   font-size: 13px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 
@@ -420,25 +371,17 @@
 /* Responsive adjustment for mobile and tablets */
 @media (max-width: 768px) {
   .auth-main-card {
-    flex-direction: column;
-    max-width: 440px;
-  }
-
-  .auth-theme-panel {
-    padding: 30px 24px;
-  }
-
-  .panel-illustration-wrap {
-    display: none;
+    max-width: 100%;
+    min-height: auto;
   }
 
   .auth-form-panel {
-    padding: 30px 24px;
+    padding: 28px 20px;
   }
 
   .clean-row {
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
   }
 
   .otp-box-input {

@@ -34,6 +34,7 @@
 - Phase 2, Task 2.8: Created event seeding script (`npm run seed:events`) with 4 realistic Sunway College events ✅
 - Phase 2, Task 2.9: Redesigned landing page matching the inspiration reference (full-bleed campus hero, floating search & browse bar, 3-card upcoming showcase with live "N days remaining" countdown tags, "Why Eventpatro?" pillars, CTA card, and footer) ✅
 - Phase 2, Task 2.10: Implemented global `AuthModal` overlay (`backdrop-filter: blur(8px)`) with instant click-outside / Escape dismissal and seamless Sign In / Register / OTP verification tab flow ✅
+- Phase 2, Task 2.11: Refactored Login, Signup, and OTP verification into a single unified card format without the red picture/illustration panel; set unified 460px width with matched heights across modes; applied red "Welcome to Eventpatro" branding (`#881421`) ✅
 
 ---
 

@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, AlertCircle, Check } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Check, Landmark } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import CampusIllustration from '../components/CampusIllustration'
 import './Auth.css'
 
 const Signup = () => {
@@ -75,26 +74,17 @@ const Signup = () => {
   return (
     <div className="auth-clean-page">
       <div className="auth-main-card">
-        {/* Left branding panel in college burgundy */}
-        <div className="auth-theme-panel">
-          <div className="panel-brand-header">
-            <div className="brand-logomark">
-              <span className="brand-dot"></span>
-              <span className="brand-text">Eventpatro</span>
-            </div>
-            <p className="brand-tagline">Discover. Participate. Grow.</p>
-          </div>
-
-          <div className="panel-illustration-wrap">
-            <CampusIllustration />
-          </div>
-        </div>
-
-        {/* Right form panel in pure clean white */}
+        {/* Clean form card without red image panel */}
         <div className="auth-form-panel">
           <div className="form-header">
-            <h2>Create Account</h2>
-            <p className="form-subtitle">Register for Sunway College events</p>
+            <div className="brand-badge-pill">
+              <Landmark size={15} color="#881421" />
+              <span>Eventpatro</span>
+            </div>
+            <h2>
+              Welcome to <span className="brand-red-text">Eventpatro</span>
+            </h2>
+            <p className="form-subtitle">Create your student account</p>
           </div>
 
           {/* Error notification */}
@@ -135,99 +125,101 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Student ID */}
-            <div className="clean-field">
-              <label htmlFor="studentId">Student ID</label>
-              <input
-                id="studentId"
-                name="studentId"
-                type="text"
-                placeholder="STU-2024-001"
-                value={formData.studentId}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* Email Address */}
-            <div className="clean-field">
-              <label htmlFor="email">Email Address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="e.g. yourname@gmail.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            {/* Password input with show/hide toggle */}
-            <div className="clean-field">
-              <label htmlFor="password">Password</label>
-              <div className="password-input-wrap">
+            {/* Student ID and Email in one row for compact matching card height */}
+            <div className="clean-row">
+              <div className="clean-field">
+                <label htmlFor="studentId">Student ID</label>
                 <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="At least 8 characters"
-                  value={formData.password}
+                  id="studentId"
+                  name="studentId"
+                  type="text"
+                  placeholder="STU-2024-001"
+                  value={formData.studentId}
                   onChange={handleChange}
                   required
                 />
-                <button
-                  type="button"
-                  className="eye-toggle-btn"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
               </div>
 
-              {/* Minimal password requirements checklist */}
-              {formData.password.length > 0 && (
-                <div className="clean-checklist">
-                  <span className={`check-rule ${passwordStats.length ? 'rule-met' : ''}`}>
-                    <Check size={13} /> 8+ chars
-                  </span>
-                  <span className={`check-rule ${passwordStats.hasUpper ? 'rule-met' : ''}`}>
-                    <Check size={13} /> Upper (A-Z)
-                  </span>
-                  <span className={`check-rule ${passwordStats.hasLower ? 'rule-met' : ''}`}>
-                    <Check size={13} /> Lower (a-z)
-                  </span>
-                  <span className={`check-rule ${passwordStats.hasNumber ? 'rule-met' : ''}`}>
-                    <Check size={13} /> Number
-                  </span>
+              <div className="clean-field">
+                <label htmlFor="email">Email Address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@sunway.edu.np"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password and Confirm Password in one row */}
+            <div className="clean-row">
+              <div className="clean-field">
+                <label htmlFor="password">Password</label>
+                <div className="password-input-wrap">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Min 8 chars"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="eye-toggle-btn"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Confirm Password input with show/hide toggle */}
-            <div className="clean-field">
-              <label htmlFor="confirmPassword">Confirm Password</label>
-              <div className="password-input-wrap">
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Repeat your password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-                <button
-                  type="button"
-                  className="eye-toggle-btn"
-                  onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+              <div className="clean-field">
+                <label htmlFor="confirmPassword">Confirm Password</label>
+                <div className="password-input-wrap">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Repeat password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="eye-toggle-btn"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* Minimal password requirements checklist */}
+            {formData.password.length > 0 && (
+              <div className="clean-checklist">
+                <span className={`check-rule ${passwordStats.length ? 'rule-met' : ''}`}>
+                  <Check size={13} /> 8+ chars
+                </span>
+                <span className={`check-rule ${passwordStats.hasUpper ? 'rule-met' : ''}`}>
+                  <Check size={13} /> Upper
+                </span>
+                <span className={`check-rule ${passwordStats.hasLower ? 'rule-met' : ''}`}>
+                  <Check size={13} /> Lower
+                </span>
+                <span className={`check-rule ${passwordStats.hasNumber ? 'rule-met' : ''}`}>
+                  <Check size={13} /> Number
+                </span>
+              </div>
+            )}
 
             {/* Submit button */}
             <button type="submit" className="btn-primary-action" disabled={isSubmitting}>

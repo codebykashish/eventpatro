@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { AlertCircle, CheckCircle2, ArrowLeft, Landmark } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import CampusIllustration from '../components/CampusIllustration'
 import './Auth.css'
 
 const VerifyOtp = () => {
@@ -121,27 +120,18 @@ const VerifyOtp = () => {
   return (
     <div className="auth-clean-page">
       <div className="auth-main-card">
-        {/* Left branding panel */}
-        <div className="auth-theme-panel">
-          <div className="panel-brand-header">
-            <div className="brand-logomark">
-              <span className="brand-dot"></span>
-              <span className="brand-text">Eventpatro</span>
-            </div>
-            <p className="brand-tagline">Discover. Participate. Grow.</p>
-          </div>
-
-          <div className="panel-illustration-wrap">
-            <CampusIllustration />
-          </div>
-        </div>
-
-        {/* Right OTP form panel */}
+        {/* Clean form card without red image panel */}
         <div className="auth-form-panel">
           <div className="form-header">
-            <h2>Verify Your Email</h2>
+            <div className="brand-badge-pill">
+              <Landmark size={15} color="#881421" />
+              <span>Eventpatro</span>
+            </div>
+            <h2>
+              Welcome to <span className="brand-red-text">Eventpatro</span>
+            </h2>
             <p className="form-subtitle">
-              We sent a 6-digit code to <strong className="email-highlight">{email}</strong>
+              Enter the 6-digit code sent to <strong className="email-highlight">{email}</strong>
             </p>
           </div>
 

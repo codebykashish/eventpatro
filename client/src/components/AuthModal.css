@@ -1,20 +1,21 @@
-/* ─── Auth Modal Overlay & Card ───────────────────────────────────────────── */
+/* ─── Auth Modal Backdrop & Wrapper around original auth-main-card ──────── */
 
-.auth-modal-overlay {
+.auth-overlay-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 9999;
-  background: rgba(15, 23, 42, 0.6);
+  z-index: 99999;
+  background: rgba(15, 23, 42, 0.65);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  animation: modalFadeIn 0.22s ease-out;
+  padding: 24px 20px;
+  animation: overlayFadeIn 0.22s ease-out;
+  overflow-y: auto;
 }
 
-@keyframes modalFadeIn {
+@keyframes overlayFadeIn {
   from {
     opacity: 0;
   }
@@ -23,23 +24,18 @@
   }
 }
 
-.auth-modal-card {
+.auth-overlay-card-wrapper {
   position: relative;
   width: 100%;
-  max-width: 820px;
-  background: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28), 0 0 1px rgba(0, 0, 0, 0.1);
-  display: grid;
-  grid-template-columns: 310px 1fr;
-  overflow: hidden;
-  animation: modalSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  max-width: 460px;
+  animation: modalCardPop 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
 }
 
-@keyframes modalSlideUp {
+@keyframes modalCardPop {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.97);
+    transform: translateY(24px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -47,379 +43,45 @@
   }
 }
 
-/* Close Button */
-.auth-modal-close {
+/* Floating close button on the card */
+.auth-overlay-close-btn {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  width: 32px;
-  height: 32px;
+  top: 14px;
+  right: 14px;
+  z-index: 25;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: #f3f4f6;
-  border: none;
+  border: 1px solid #e5e7eb;
   color: #4b5563;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.auth-modal-close:hover {
+.auth-overlay-close-btn:hover {
   background: #fee2e2;
   color: #991b1b;
   transform: rotate(90deg);
 }
 
-/* ── Left Brand Panel ─────────────────────────────────────────────────────── */
-.auth-modal-brand {
-  background: linear-gradient(145deg, #881421 0%, #4a0810 100%);
-  color: #ffffff;
-  padding: 36px 28px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-}
-
-.auth-modal-brand::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.modal-brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.01em;
-}
-
-.modal-brand-title {
-  font-size: 22px;
-  font-weight: 800;
-  color: #ffffff;
-  line-height: 1.25;
-  margin: 18px 0 10px;
-}
-
-.modal-brand-desc {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.55;
-  margin: 0;
-}
-
-.modal-brand-perks {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.perk-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.perk-row svg {
-  color: #fca5a5;
-  flex-shrink: 0;
-}
-
-/* ── Right Content Panel ─────────────────────────────────────────────────── */
-.auth-modal-content {
-  padding: 36px 34px;
-  display: flex;
-  flex-direction: column;
-  background: #ffffff;
-  max-height: 88vh;
-  overflow-y: auto;
-}
-
-/* Mode Switch Tabs */
-.auth-modal-tabs {
-  display: flex;
-  background: #f3f4f6;
-  border-radius: 10px;
-  padding: 3px;
-  margin-bottom: 20px;
-}
-
-.modal-tab {
-  flex: 1;
-  padding: 8px 14px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #6b7280;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.modal-tab.active {
-  background: #ffffff;
-  color: #881421;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-/* Feedback banners */
-.modal-banner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  margin-bottom: 16px;
-  animation: modalFadeIn 0.2s ease;
-}
-
-.banner-error {
-  background: #fef2f2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
-}
-
-.banner-success {
-  background: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-
-/* Modal Form elements */
-.modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.modal-row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.modal-field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.modal-field label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.modal-field input {
-  padding: 9px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 13.5px;
-  color: #111827;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  outline: none;
-}
-
-.modal-field input:focus {
-  border-color: #881421;
-  box-shadow: 0 0 0 3px rgba(136, 20, 33, 0.1);
-}
-
-.modal-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.modal-input-wrapper input {
-  width: 100%;
-  padding-right: 36px;
-}
-
-.modal-eye-btn {
-  position: absolute;
-  right: 10px;
-  background: transparent;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 4px;
-}
-
-.modal-eye-btn:hover {
-  color: #111827;
-}
-
-/* Criteria chips */
-.modal-criteria-wrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: -2px;
-}
-
-.criteria-chip {
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  background: #f3f4f6;
-  color: #6b7280;
-  transition: all 0.2s ease;
-}
-
-.criteria-chip.met {
-  background: #ecfdf5;
-  color: #065f46;
-  font-weight: 600;
-}
-
-/* Submit button */
-.btn-modal-submit {
-  width: 100%;
-  padding: 11px;
-  background: #881421;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 6px;
-  transition: background-color 0.15s ease, transform 0.1s ease;
-}
-
-.btn-modal-submit:hover:not(:disabled) {
-  background: #6e101a;
-}
-
-.btn-modal-submit:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-/* Footer Switch */
-.modal-footer-switch {
-  text-align: center;
-  font-size: 12.5px;
-  color: #6b7280;
-  margin-top: 10px;
-}
-
-.modal-link-btn {
+/* Text link for switching mode */
+.modal-text-link {
   background: none;
   border: none;
   color: #881421;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
   padding: 0;
-  font-size: 12.5px;
+  transition: color 0.15s ease;
 }
 
-.modal-link-btn:hover {
+.modal-text-link:hover {
   text-decoration: underline;
-}
-
-/* ── OTP Verification Mode inside modal ──────────────────────────────────── */
-.modal-otp-wrap {
-  text-align: center;
-}
-
-.modal-otp-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: #111827;
-  margin: 0 0 6px;
-}
-
-.modal-otp-desc {
-  font-size: 13px;
-  color: #4b5563;
-  margin: 0 0 20px;
-}
-
-.modal-otp-desc strong {
-  color: #881421;
-}
-
-.modal-otp-boxes {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.modal-otp-box {
-  width: 44px;
-  height: 50px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 700;
-  color: #111827;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.modal-otp-box:focus {
-  border-color: #881421;
-  box-shadow: 0 0 0 3px rgba(136, 20, 33, 0.15);
-}
-
-.modal-resend-row {
-  margin-top: 14px;
-  font-size: 12.5px;
-}
-
-.resend-countdown {
-  color: #6b7280;
-}
-
-.btn-resend-link {
-  background: none;
-  border: none;
-  color: #881421;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 12.5px;
-}
-
-.btn-resend-link:hover {
-  text-decoration: underline;
-}
-
-/* ── Responsive ──────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .auth-modal-card {
-    grid-template-columns: 1fr;
-    max-width: 440px;
-  }
-
-  .auth-modal-brand {
-    display: none;
-  }
-
-  .modal-row-2 {
-    grid-template-columns: 1fr;
-  }
+  color: #6e101a;
 }
