@@ -9,7 +9,7 @@
 ---
 
 ## Current Phase
-**Phase 2 — Public Event Discovery and Event CRUD** (Completed ✅)
+**Phase 3 — Registration Forms and Student Registration** (In Progress)
 
 ---
 
@@ -26,7 +26,7 @@
 - Phase 1, Task 1.9: Implemented 6-digit Email OTP Verification system (Nodemailer, secure OTP generation, 10-minute expiry, unverified login block, and VerifyOtp 6-box input screen with paste & countdown timer) ✅
 - Phase 2, Task 2.1: Created `Event` Mongoose model with dates, venue, category, capacity, virtual `spotsLeft`, and soft-delete (`isPublished`) ✅
 - Phase 2, Task 2.2: Implemented Zod validation schemas for event creation and updates ✅
-- Phase 2, Task 2.3: Created Event CRUD API routes (`/api/events`, `POST`, `GET /:id`, `PUT /:id`, `DELETE /:id`, `POST /:id/register`, `DELETE /:id/register`) with admin protection and search/category filters ✅
+- Phase 2, Task 2.3: Created Event CRUD API routes (`/api/events`, `POST`, `GET /:id`, `PUT /:id`, `DELETE /:id`) with admin protection and search/category filters ✅
 - Phase 2, Task 2.4: Built public event listing page (`/events`) with live search, category pills, upcoming/past sorting, and EventCards ✅
 - Phase 2, Task 2.5: Built event detail page (`/events/:id`) with date formatting, venue, capacity countdown, student registration/cancellation, and admin participant list ✅
 - Phase 2, Task 2.6: Built Create Event page (`/admin/events/new`) and Edit Event page (`/admin/events/:id/edit`) with validation and delete action ✅
@@ -36,6 +36,16 @@
 - Phase 2, Task 2.10: Implemented global `AuthModal` overlay (`backdrop-filter: blur(8px)`) with instant click-outside / Escape dismissal and seamless Sign In / Register / OTP verification tab flow ✅
 - Phase 2, Task 2.11: Refactored Login, Signup, and OTP verification into a single unified card format without the red picture/illustration panel; set unified 460px width with matched heights across modes; applied red "Welcome to Eventpatro" branding (`#881421`) ✅
 - Phase 2, Task 2.12: Full-screen landing page overhaul inspired by reference image (floating frosted navbar over hero, cursive Eventpatro logo without icon, automatic dashboard redirect for authenticated visitors, 3-card upcoming showcase with 'Explore More Events' button, zig-zag campus story with real photography, 'Few steps to begin' guide, embedded 2-column quick sign-up card, and complete contact/socials footer) ✅
+- Phase 2, Task 2.13: Visitor-only landing page access control — authenticated users auto-redirected to their dashboard; navbar smooth-scroll animations for all section links ✅
+- Phase 3, Task 3.1: `Registration` Mongoose model (answers snapshot, unique `EP-XXXXXX` code, status lifecycle: confirmed/pending/selected/rejected/cancelled, partial unique index preventing duplicate active registrations) ✅
+- Phase 3, Task 3.2: `registration.controller.js` — submit with form answers + required field validation, cancel, admin list/update (select/reject), student's own registrations ✅
+- Phase 3, Task 3.3: `registration.routes.js` + wired into `app.js`; event routes updated to use new registration controller; `/api/registrations/me` and `/api/registrations/me/:eventId` endpoints ✅
+- Phase 3, Task 3.4: `Event` model extended with `registrationType` (open/application), `registrationDeadline`, and `formFields` (sub-schema); `event.validation.js` updated with Phase 3 fields ✅
+- Phase 3, Task 3.5: `EventDetail.jsx` fully rewritten — live registration status check, dynamic form rendering (short_answer/paragraph/multiple_choice), registration code display, admin application review panel with select/reject buttons ✅
+- Phase 3, Task 3.6: `FormBuilder.jsx` + `FormBuilder.css` — reusable admin form-question builder component; integrated into `CreateEvent.jsx` and `EditEvent.jsx` ✅
+- Phase 3, Task 3.7: Student `Dashboard.jsx` upgraded — "My Registrations" section fetches and shows all registrations with live status badges, reg codes, event links, active/past separation ✅
+- Phase 3, Task 3.8: `EventCard.jsx` redesigned to match Pinterest card inspiration — 220px cover image with gradient overlay, title + description excerpt, meta row, divider, pill-shaped dark CTA button; visitors get auth modal, logged-in users go to event detail ✅
+
 
 ---
 

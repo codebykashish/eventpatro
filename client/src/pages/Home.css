@@ -266,7 +266,8 @@
 .upcoming-events-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  gap: 28px;          /* more breathing room between cards */
+  align-items: stretch;  /* equal height cards */
 }
 
 .events-showcase-loading,
@@ -932,6 +933,7 @@
   .hero-headline {
     font-size: 46px;
   }
+  /* cards go 2-col on medium screens */
   .upcoming-events-grid {
     grid-template-columns: repeat(2, 1fr);
   }

@@ -1,163 +1,230 @@
-/* ─── Modern Event Card matching Inspiration ─────────────────────────────── */
+/* ─── EventCard — Inspiration-matched premium card ───────────────────────── */
 
-.event-card-modern {
+.ec-card {
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  border-radius: 18px;
+  border-radius: 20px;
   overflow: hidden;
-  border: 1px solid #f0f0f0;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  border: 1px solid #efefef;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   cursor: pointer;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
   text-align: left;
+  height: 100%;   /* fills grid cell so all cards are equal height */
 }
 
-.event-card-modern:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 32px rgba(136, 20, 33, 0.12);
+.ec-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(136, 20, 33, 0.13);
   border-color: #fecdd3;
 }
 
-/* Cover Image Container */
-.card-cover-container {
+/* ── Cover ────────────────────────────────────────────────────────────────── */
+.ec-cover {
   position: relative;
-  height: 180px;
+  height: 220px;          /* taller than before for the "big image" feel */
   background-size: cover;
   background-position: center;
   overflow: hidden;
+  flex-shrink: 0;
+  /* subtle overlay to keep badges readable */
+  background-blend-mode: normal;
 }
 
-/* Category Pill floating at bottom left of cover */
-.card-category-tag {
+.ec-cover::after {
+  content: '';
   position: absolute;
-  bottom: 12px;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 50%,
+    rgba(0,0,0,0.28) 100%
+  );
+  pointer-events: none;
+}
+
+/* Category pill — bottom-left */
+.ec-category-pill {
+  position: absolute;
+  bottom: 14px;
   left: 14px;
-  color: #ffffff;
+  z-index: 2;
+  color: #fff;
   font-size: 11px;
   font-weight: 700;
   text-transform: capitalize;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   padding: 4px 14px;
   border-radius: 999px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 
-/* Days remaining badge at top-right */
-.card-countdown-tag {
+/* Countdown — top-right */
+.ec-countdown {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255,255,255,0.92);
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   color: #881421;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 4px 11px;
   border-radius: 999px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.card-countdown-tag.urgent {
+.ec-countdown.urgent {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
 }
 
-.card-countdown-tag.past {
-  background: #f3f4f6;
+.ec-countdown.past {
+  background: rgba(243,244,246,0.92);
   color: #6b7280;
 }
 
-/* Full Booked badge */
-.card-full-tag {
+/* Fully booked — top-left */
+.ec-full-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(17, 24, 39, 0.85);
-  color: #ffffff;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  background: rgba(17,24,39,0.82);
+  color: #fff;
   font-size: 11px;
-  font-weight: 600;
-  padding: 3px 10px;
+  font-weight: 700;
+  padding: 4px 12px;
   border-radius: 999px;
 }
 
-/* Card Body */
-.card-modern-body {
-  padding: 18px 20px 18px;
+/* Application badge — top-left (when not full) */
+.ec-app-badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 2;
+  background: rgba(109,40,217,0.82);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+/* ── Card body ────────────────────────────────────────────────────────────── */
+.ec-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 20px 20px 18px;
   flex: 1;
 }
 
-.card-modern-title {
-  font-size: 16.5px;
-  font-weight: 700;
+/* Title */
+.ec-title {
+  font-size: 17px;
+  font-weight: 800;
   color: #111827;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.3;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Meta information */
-.card-meta-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
+/* Description excerpt */
+.ec-description {
+  font-size: 13.5px;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.card-meta-row {
+/* Meta info row */
+.ec-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 2px;
+}
+
+.ec-meta-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #4b5563;
+  gap: 5px;
+  font-size: 12.5px;
+  color: #6b7280;
 }
 
-.card-meta-row .meta-icon {
+.ec-meta-item svg {
   color: #9ca3af;
   flex-shrink: 0;
 }
 
-.location-text {
+.ec-location {
+  /* allow location to truncate if long */
+  flex: 1;
+  min-width: 0;
+}
+
+.ec-location span {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 190px;
 }
 
-/* Meta Footer with circular action button */
-.card-meta-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 4px;
+/* Divider line */
+.ec-divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0;
 }
 
-.card-circle-action {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #fdf2f4;
-  color: #881421;
+/* CTA button — full width, rounded pill style like the inspo */
+.ec-cta-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 999px;         /* full pill shape matching inspiration */
+  border: none;
+  background: #111827;          /* dark button like inspiration's "Start Cooking" */
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: background 0.2s ease, transform 0.18s ease;
+  margin-top: auto;
 }
 
-.event-card-modern:hover .card-circle-action {
+.ec-cta-btn:hover:not(:disabled) {
   background: #881421;
-  color: #ffffff;
-  transform: translateX(3px);
+  transform: translateY(-1px);
+}
+
+.ec-cta-btn:disabled,
+.ec-cta-full {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.ec-cta-full:hover {
+  transform: none;
+  background: #e5e7eb;
 }
