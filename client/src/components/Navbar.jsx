@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Landmark, LogOut, User as UserIcon, Shield, AlertTriangle, Search, PlusCircle } from 'lucide-react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { LogOut, User as UserIcon, Shield, AlertTriangle, Search, PlusCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
 
@@ -8,6 +8,9 @@ const Navbar = () => {
   const { user, isAuthenticated, isAdmin, logout, openAuthModal } = useAuth()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const isHomePage = location.pathname === '/'
 
   // Execute logout after confirmation
   const confirmLogout = () => {
@@ -18,20 +21,14 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="navbar">
+      <nav className={`navbar ${isHomePage ? 'navbar-hero-overlay' : ''}`}>
         <div className="navbar-container">
-          {/* Brand identity */}
+          {/* Brand identity without icon, written in cursive */}
           <Link to="/" className="nav-brand">
-            <div className="nav-logo">
-              <Landmark size={22} color="#881421" />
-            </div>
-            <div className="nav-titles">
-              <span className="nav-title">Eventpatro</span>
-              <span className="nav-subtitle">Sunway College</span>
-            </div>
+            <span className="nav-title brand-cursive">Eventpatro</span>
           </Link>
 
-          {/* Center Navigation Links matching design */}
+          {/* Center Navigation Links */}
           <div className="nav-center-links">
             <Link to="/" className="nav-center-link">
               Home
@@ -39,9 +36,23 @@ const Navbar = () => {
             <Link to="/events" className="nav-center-link">
               Events
             </Link>
-            <a href="/#about" className="nav-center-link">
-              About
-            </a>
+            {isHomePage ? (
+              <>
+                <a href="#story" className="nav-center-link">
+                  Our Story
+                </a>
+                <a href="#how-it-works" className="nav-center-link">
+                  How It Works
+                </a>
+                <a href="#contact" className="nav-center-link">
+                  Contact
+                </a>
+              </>
+            ) : (
+              <Link to="/events" className="nav-center-link">
+                Browse
+              </Link>
+            )}
           </div>
 
           {/* Right Actions */}

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, AlertCircle, Check, Landmark } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import './Auth.css'
 
@@ -77,12 +77,9 @@ const Signup = () => {
         {/* Clean form card without red image panel */}
         <div className="auth-form-panel">
           <div className="form-header">
-            <div className="brand-badge-pill">
-              <Landmark size={15} color="#881421" />
-              <span>Eventpatro</span>
-            </div>
+            <div className="auth-brand-logo brand-cursive">Eventpatro</div>
             <h2>
-              Welcome to <span className="brand-red-text">Eventpatro</span>
+              Welcome to <span className="brand-red-text brand-cursive">Eventpatro</span>
             </h2>
             <p className="form-subtitle">Create your student account</p>
           </div>

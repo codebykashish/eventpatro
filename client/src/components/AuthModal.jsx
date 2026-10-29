@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, Eye, EyeOff, AlertCircle, CheckCircle2, Check, Landmark } from 'lucide-react'
+import { X, Eye, EyeOff, AlertCircle, CheckCircle2, Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import '../pages/Auth.css'
 import './AuthModal.css'
@@ -220,12 +220,9 @@ const AuthModal = () => {
           <div className="auth-form-panel">
             {/* Header with App Branding and red Eventpatro */}
             <div className="form-header">
-              <div className="brand-badge-pill">
-                <Landmark size={15} color="#881421" />
-                <span>Eventpatro</span>
-              </div>
+              <div className="auth-brand-logo brand-cursive">Eventpatro</div>
               <h2>
-                Welcome to <span className="brand-red-text">Eventpatro</span>
+                Welcome to <span className="brand-red-text brand-cursive">Eventpatro</span>
               </h2>
               <p className="form-subtitle">
                 {mode === 'login'

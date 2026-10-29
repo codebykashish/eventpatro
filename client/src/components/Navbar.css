@@ -5,6 +5,7 @@
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.25s ease;
 }
 
 .navbar-container {
@@ -14,41 +15,51 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.25s ease;
 }
 
-/* Brand logo and title */
+/* Floating overlay navbar over full-screen hero */
+.navbar.navbar-hero-overlay {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  background: transparent;
+  border-bottom: none;
+  z-index: 50;
+  padding: 0 20px;
+}
+
+.navbar.navbar-hero-overlay .navbar-container {
+  max-width: 1080px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 999px;
+  padding: 10px 24px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Brand title without icon written in cursive */
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
   text-decoration: none;
 }
 
-.nav-logo {
-  width: 40px;
-  height: 40px;
-  background-color: var(--color-blush);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav-titles {
-  display: flex;
-  flex-direction: column;
-}
-
 .nav-title {
-  font-size: 18px;
+  font-size: 25px;
   font-weight: 700;
-  color: var(--color-primary);
-  line-height: 1.2;
+  color: #881421;
+  line-height: 1.1;
+  text-decoration: none;
+  transition: transform 0.15s ease;
 }
 
-.nav-subtitle {
-  font-size: 12px;
-  color: var(--color-muted);
+.nav-title:hover {
+  text-decoration: none;
+  transform: scale(1.02);
 }
 
 /* Center navigation links */

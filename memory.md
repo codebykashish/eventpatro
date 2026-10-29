@@ -35,6 +35,7 @@
 - Phase 2, Task 2.9: Redesigned landing page matching the inspiration reference (full-bleed campus hero, floating search & browse bar, 3-card upcoming showcase with live "N days remaining" countdown tags, "Why Eventpatro?" pillars, CTA card, and footer) ✅
 - Phase 2, Task 2.10: Implemented global `AuthModal` overlay (`backdrop-filter: blur(8px)`) with instant click-outside / Escape dismissal and seamless Sign In / Register / OTP verification tab flow ✅
 - Phase 2, Task 2.11: Refactored Login, Signup, and OTP verification into a single unified card format without the red picture/illustration panel; set unified 460px width with matched heights across modes; applied red "Welcome to Eventpatro" branding (`#881421`) ✅
+- Phase 2, Task 2.12: Full-screen landing page overhaul inspired by reference image (floating frosted navbar over hero, cursive Eventpatro logo without icon, automatic dashboard redirect for authenticated visitors, 3-card upcoming showcase with 'Explore More Events' button, zig-zag campus story with real photography, 'Few steps to begin' guide, embedded 2-column quick sign-up card, and complete contact/socials footer) ✅
 
 ---
 

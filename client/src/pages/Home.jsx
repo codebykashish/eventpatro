@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, Navigate } from 'react-router-dom'
 import {
   Search,
   Calendar,
   ArrowRight,
-  CalendarDays,
-  Users,
-  TrendingUp,
-  Landmark,
+  Sparkles,
+  MapPin,
+  Mail,
+  Clock,
+  Check,
+  AlertCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchEvents } from '../utils/api'
@@ -16,13 +20,31 @@ import './Home.css'
 
 const Home = () => {
   const navigate = useNavigate()
-  const { isAuthenticated, openAuthModal } = useAuth()
+  const { user, isAuthenticated, openAuthModal, signup } = useAuth()
+
+  // 1. Authenticated visitors are automatically redirected to their dashboard
+  if (isAuthenticated && user) {
+    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />
+  }
 
   const [searchQuery, setSearchQuery] = useState('')
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch 3 upcoming published events for the showcase
+  // Quick Sign Up Form State for the embedded form section
+  const [signupForm, setSignupForm] = useState({
+    firstName: '',
+    lastName: '',
+    studentId: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [signupError, setSignupError] = useState('')
+  const [signupSubmitting, setSignupSubmitting] = useState(false)
+
+  // Fetch exactly 3 upcoming events for the showcase
   useEffect(() => {
     const loadUpcoming = async () => {
       try {
@@ -47,119 +69,117 @@ const Home = () => {
     }
   }
 
-  // Handle "View All" click
-  const handleViewAllClick = (e) => {
+  // Handle Quick Sign Up Submit
+  const handleQuickSignupSubmit = async (e) => {
     e.preventDefault()
-    if (!isAuthenticated) {
-      openAuthModal('signup')
-    } else {
-      navigate('/events')
+    setSignupError('')
+
+    if (signupForm.password !== signupForm.confirmPassword) {
+      setSignupError('Passwords do not match')
+      return
+    }
+
+    if (signupForm.password.length < 8) {
+      setSignupError('Password must be at least 8 characters long')
+      return
+    }
+
+    setSignupSubmitting(true)
+    try {
+      const res = await signup(signupForm)
+      if (res.requiresVerification) {
+        navigate('/verify-otp', { state: { email: signupForm.email } })
+      } else {
+        navigate('/dashboard')
+      }
+    } catch (err) {
+      setSignupError(err.message || 'Signup failed')
+    } finally {
+      setSignupSubmitting(false)
     }
   }
 
   return (
     <div className="home-page-root">
-      {/* ── 1. Hero Section ─────────────────────────────────────────────────── */}
-      <section className="hero-banner">
-        {/* Background photo & overlay */}
+      {/* ── 1. Full-Screen Desktop Hero Section with Floating Bar ──────────── */}
+      <section className="hero-banner-fullscreen">
         <div className="hero-bg-media" />
         <div className="hero-gradient-overlay" />
 
-        <div className="hero-inner-container">
-          <div className="hero-content">
-            <span className="hero-eyebrow">CONNECT • EXPLORE • PARTICIPATE</span>
+        <div className="hero-content-center">
+          <div className="hero-badge-pill">
+            <Sparkles size={14} color="#881421" />
+            <span>SUNWAY COLLEGE CAMPUS HUB</span>
+          </div>
 
-            <h1 className="hero-headline">
-              Your Campus.
-              <br />
-              <span className="hero-highlight">Our Events.</span>
-            </h1>
+          <h1 className="hero-headline">
+            Where Campus Life Comes{' '}
+            <span className="hero-cursive brand-cursive">Together.</span>
+          </h1>
 
-            <p className="hero-subtext">
-              Discover workshops, seminars and programs that help you learn, grow and belong.
-            </p>
+          <p className="hero-subtext">
+            Never miss a hackathon, workshop, or student fest again. Every official
+            Sunway College event organized in one verified space.
+          </p>
 
-            <div className="hero-cta-row">
-              <Link to="/events" className="btn-hero-explore">
-                <span>Explore Events</span>
-                <ArrowRight size={16} />
-              </Link>
+          {/* Integrated Floating Search Bar inside Hero */}
+          <form onSubmit={handleSearchSubmit} className="hero-search-card">
+            <div className="hero-search-input-wrap">
+              <Search size={18} className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search workshops, seminars, competitions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="hero-search-input"
+              />
             </div>
 
-            {/* Carousel indicator dots */}
-            <div className="hero-dots">
-              <span className="dot active" />
-              <span className="dot" />
-              <span className="dot" />
+            <button type="submit" className="btn-hero-search">
+              Search
+            </button>
+
+            <span className="hero-search-or">or</span>
+
+            <Link to="/events" className="btn-hero-browse">
+              <Calendar size={15} />
+              <span>Browse All</span>
+            </Link>
+          </form>
+
+          {/* Quick Stats Banner inside Hero */}
+          <div className="hero-quick-stats">
+            <div className="quick-stat-item">
+              <span className="stat-number">100%</span>
+              <span className="stat-label">Verified Events</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="quick-stat-item">
+              <span className="stat-number">1-Click</span>
+              <span className="stat-label">Student RSVP</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="quick-stat-item">
+              <span className="stat-number">Real-Time</span>
+              <span className="stat-label">Deadline Alerts</span>
             </div>
           </div>
-        </div>
-
-        {/* Curved Wave Mask at bottom */}
-        <div className="hero-wave-divider">
-          <svg
-            viewBox="0 0 1440 120"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M0,48 C320,120 720,0 1440,64 L1440,120 L0,120 Z"
-              fill="#ffffff"
-            />
-          </svg>
         </div>
       </section>
 
-      {/* ── 2. Floating Search & Browse Bar ─────────────────────────────────── */}
-      <div className="floating-search-wrapper">
-        <form onSubmit={handleSearchSubmit} className="floating-search-card">
-          <div className="search-input-group">
-            <Search size={18} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Explore upcoming events..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input-field"
-            />
-          </div>
-
-          <button type="submit" className="btn-search-primary">
-            Search
-          </button>
-
-          <span className="search-or-divider">or</span>
-
-          <Link to="/events" className="btn-browse-events">
-            <Calendar size={15} />
-            <span>Browse Events</span>
-          </Link>
-        </form>
-      </div>
-
-      {/* ── 3. Upcoming Events Section ─────────────────────────────────────── */}
+      {/* ── 2. Upcoming Events Section (Exactly 3 Events) ─────────────────── */}
       <section className="events-showcase-section">
         <div className="section-container">
-          {/* Section Header */}
-          <div className="showcase-header">
-            <div>
-              <div className="section-accent-bar" />
-              <h2 className="showcase-title">Upcoming Events</h2>
-              <p className="showcase-subtitle">Be part of something exciting on campus.</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleViewAllClick}
-              className="btn-view-all-link"
-            >
-              <span>View All</span>
-              <ArrowRight size={15} />
-            </button>
+          <div className="showcase-header-centered">
+            <span className="section-eyebrow">CURATED HAPPENINGS</span>
+            <h2 className="showcase-title">
+              Upcoming <span className="brand-cursive brand-red-text">Events</span>
+            </h2>
+            <p className="showcase-subtitle">
+              Mark your calendar and secure your spot before registration closes.
+            </p>
           </div>
 
-          {/* Event Cards Grid */}
           {loading ? (
             <div className="events-showcase-loading">
               <div className="loading-spinner" />
@@ -168,156 +188,438 @@ const Home = () => {
           ) : upcomingEvents.length === 0 ? (
             <div className="showcase-empty">
               <p>No upcoming events currently scheduled.</p>
-              <Link to="/events" className="btn-browse-events" style={{ marginTop: '12px' }}>
-                Explore All Events
+              <Link to="/events" className="btn-explore-more">
+                Browse Events
               </Link>
             </div>
           ) : (
-            <div className="upcoming-events-grid">
-              {upcomingEvents.map((ev) => (
-                <EventCard
-                  key={ev._id}
-                  event={ev}
-                  requireAuth={!isAuthenticated}
-                />
-              ))}
-            </div>
+            <>
+              {/* Exactly 3 event cards in row */}
+              <div className="upcoming-events-grid">
+                {upcomingEvents.slice(0, 3).map((ev) => (
+                  <EventCard
+                    key={ev._id}
+                    event={ev}
+                    requireAuth={!isAuthenticated}
+                  />
+                ))}
+              </div>
+
+              {/* Centered Explore More Events Button below the 3 cards */}
+              <div className="explore-more-wrap">
+                <Link to="/events" className="btn-explore-more">
+                  <span>Explore More Events</span>
+                  <ArrowRight size={17} />
+                </Link>
+              </div>
+            </>
           )}
         </div>
       </section>
 
-      {/* ── 4. Why Eventpatro? Section ──────────────────────────────────────── */}
-      <section id="about" className="why-section">
+      {/* ── 3. The Campus Problem & Why Eventpatro (Zig-Zag Layout) ────────── */}
+      <section id="story" className="story-zigzag-section">
         <div className="section-container">
-          <div className="why-header">
-            <div className="section-accent-bar" />
-            <span className="why-tag">Why Eventpatro?</span>
-            <h2 className="why-title">More Events. More Opportunities.</h2>
-            <p className="why-desc">
-              From workshops to cultural fests, Eventpatro helps you stay connected with campus life.
+          <div className="story-section-header">
+            <span className="section-eyebrow">THE CAMPUS CHALLENGE</span>
+            <h2 className="story-main-heading">
+              Never let valuable opportunities{' '}
+              <span className="brand-cursive brand-red-text">slip away.</span>
+            </h2>
+            <p className="story-sub-heading">
+              Between scattered WhatsApp groups, cluttered bulletin boards, and missed deadlines,
+              university events were getting lost. We built Eventpatro to fix that.
             </p>
           </div>
 
-          <div className="why-pillars-grid">
-            <div className="pillar-item">
-              <div className="pillar-icon-circle">
-                <CalendarDays size={24} color="#881421" />
+          <div className="zigzag-container">
+            {/* Block 1: Image Left, Story Right */}
+            <div className="zigzag-row">
+              <div className="zigzag-media">
+                <img
+                  src="/scattered_events.jpg"
+                  alt="Students reading bulletin boards and checking phones in campus hallway"
+                  className="zigzag-img"
+                  loading="lazy"
+                />
               </div>
-              <h3 className="pillar-title">Discover Events</h3>
-              <p className="pillar-text">
-                Browse official workshops, seminars, competitions, and guest lectures in one place.
+              <div className="zigzag-content">
+                <span className="zigzag-tag">THE PROBLEM</span>
+                <h3 className="zigzag-title">
+                  Announcements Were Scattered Across Dozens of Places
+                </h3>
+                <p className="zigzag-text">
+                  Group chats get muted. Paper notices get covered over. Links shared in casual
+                  conversations disappear. Students routinely missed life-changing hackathons,
+                  industry guest lectures, and cultural fests simply because they heard about them
+                  too late.
+                </p>
+                <div className="zigzag-highlight-pill">
+                  <span className="highlight-dot red" />
+                  <span>Buried messages & closed registration forms</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Block 2: Story Left, Image Right */}
+            <div className="zigzag-row reverse">
+              <div className="zigzag-media">
+                <img
+                  src="/connected_events.jpg"
+                  alt="Students collaborating together at a modern wooden conference table"
+                  className="zigzag-img"
+                  loading="lazy"
+                />
+              </div>
+              <div className="zigzag-content">
+                <span className="zigzag-tag">THE SOLUTION</span>
+                <h3 className="zigzag-title">
+                  One Unified Calendar for Every Club & Department
+                </h3>
+                <p className="zigzag-text">
+                  Eventpatro consolidates student clubs, academic societies, and faculty organizers
+                  into a single official platform. When an event is scheduled, every Sunway student
+                  sees it immediately with verified details, venue information, and capacity limits.
+                </p>
+                <div className="zigzag-highlight-pill">
+                  <span className="highlight-dot green" />
+                  <span>100% verified Sunway College events in real-time</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Block 3: Image Left, Story Right */}
+            <div className="zigzag-row">
+              <div className="zigzag-media">
+                <img
+                  src="/signup_banner.jpg"
+                  alt="Sunway students celebrating together after a campus event"
+                  className="zigzag-img"
+                  loading="lazy"
+                />
+              </div>
+              <div className="zigzag-content">
+                <span className="zigzag-tag">THE EXPERIENCE</span>
+                <h3 className="zigzag-title">
+                  Live Countdown Deadlines & Instant Verification
+                </h3>
+                <p className="zigzag-text">
+                  See how many days remain before registration closes. Reserve your seat in one
+                  click using your student ID, track your upcoming schedule, and build an active
+                  participation portfolio throughout your college years.
+                </p>
+                <div className="zigzag-highlight-pill">
+                  <span className="highlight-dot red" />
+                  <span>No paperwork, no confusion — just show up and learn</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. How It Works (Few Steps to Begin) ───────────────────────────── */}
+      <section id="how-it-works" className="how-it-works-section">
+        <div className="section-container">
+          <div className="how-header-centered">
+            <span className="section-eyebrow">SIMPLE & SEAMLESS</span>
+            <h2 className="how-title">
+              Few steps to <span className="brand-cursive brand-red-text">begin</span>
+            </h2>
+            <p className="how-subtitle">
+              Join the student community in less than two minutes.
+            </p>
+          </div>
+
+          <div className="how-steps-grid">
+            <div className="how-step-card step-one">
+              <div className="step-number-badge">01</div>
+              <h3 className="step-title">Create your student account</h3>
+              <p className="step-description">
+                Sign up with your Sunway College email address. Verify your 6-digit code to activate
+                your student profile.
               </p>
             </div>
 
-            <div className="pillar-item">
-              <div className="pillar-icon-circle">
-                <Users size={24} color="#881421" />
-              </div>
-              <h3 className="pillar-title">Track Your Participation</h3>
-              <p className="pillar-text">
-                Register with a single click and keep track of all attended campus programs.
+            <div className="how-step-card step-two">
+              <div className="step-number-badge">02</div>
+              <h3 className="step-title">Discover & choose your event</h3>
+              <p className="step-description">
+                Filter by technical workshops, sports, seminars, or cultural meets. Check live countdowns
+                and remaining spots.
               </p>
             </div>
 
-            <div className="pillar-item">
-              <div className="pillar-icon-circle">
-                <TrendingUp size={24} color="#881421" />
-              </div>
-              <h3 className="pillar-title">Grow Your Skills</h3>
-              <p className="pillar-text">
-                Gain hands-on experience, earn certifications, and expand your student network.
+            <div className="how-step-card step-three">
+              <div className="step-number-badge">03</div>
+              <h3 className="step-title">Attend & build your portfolio</h3>
+              <p className="step-description">
+                Check in at the venue, connect with peers and mentors, and view your verified attendance
+                history on your dashboard.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── 5. Ready to Get Started? CTA Banner ─────────────────────────────── */}
-      <section className="cta-banner-section">
+      {/* ── 5. Embedded Sign-Up Section with Split Photo Banner ─────────────── */}
+      <section className="embedded-signup-section">
         <div className="section-container">
-          <div className="cta-banner-card">
-            <div className="cta-content">
-              <h2 className="cta-title">Ready to get started?</h2>
-              <p className="cta-desc">
-                Sign up now and never miss out on campus events.
-              </p>
+          <div className="embedded-signup-card">
+            {/* Left Photo & Perks Column */}
+            <div className="signup-perks-column">
+              <img
+                src="/signup_banner.jpg"
+                alt="Students on campus celebrating together"
+                className="signup-perks-bg"
+              />
+              <div className="signup-perks-overlay" />
+
+              <div className="signup-perks-content">
+                <span className="perks-badge">CAMPUS COMMUNITY</span>
+                <h3 className="perks-heading">
+                  Join 1,200+ students actively shaping campus life.
+                </h3>
+                <ul className="perks-list">
+                  <li>
+                    <Check size={16} className="perk-check-icon" />
+                    <span>Free registration for all campus workshops</span>
+                  </li>
+                  <li>
+                    <Check size={16} className="perk-check-icon" />
+                    <span>Official attendance records for student portfolios</span>
+                  </li>
+                  <li>
+                    <Check size={16} className="perk-check-icon" />
+                    <span>Instant priority access to limited-seat hackathons</span>
+                  </li>
+                </ul>
+                <div className="perks-footer-note">
+                  * Exclusively for Sunway College Kathmandu students
+                </div>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (isAuthenticated) {
-                  navigate('/events')
-                } else {
-                  openAuthModal('signup')
-                }
-              }}
-              className="btn-cta-signup"
-            >
-              <span>{isAuthenticated ? 'Browse All Events' : 'Sign Up Free'}</span>
-              <ArrowRight size={16} />
-            </button>
+            {/* Right Quick Sign Up Form Column */}
+            <div className="signup-form-column">
+              <div className="quick-form-header">
+                <span className="form-eyebrow">FAST ENROLLMENT</span>
+                <h3 className="quick-form-title">
+                  Get Started with <span className="brand-cursive brand-red-text">Eventpatro</span>
+                </h3>
+                <p className="quick-form-sub">
+                  Create your student account in 60 seconds.
+                </p>
+              </div>
+
+              {signupError && (
+                <div className="quick-form-error">
+                  <AlertCircle size={15} />
+                  <span>{signupError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleQuickSignupSubmit} className="quick-signup-form">
+                <div className="quick-row">
+                  <div className="quick-field">
+                    <label htmlFor="home-fname">First Name</label>
+                    <input
+                      id="home-fname"
+                      type="text"
+                      placeholder="Hari"
+                      value={signupForm.firstName}
+                      onChange={(e) =>
+                        setSignupForm({ ...signupForm, firstName: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="quick-field">
+                    <label htmlFor="home-lname">Last Name</label>
+                    <input
+                      id="home-lname"
+                      type="text"
+                      placeholder="Sharma"
+                      value={signupForm.lastName}
+                      onChange={(e) =>
+                        setSignupForm({ ...signupForm, lastName: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="quick-row">
+                  <div className="quick-field">
+                    <label htmlFor="home-stuid">Student ID</label>
+                    <input
+                      id="home-stuid"
+                      type="text"
+                      placeholder="STU-2024-001"
+                      value={signupForm.studentId}
+                      onChange={(e) =>
+                        setSignupForm({ ...signupForm, studentId: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="quick-field">
+                    <label htmlFor="home-email">College Email</label>
+                    <input
+                      id="home-email"
+                      type="email"
+                      placeholder="name@sunway.edu.np"
+                      value={signupForm.email}
+                      onChange={(e) =>
+                        setSignupForm({ ...signupForm, email: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="quick-row">
+                  <div className="quick-field">
+                    <label htmlFor="home-pwd">Password</label>
+                    <div className="quick-pwd-wrap">
+                      <input
+                        id="home-pwd"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Min 8 chars"
+                        value={signupForm.password}
+                        onChange={(e) =>
+                          setSignupForm({ ...signupForm, password: e.target.value })
+                        }
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="quick-eye-btn"
+                        onClick={() => setShowPassword((p) => !p)}
+                        title={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="quick-field">
+                    <label htmlFor="home-cpwd">Confirm Password</label>
+                    <input
+                      id="home-cpwd"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Repeat password"
+                      value={signupForm.confirmPassword}
+                      onChange={(e) =>
+                        setSignupForm({ ...signupForm, confirmPassword: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn-quick-submit"
+                  disabled={signupSubmitting}
+                >
+                  {signupSubmitting ? 'Creating account...' : 'Create Student Account'}
+                </button>
+              </form>
+
+              <div className="quick-form-footer">
+                <span>Already have an account? </span>
+                <button
+                  type="button"
+                  className="quick-login-link"
+                  onClick={() => openAuthModal('login')}
+                >
+                  Sign in here
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 6. Footer ───────────────────────────────────────────────────────── */}
-      <footer className="home-footer">
+      {/* ── 6. Contact & Footer Section ───────────────────────────────────── */}
+      <footer id="contact" className="home-footer">
         <div className="section-container">
-          <div className="footer-top-row">
-            <div className="footer-brand">
-              <div className="footer-logo">
-                <Landmark size={22} color="#881421" />
-                <span className="footer-brand-name">Eventpatro</span>
-              </div>
-              <p className="footer-tagline">
-                A smarter way to experience campus events.
+          <div className="footer-contact-grid">
+            {/* Brand & Mission */}
+            <div className="footer-col-brand">
+              <span className="footer-brand-title brand-cursive">Eventpatro</span>
+              <p className="footer-brand-desc">
+                The centralized university event discovery and registration platform for Sunway College Kathmandu.
               </p>
+              <div className="footer-social-icons">
+                <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
+                  </svg>
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                    <rect width="4" height="12" x="2" y="9"/>
+                    <circle cx="4" cy="4" r="2"/>
+                  </svg>
+                </a>
+                <a href="https://github.com/codebykashish/eventpatro" target="_blank" rel="noreferrer" aria-label="GitHub">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+                    <path d="M9 18c-4.51 2-5-2-7-2"/>
+                  </svg>
+                </a>
+                <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/>
+                    <polygon points="10 15 15 12 10 9 10 15"/>
+                  </svg>
+                </a>
+              </div>
             </div>
 
-            <div className="footer-nav-links">
-              <Link to="/">Home</Link>
-              <Link to="/events">Events</Link>
-              <a href="#about">About</a>
-              <Link to="/events">Contact</Link>
+            {/* Quick Links */}
+            <div className="footer-col-links">
+              <h4 className="footer-col-title">Navigation</h4>
+              <ul>
+                <li><Link to="/">Home</Link></li>
+                <li><Link to="/events">All Events</Link></li>
+                <li><a href="#story">Our Story</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+              </ul>
             </div>
 
-            <div className="footer-social-links">
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5"/>
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>
-                </svg>
-              </a>
-              <a href="https://github.com/codebykashish/eventpatro" target="_blank" rel="noreferrer" aria-label="GitHub">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
-                  <path d="M9 18c-4.51 2-5-2-7-2"/>
-                </svg>
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
-                  <rect width="4" height="12" x="2" y="9"/>
-                  <circle cx="4" cy="4" r="2"/>
-                </svg>
-              </a>
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" aria-label="YouTube">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/>
-                  <polygon points="10 15 15 12 10 9 10 15"/>
-                </svg>
-              </a>
+            {/* Contact Details */}
+            <div className="footer-col-contact">
+              <h4 className="footer-col-title">Contact & Location</h4>
+              <ul className="contact-list">
+                <li>
+                  <MapPin size={16} className="contact-icon" />
+                  <span>Maitidevi, Kathmandu, Nepal</span>
+                </li>
+                <li>
+                  <Mail size={16} className="contact-icon" />
+                  <a href="mailto:events@sunway.edu.np">events@sunway.edu.np</a>
+                </li>
+                <li>
+                  <Clock size={16} className="contact-icon" />
+                  <span>Sun – Fri: 8:00 AM – 5:00 PM</span>
+                </li>
+              </ul>
             </div>
           </div>
 
-          <div className="footer-bottom-row">
+          {/* Bottom Copyright Row */}
+          <div className="footer-bottom-bar">
             <span className="copyright-text">
               © {new Date().getFullYear()} Eventpatro. All rights reserved.
             </span>
             <span className="college-text">
-              Sunway College, Kathmandu
+              Sunway College Kathmandu
             </span>
           </div>
         </div>
