@@ -9,26 +9,24 @@
 ---
 
 ## Current Phase
-**Phase 0 — Project Setup** (Completed ✅)
+**Phase 1 — User Authentication and Roles** (Completed ✅)
 
 ---
 
 ## Completed Tasks (tested)
-- Phase 0, Step 0.1: Initial environment inspection and documentation reading ✅
-- Phase 0, Step 0.2: Environment check (Node v24, npm 11, MongoDB 7, git 2.53) ✅
-- Phase 0, Step 0.3: Created `server/`, initialized package.json, installed backend dependencies ✅
-- Phase 0, Step 0.4: Created Express server with `/api/health`, 404, and error handling ✅
-- Phase 0, Step 0.5: Created `server/.env` and `server/.env.example` ✅
-- Phase 0, Step 0.6: Connected Express to MongoDB via Mongoose ✅
-- Phase 0, Step 0.7: Created `client/` React app with Vite, installed `react-router-dom` and `lucide-react` ✅
-- Phase 0, Step 0.8: Verified both frontend and backend start properly ✅
-- Phase 0, Step 0.9: Tested frontend-to-backend communication via `/api/health` proxy ✅
-- Phase 0, Step 0.10: Initialized Git repository and set up root `.gitignore` ✅
+- Phase 0: Project setup, client/server scaffolding, environment, health check ✅
+- Phase 1, Task 1.1: Created `User` Mongoose model with bcryptjs password hashing and role definitions ✅
+- Phase 1, Task 1.2: Implemented Zod validation for signup & login (`@sunway.edu.np` domain, password matching) ✅
+- Phase 1, Task 1.3: Implemented JWT authentication and auth controller (`/api/auth/signup`, `/login`, `/me`) ✅
+- Phase 1, Task 1.4: Created `protect` and `restrictTo` authentication and role middleware ✅
+- Phase 1, Task 1.5: Created idempotent admin seed script (`npm run seed:admin`) creating `admin@sunway.edu.np` ✅
+- Phase 1, Task 1.6: Created React frontend authentication (AuthContext, Login, Signup with live password strength indicator, Dashboard, AdminDashboard, and ProtectedRoute) ✅
+- Phase 1, Task 1.7: Verified all security checks (duplicate rejection, role tampering prevention, protected routes) ✅
 
 ---
 
 ## In Progress
-- Ready to begin **Phase 1 — User Authentication and Roles**
+- Ready for **Phase 2 — Public Event Discovery and Event CRUD**
 
 ---
 
@@ -115,6 +113,22 @@ mern_project/          ← existing project root (docs live here)
 - `client/src/index.css` — CSS design tokens from design.md (burgundy palette, reset)
 - `client/src/App.jsx` — health-check UI demonstrating frontend-to-backend communication
 - `client/src/App.css` — styling for health-check dashboard and brand header
+- `server/src/models/User.js` — Mongoose user model with bcrypt hashing and validation
+- `server/src/validations/auth.validation.js` — Zod schemas for signup and login
+- `server/src/middleware/validate.js` — reusable Zod request body validation middleware
+- `server/src/utils/generateToken.js` — JWT signing utility (7-day expiry)
+- `server/src/middleware/auth.js` — protect (JWT verification) and restrictTo (role authorization)
+- `server/src/controllers/auth.controller.js` — signup, login, and getMe endpoints
+- `server/src/routes/auth.routes.js` — auth routing with login rate limiter (10 attempts / 15m)
+- `server/src/scripts/seedAdmin.js` — idempotent initial admin creation script
+- `client/src/context/AuthContext.jsx` — React authentication context with localStorage persistence
+- `client/src/components/ProtectedRoute.jsx` — client-side route guard with role restriction
+- `client/src/components/Navbar.jsx` & `Navbar.css` — header navigation with user state and logout
+- `client/src/pages/Home.jsx` & `Home.css` — landing page with call to actions
+- `client/src/pages/Login.jsx` — login form with error feedback
+- `client/src/pages/Signup.jsx` & `Auth.css` — student registration with live password strength bar
+- `client/src/pages/Dashboard.jsx` & `Dashboard.css` — student portal
+- `client/src/pages/AdminDashboard.jsx` — admin portal restricted to role: admin
 
 ---
 
@@ -122,7 +136,7 @@ mern_project/          ← existing project root (docs live here)
 1. Project root is `/home/kash/year1/training-sem/mern_project` — docs and subfolders live here, no new parent folder will be created.
 2. Brand name in UI is **Eventpatro**; internal/code name is **CampusPulse** — both are correct depending on context.
 3. `bcryptjs` preferred over `bcrypt` (pure JS, no native bindings needed for a learning project).
-4. JWT storage method (localStorage vs HTTP-only cookie) to be discussed in Phase 1 before building auth.
+4. JWT storage method: **Option 1 (`localStorage` + `Authorization: Bearer <token>`)** selected by user for coursework clarity.
 5. No TypeScript — plain JavaScript as stated in `rules.md`.
 6. Admin accounts created via a one-time seed script, not via the public signup form.
 7. Concise code comments (1–2 lines) that clearly explain what the code does for beginner comprehension.
@@ -138,21 +152,21 @@ mern_project/          ← existing project root (docs live here)
 - `npx create-vite client --template react` — created React frontend
 - `cd client && npm install react-router-dom lucide-react` — installed frontend routing and icons
 - `cd client && npm run build` — verified frontend builds with 0 errors
-- Frontend & backend simultaneous smoke test: curl tested both servers and proxy integration successfully
-- `git init` — initialized root git repository with verified `.gitignore`
+- `npm run seed:admin` — seeded admin@sunway.edu.np successfully into MongoDB
+- Tested signup, login, Zod email/password validation, duplicate prevention, and protected routes via curl
 
 ---
 
 ## Known Issues / Open Questions
 1. **Name settled:** UI brand name is **Eventpatro** (confirmed by project owner 2026-10-29). Code files/folders use "campuspulse" or similar. Docs may still say Eventify — treat those as Eventpatro.
-2. **JWT storage decision for Phase 1:** HTTP-only cookies vs localStorage. We will discuss the trade-offs before implementing Phase 1 auth.
+2. **JWT storage settled:** `localStorage` chosen for simplicity and inspection in DevTools.
 
 ---
 
 ## Decisions Awaiting Approval
-- Phase 1 discussion on token storage (HTTP-only cookie vs Authorization header).
+- None currently. Ready for Phase 2 (Events).
 
 ---
 
 ## Last Updated
-2026-10-29 — Phase 0 complete. Both frontend and backend configured, tested, communicating, and Git repository initialized. Ready for Phase 1 (User Authentication & Roles).
+2026-10-29 — Phase 1 complete. Full authentication (User model, Zod validation, JWT, admin seed script, React Login/Signup with live password strength, protected routes) built and tested. Ready for milestone git push.

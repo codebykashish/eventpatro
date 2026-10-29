@@ -1,0 +1,137 @@
+/* Dashboard layout */
+.dashboard-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px 32px;
+  margin-bottom: 32px;
+}
+
+.dashboard-header h2 {
+  font-size: 22px;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.dashboard-subtitle {
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.student-badge {
+  background-color: #e6f4ea;
+  color: var(--color-success);
+}
+
+.admin-badge {
+  background-color: var(--color-blush);
+  color: var(--color-primary);
+}
+
+/* Grid layout for dashboard cards */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.dash-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.card-top h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Profile details */
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.detail-label {
+  color: var(--color-muted);
+}
+
+.detail-value {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.code-font {
+  font-family: monospace;
+  background-color: var(--color-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 28px 12px;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.hint-text {
+  display: block;
+  font-size: 12px;
+  margin-top: 8px;
+  color: var(--color-muted);
+}
+
+.badge-pill {
+  display: inline-block;
+  margin-top: 14px;
+  background-color: var(--color-blush);
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}

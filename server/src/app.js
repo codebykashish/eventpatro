@@ -33,7 +33,6 @@ app.use(express.json());
 
 // Health-check route.
 // Purpose: a quick way to confirm the server is running and can respond.
-// The React app will call this during Phase 0 to verify the connection works.
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -41,6 +40,10 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Authentication routes (signup, login, me)
+const authRoutes = require('./routes/auth.routes');
+app.use('/api/auth', authRoutes);
 
 // --- 404 handler ---
 // If a request reaches this point, no route above matched it.
