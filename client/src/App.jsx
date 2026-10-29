@@ -8,6 +8,9 @@ import Signup from './pages/Signup'
 import VerifyOtp from './pages/VerifyOtp'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
+import EventsPage from './pages/Events'
+import EventDetailPage from './pages/EventDetail'
+import CreateEventPage from './pages/CreateEvent'
 
 function App() {
   return (
@@ -26,6 +29,10 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
 
+            {/* Public event browsing */}
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/events/:id" element={<EventDetailPage />} />
+
             {/* Protected student & admin dashboard */}
             <Route
               path="/dashboard"
@@ -42,6 +49,16 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected admin-only: create event */}
+            <Route
+              path="/admin/events/new"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <CreateEventPage />
                 </ProtectedRoute>
               }
             />

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Landmark, LogOut, User as UserIcon, Shield, AlertTriangle } from 'lucide-react'
+import { Landmark, LogOut, User as UserIcon, Shield, AlertTriangle, CalendarDays, PlusCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
 
@@ -33,13 +33,25 @@ const Navbar = () => {
 
           {/* Navigation actions */}
           <div className="nav-actions">
+            {/* Events link is always visible */}
+            <Link to="/events" className="nav-link">
+              <CalendarDays size={16} />
+              <span>Events</span>
+            </Link>
+
             {isAuthenticated ? (
               <>
                 {isAdmin && (
-                  <Link to="/admin" className="nav-link admin-link">
-                    <Shield size={16} />
-                    <span>Admin Panel</span>
-                  </Link>
+                  <>
+                    <Link to="/admin/events/new" className="nav-link">
+                      <PlusCircle size={16} />
+                      <span>Create Event</span>
+                    </Link>
+                    <Link to="/admin" className="nav-link admin-link">
+                      <Shield size={16} />
+                      <span>Admin Panel</span>
+                    </Link>
+                  </>
                 )}
                 <Link to="/dashboard" className="nav-link">
                   <UserIcon size={16} />

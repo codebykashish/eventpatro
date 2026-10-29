@@ -45,6 +45,10 @@ app.get('/api/health', (req, res) => {
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
+// Event routes (public listing + admin CRUD + user registration)
+const eventRoutes = require('./routes/event.routes');
+app.use('/api/events', eventRoutes);
+
 // --- 404 handler ---
 // If a request reaches this point, no route above matched it.
 // We return a JSON 404 instead of Express's default HTML error page.

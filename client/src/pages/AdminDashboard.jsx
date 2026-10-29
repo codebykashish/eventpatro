@@ -1,4 +1,5 @@
 import { Shield, Users, CalendarPlus, CheckSquare } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Dashboard.css'
 
@@ -31,7 +32,14 @@ const AdminDashboard = () => {
           <p className="card-desc">
             Create, update, and manage campus workshops, hackathons, and guest lectures.
           </p>
-          <span className="badge-pill">Unlocks in Phase 2</span>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+            <Link to="/admin/events/new" className="btn-primary-action" style={{ fontSize: '13px', padding: '7px 16px', textDecoration: 'none', borderRadius: '8px' }}>
+              + Create Event
+            </Link>
+            <Link to="/events" className="btn-primary-action" style={{ fontSize: '13px', padding: '7px 16px', textDecoration: 'none', borderRadius: '8px', background: '#f3f4f6', color: '#374151' }}>
+              View All Events
+            </Link>
+          </div>
         </div>
 
         <div className="dash-card">

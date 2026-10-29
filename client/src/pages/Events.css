@@ -1,0 +1,243 @@
+/* ─── Events Page ───────────────────────────────────────────────────────────── */
+
+.events-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+/* Hero banner at the top */
+.events-hero {
+  padding: 56px 0 32px;
+  text-align: center;
+}
+
+.events-hero-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 10px;
+}
+
+.events-hero-sub {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ── Filters bar ──────────────────────────────────────────────────────────── */
+.events-filters-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Search box */
+.search-wrapper {
+  position: relative;
+  max-width: 480px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 11px 14px 11px 40px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  border-color: #881421;
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+/* Category pills */
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-pill {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.category-pill:hover {
+  border-color: #881421;
+  color: #881421;
+}
+
+.category-pill.active {
+  background: #881421;
+  border-color: #881421;
+  color: #fff;
+}
+
+/* Results count */
+.events-results-info {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-bottom: 20px;
+  min-height: 18px;
+}
+
+/* ── Event grid ──────────────────────────────────────────────────────────── */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* ── Loading state ───────────────────────────────────────────────────────── */
+.events-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 80px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #f3f4f6;
+  border-top-color: #881421;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.events-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 80px 0;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.events-empty svg {
+  color: #d1d5db;
+}
+
+.events-empty p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.btn-reset-filters {
+  margin-top: 6px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1.5px solid #881421;
+  color: #881421;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-reset-filters:hover {
+  background: #881421;
+  color: #fff;
+}
+
+/* Error message */
+.events-error {
+  text-align: center;
+  color: #b91c1c;
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+.events-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 48px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.page-btn:hover:not(:disabled):not(.active) {
+  border-color: #881421;
+  color: #881421;
+}
+
+.page-btn.active {
+  background: #881421;
+  border-color: #881421;
+  color: #fff;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .events-hero {
+    padding: 36px 0 24px;
+  }
+}

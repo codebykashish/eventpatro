@@ -1,0 +1,232 @@
+/* ─── Event Detail Page ──────────────────────────────────────────────────── */
+
+.event-detail-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+
+.detail-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #881421;
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 24px;
+  transition: opacity 0.18s;
+}
+
+.detail-back-link:hover {
+  opacity: 0.75;
+}
+
+/* Cover image / gradient */
+.detail-cover {
+  position: relative;
+  height: 340px;
+  border-radius: 18px;
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 36px;
+  overflow: hidden;
+}
+
+.detail-category-badge {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 4px 14px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+/* ── Content Grid (main + sidebar) ──────────────────────────────────────── */
+.detail-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 36px;
+  align-items: start;
+}
+
+/* Left: title + description */
+.detail-title {
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 20px;
+  line-height: 1.25;
+}
+
+.detail-description {
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.75;
+  white-space: pre-wrap; /* preserve line breaks */
+}
+
+/* ── Sidebar card ─────────────────────────────────────────────────────── */
+.detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-info-card {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #881421;
+}
+
+.info-row > div,
+.info-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-label,
+.organiser-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #111827;
+  font-weight: 500;
+}
+
+.spots-tag {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.spots-tag.full {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Feedback banners */
+.action-success,
+.action-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.action-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #15803d;
+}
+
+.action-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+/* CTA buttons */
+.btn-register {
+  width: 100%;
+  padding: 13px;
+  background: #881421;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.btn-register:hover:not(:disabled) {
+  background: #6b1019;
+  transform: translateY(-1px);
+}
+
+.btn-register:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancel-registration {
+  width: 100%;
+  padding: 13px;
+  background: #fff;
+  color: #b91c1c;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-registration:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+/* ── Loading / Error states ──────────────────────────────────────────────── */
+.event-detail-loading,
+.event-detail-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 50vh;
+  color: #6b7280;
+  text-align: center;
+}
+
+.event-detail-error svg {
+  color: #d1d5db;
+}
+
+.btn-back-link {
+  color: #881421;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .detail-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-cover {
+    height: 220px;
+  }
+}
