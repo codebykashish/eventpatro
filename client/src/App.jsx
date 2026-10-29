@@ -11,6 +11,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import EventsPage from './pages/Events'
 import EventDetailPage from './pages/EventDetail'
 import CreateEventPage from './pages/CreateEvent'
+import EditEventPage from './pages/EditEvent'
 
 function App() {
   return (
@@ -59,6 +60,16 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <CreateEventPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected admin-only: edit event */}
+            <Route
+              path="/admin/events/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <EditEventPage />
                 </ProtectedRoute>
               }
             />

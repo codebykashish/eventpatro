@@ -220,6 +220,187 @@
   text-decoration: none;
 }
 
+/* ── Admin Controls & Attendee List ──────────────────────────────────────── */
+.admin-controls-card {
+  background: #fdf2f4;
+  border: 1px solid #fecdd3;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-controls-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #881421;
+}
+
+.admin-controls-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-admin-edit {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #881421;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.btn-admin-edit:hover {
+  opacity: 0.9;
+}
+
+.btn-admin-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-admin-delete:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.admin-delete-confirm-box {
+  background: #fff;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 12px;
+  color: #991b1b;
+}
+
+.admin-delete-confirm-box p {
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-confirm-delete {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel-delete {
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ── Attendees Section ────────────────────────────────────────────────────── */
+.admin-attendees-section {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.attendees-header {
+  margin-bottom: 16px;
+}
+
+.attendees-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.attendees-empty {
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0;
+}
+
+.attendees-list-table {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.attendees-table-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  padding: 10px 16px;
+  background: #f9fafb;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.attendees-table-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #374151;
+  align-items: center;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.attendees-table-row:last-child {
+  border-bottom: none;
+}
+
+.row-num {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.row-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.row-email {
+  color: #6b7280;
+  font-size: 13px;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .detail-content-grid {

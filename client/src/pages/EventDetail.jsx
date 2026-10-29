@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
-import { fetchEventById, registerForEvent, cancelRegistration } from '../utils/api'
+import { Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle, Edit, Trash2, Shield, UserCheck } from 'lucide-react'
+import { fetchEventById, registerForEvent, cancelRegistration, deleteEvent } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import './EventDetail.css'
 
@@ -29,6 +29,8 @@ const EventDetailPage = () => {
   const [actionMsg, setActionMsg] = useState('')
   const [actionError, setActionError] = useState('')
   const [registering, setRegistering] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   // Check if the logged-in user is already registered
   const isRegistered =
@@ -50,6 +52,20 @@ const EventDetailPage = () => {
     }
     load()
   }, [id])
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    setActionError('')
+    try {
+      await deleteEvent(id)
+      setActionMsg('Event deleted successfully.')
+      setTimeout(() => navigate('/events'), 1200)
+    } catch (err) {
+      setActionError(err.message)
+      setDeleting(false)
+      setShowDeleteModal(false)
+    }
+  }
 
   const handleRegister = async () => {
     if (!user) return navigate('/login')
@@ -134,10 +150,94 @@ const EventDetailPage = () => {
         <div className="detail-main">
           <h1 className="detail-title">{event.title}</h1>
           <p className="detail-description">{event.description}</p>
+
+          {/* Admin Attendee List */}
+          {user?.role === 'admin' && (
+            <div className="admin-attendees-section">
+              <div className="attendees-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <UserCheck size={18} color="#881421" />
+                  <h3>Registered Participants ({event.registeredUsers?.length ?? 0})</h3>
+                </div>
+              </div>
+
+              {(!event.registeredUsers || event.registeredUsers.length === 0) ? (
+                <p className="attendees-empty">No students registered for this event yet.</p>
+              ) : (
+                <div className="attendees-list-table">
+                  <div className="attendees-table-header">
+                    <span>#</span>
+                    <span>Student Name</span>
+                    <span>Email Address</span>
+                  </div>
+                  {event.registeredUsers.map((attendee, idx) => (
+                    <div key={attendee._id || idx} className="attendees-table-row">
+                      <span className="row-num">{idx + 1}</span>
+                      <span className="row-name">
+                        {attendee.firstName} {attendee.lastName}
+                      </span>
+                      <span className="row-email">{attendee.email}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right: sidebar */}
         <aside className="detail-sidebar">
+          {/* Admin Controls Panel */}
+          {user?.role === 'admin' && (
+            <div className="admin-controls-card">
+              <div className="admin-controls-title">
+                <Shield size={16} />
+                <span>Admin Actions</span>
+              </div>
+              <div className="admin-controls-actions">
+                <Link
+                  to={`/admin/events/${event._id}/edit`}
+                  className="btn-admin-edit"
+                >
+                  <Edit size={14} /> Edit Event
+                </Link>
+                <button
+                  type="button"
+                  className="btn-admin-delete"
+                  onClick={() => setShowDeleteModal(true)}
+                  disabled={deleting}
+                >
+                  <Trash2 size={14} /> Delete Event
+                </button>
+              </div>
+
+              {/* Delete confirmation box */}
+              {showDeleteModal && (
+                <div className="admin-delete-confirm-box">
+                  <p>Permanently remove this event from the public listing?</p>
+                  <div className="confirm-buttons">
+                    <button
+                      type="button"
+                      className="btn-confirm-delete"
+                      onClick={handleDelete}
+                      disabled={deleting}
+                    >
+                      {deleting ? 'Deleting...' : 'Yes, Delete'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-cancel-delete"
+                      onClick={() => setShowDeleteModal(false)}
+                      disabled={deleting}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Info card */}
           <div className="detail-info-card">
             <div className="info-row">

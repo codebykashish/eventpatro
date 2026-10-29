@@ -9,7 +9,7 @@
 ---
 
 ## Current Phase
-**Phase 1 — User Authentication and Roles** (Completed ✅)
+**Phase 2 — Public Event Discovery and Event CRUD** (Completed ✅)
 
 ---
 
@@ -24,11 +24,19 @@
 - Phase 1, Task 1.7: Verified all security checks (duplicate rejection, role tampering prevention, protected routes) ✅
 - Phase 1, Task 1.8: Refined UI (transparent campus photo overlay, split info-form layout, animated floating cards, glowing password criteria badges, logout confirmation dialog, removed studentId requirement for admins) ✅
 - Phase 1, Task 1.9: Implemented 6-digit Email OTP Verification system (Nodemailer, secure OTP generation, 10-minute expiry, unverified login block, and VerifyOtp 6-box input screen with paste & countdown timer) ✅
+- Phase 2, Task 2.1: Created `Event` Mongoose model with dates, venue, category, capacity, virtual `spotsLeft`, and soft-delete (`isPublished`) ✅
+- Phase 2, Task 2.2: Implemented Zod validation schemas for event creation and updates ✅
+- Phase 2, Task 2.3: Created Event CRUD API routes (`/api/events`, `POST`, `GET /:id`, `PUT /:id`, `DELETE /:id`, `POST /:id/register`, `DELETE /:id/register`) with admin protection and search/category filters ✅
+- Phase 2, Task 2.4: Built public event listing page (`/events`) with live search, category pills, upcoming/past sorting, and EventCards ✅
+- Phase 2, Task 2.5: Built event detail page (`/events/:id`) with date formatting, venue, capacity countdown, student registration/cancellation, and admin participant list ✅
+- Phase 2, Task 2.6: Built Create Event page (`/admin/events/new`) and Edit Event page (`/admin/events/:id/edit`) with validation and delete action ✅
+- Phase 2, Task 2.7: Built Admin Event Management portal in `AdminDashboard.jsx` with live metrics, event table, quick view/edit/delete actions, and confirmation modals ✅
+- Phase 2, Task 2.8: Created event seeding script (`npm run seed:events`) with 4 realistic Sunway College events ✅
 
 ---
 
 ## In Progress
-- Ready for **Phase 2 — Public Event Discovery and Event CRUD**
+- Ready for **Phase 3 — Registration Forms and Student Registration** (Custom form builder, multiple question types, application review workflow)
 
 ---
 
