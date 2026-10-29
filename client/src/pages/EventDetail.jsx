@@ -21,7 +21,7 @@ const formatDate = (iso) =>
 const EventDetailPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, openAuthModal } = useAuth()
 
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -68,7 +68,10 @@ const EventDetailPage = () => {
   }
 
   const handleRegister = async () => {
-    if (!user) return navigate('/login')
+    if (!user) {
+      openAuthModal('signup')
+      return
+    }
     setRegistering(true)
     setActionMsg('')
     setActionError('')

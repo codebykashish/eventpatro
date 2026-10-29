@@ -51,11 +51,67 @@
   color: var(--color-muted);
 }
 
+/* Center navigation links */
+.nav-center-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-center-link {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.15s ease;
+  padding: 4px 0;
+  position: relative;
+}
+
+.nav-center-link:hover {
+  color: var(--color-primary);
+}
+
+/* Quick search button */
+.nav-search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #4b5563;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.nav-search-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* Auth text link */
+.nav-auth-link {
+  background: transparent;
+  border: none;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+}
+
+.nav-auth-link:hover {
+  color: var(--color-primary);
+}
+
 /* Navigation links and user actions */
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .nav-link {
@@ -87,10 +143,12 @@
   color: #ffffff !important;
   font-size: 14px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: var(--radius-sm);
+  padding: 8px 20px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
   text-decoration: none;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .btn-signup:hover {

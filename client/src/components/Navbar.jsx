@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Landmark, LogOut, User as UserIcon, Shield, AlertTriangle, CalendarDays, PlusCircle } from 'lucide-react'
+import { Landmark, LogOut, User as UserIcon, Shield, AlertTriangle, Search, PlusCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
 
 const Navbar = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth()
+  const { user, isAuthenticated, isAdmin, logout, openAuthModal } = useAuth()
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const navigate = useNavigate()
 
@@ -13,7 +13,7 @@ const Navbar = () => {
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
     logout()
-    navigate('/login')
+    navigate('/')
   }
 
   return (
@@ -31,12 +31,24 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Navigation actions */}
+          {/* Center Navigation Links matching design */}
+          <div className="nav-center-links">
+            <Link to="/" className="nav-center-link">
+              Home
+            </Link>
+            <Link to="/events" className="nav-center-link">
+              Events
+            </Link>
+            <a href="/#about" className="nav-center-link">
+              About
+            </a>
+          </div>
+
+          {/* Right Actions */}
           <div className="nav-actions">
-            {/* Events link is always visible */}
-            <Link to="/events" className="nav-link">
-              <CalendarDays size={16} />
-              <span>Events</span>
+            {/* Quick search button */}
+            <Link to="/events" className="nav-search-btn" title="Search events">
+              <Search size={17} />
             </Link>
 
             {isAuthenticated ? (
@@ -73,12 +85,20 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="nav-link">
-                  Log In
-                </Link>
-                <Link to="/signup" className="btn-signup">
-                  Register
-                </Link>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('login')}
+                  className="nav-auth-link"
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('signup')}
+                  className="btn-signup"
+                >
+                  Sign Up
+                </button>
               </>
             )}
           </div>

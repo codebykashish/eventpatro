@@ -7,6 +7,13 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => localStorage.getItem('token'))
   const [loading, setLoading] = useState(true)
 
+  // Auth modal overlay state: { isOpen: boolean, mode: 'login' | 'signup' }
+  const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' })
+
+  const openAuthModal = (mode = 'login') => setAuthModal({ isOpen: true, mode })
+  const closeAuthModal = () => setAuthModal({ isOpen: false, mode: 'login' })
+  const switchAuthModalMode = (mode) => setAuthModal((prev) => ({ ...prev, mode }))
+
   const apiUrl = import.meta.env.VITE_API_URL || '/api'
 
   // Verify stored token on initial app load
@@ -140,6 +147,10 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
+        authModal,
+        openAuthModal,
+        closeAuthModal,
+        switchAuthModalMode,
         login,
         signup,
         verifyOtp,

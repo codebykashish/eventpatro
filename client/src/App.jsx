@@ -12,12 +12,16 @@ import EventsPage from './pages/Events'
 import EventDetailPage from './pages/EventDetail'
 import CreateEventPage from './pages/CreateEvent'
 import EditEventPage from './pages/EditEvent'
+import AuthModal from './components/AuthModal'
 
 function App() {
   return (
     <BrowserRouter>
       {/* Provide user auth context throughout the entire application */}
       <AuthProvider>
+        {/* Global authentication modal popup */}
+        <AuthModal />
+
         {/* Navigation bar visible on all pages */}
         <Navbar />
 
