@@ -99,7 +99,6 @@ const signup = async (req, res, next) => {
       success: true,
       requiresVerification: true,
       email: user.email,
-      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       message: 'Account created! Please enter the 6-digit code sent to your email.',
     })
   } catch (error) {
@@ -220,7 +219,6 @@ const resendOtp = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       message: 'A new verification code has been sent to your email.',
     })
   } catch (error) {

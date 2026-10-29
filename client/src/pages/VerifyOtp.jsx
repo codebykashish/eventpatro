@@ -10,14 +10,11 @@ const VerifyOtp = () => {
   const navigate = useNavigate()
   const { verifyOtp, resendOtp } = useAuth()
 
-  // Email and optional dev OTP passed via navigation state
+  // Email passed via navigation state
   const email = location.state?.email || ''
-  const devOtp = location.state?.devOtp || ''
 
-  // 6 separate OTP input state — pre-filled with devOtp if available
-  const [digits, setDigits] = useState(
-    devOtp ? devOtp.split('').concat(Array(6 - devOtp.length).fill('')) : ['', '', '', '', '', '']
-  )
+  // 6 separate OTP input state — starts empty so user types the code
+  const [digits, setDigits] = useState(['', '', '', '', '', ''])
   const inputRefs = useRef([])
 
   const [error, setError] = useState('')
@@ -147,13 +144,6 @@ const VerifyOtp = () => {
               We sent a 6-digit code to <strong className="email-highlight">{email}</strong>
             </p>
           </div>
-
-          {/* Dev-mode hint: shows OTP in the UI when SMTP is not configured */}
-          {devOtp && (
-            <div className="auth-dev-hint">
-              <span>🛠 Dev mode — OTP: <strong>{devOtp}</strong> (already filled in)</span>
-            </div>
-          )}
 
           {/* Error & Success banners */}
           {error && (

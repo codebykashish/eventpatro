@@ -60,7 +60,6 @@ const Signup = () => {
         navigate('/verify-otp', {
           state: {
             email: formData.email,
-            devOtp: res.devOtp, // Convenient helper if SMTP is not set up
           },
         })
       } else {
