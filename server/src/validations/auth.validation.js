@@ -19,11 +19,7 @@ const signupSchema = z
       .string({ required_error: 'Email is required' })
       .trim()
       .toLowerCase()
-      .email('Please enter a valid email address')
-      .refine(
-        (val) => val.endsWith('@sunway.edu.np'),
-        'Email must be a valid Sunway College email (@sunway.edu.np)'
-      ),
+      .email('Please enter a valid email address'),
     password: z
       .string({ required_error: 'Password is required' })
       .min(8, 'Password must be at least 8 characters long'),

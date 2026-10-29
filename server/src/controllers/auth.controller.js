@@ -90,7 +90,7 @@ const signup = async (req, res, next) => {
     // Send email with verification code
     await sendEmail({
       to: email,
-      subject: 'Eventpatro — Verify Your College Email',
+      subject: 'Eventpatro — Verify Your Email Address',
       text: `Welcome to Eventpatro! Your 6-digit verification code is: ${otp}`,
       otp,
     })
@@ -99,7 +99,8 @@ const signup = async (req, res, next) => {
       success: true,
       requiresVerification: true,
       email: user.email,
-      message: 'Account created! Please enter the 6-digit code sent to your college email.',
+      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
+      message: 'Account created! Please enter the 6-digit code sent to your email.',
     })
   } catch (error) {
     next(error)
@@ -219,6 +220,7 @@ const resendOtp = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      devOtp: process.env.NODE_ENV !== 'production' ? otp : undefined,
       message: 'A new verification code has been sent to your email.',
     })
   } catch (error) {
@@ -242,16 +244,7 @@ const login = async (req, res, next) => {
       })
     }
 
-    // Check if account email has been verified
-    if (!user.isVerified) {
-      return res.status(403).json({
-        success: false,
-        isUnverified: true,
-        email: user.email,
-        message: 'Please verify your college email address before logging in.',
-      })
-    }
-
+    // Generate JWT token directly (OTP is only required during signup)
     const token = generateToken(user._id, user.role)
 
     res.status(200).json({

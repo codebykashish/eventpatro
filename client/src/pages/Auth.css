@@ -120,7 +120,35 @@
   margin-bottom: 16px;
 }
 
-/* Form structure */
+/* Dev-mode OTP hint banner (amber/yellow) */
+.auth-dev-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #fffbeb;
+  border: 1px solid #fbbf24;
+  color: #92400e;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* Success message banner */
+.auth-clean-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #15803d;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+
 .clean-form {
   display: flex;
   flex-direction: column;

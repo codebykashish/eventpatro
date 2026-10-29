@@ -47,11 +47,6 @@ const Signup = () => {
     e.preventDefault()
     setError('')
 
-    if (!formData.email.endsWith('@sunway.edu.np')) {
-      setError('Email must be your official college email (@sunway.edu.np)')
-      return
-    }
-
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match')
       return
@@ -62,7 +57,12 @@ const Signup = () => {
     try {
       const res = await signup(formData)
       if (res.requiresVerification) {
-        navigate('/verify-otp', { state: { email: formData.email } })
+        navigate('/verify-otp', {
+          state: {
+            email: formData.email,
+            devOtp: res.devOtp, // Convenient helper if SMTP is not set up
+          },
+        })
       } else {
         navigate('/dashboard')
       }
@@ -154,14 +154,14 @@ const Signup = () => {
               />
             </div>
 
-            {/* College Email */}
+            {/* Email Address */}
             <div className="clean-field">
-              <label htmlFor="email">College Email</label>
+              <label htmlFor="email">Email Address</label>
               <input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="name@sunway.edu.np"
+                placeholder="e.g. yourname@gmail.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
