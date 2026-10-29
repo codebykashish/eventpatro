@@ -56,7 +56,10 @@ export const AuthProvider = ({ children }) => {
     const data = await response.json()
 
     if (!response.ok) {
-      throw new Error(data.message || 'Login failed')
+      const error = new Error(data.message || 'Login failed')
+      error.isUnverified = data.isUnverified
+      error.email = data.email
+      throw error
     }
 
     // Save token in localStorage and update state
@@ -80,11 +83,46 @@ export const AuthProvider = ({ children }) => {
       throw new Error(data.message || 'Signup failed')
     }
 
-    // Automatically log user in upon successful signup
+    // Return response indicating if verification is required
+    return data
+  }
+
+  // OTP verification handler
+  const verifyOtp = async (email, otp) => {
+    const response = await fetch(`${apiUrl}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Verification failed')
+    }
+
+    // Save token and activate user session upon successful OTP check
     localStorage.setItem('token', data.token)
     setToken(data.token)
     setUser(data.user)
     return data.user
+  }
+
+  // Resend fresh OTP code
+  const resendOtp = async (email) => {
+    const response = await fetch(`${apiUrl}/auth/resend-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to resend code')
+    }
+
+    return data
   }
 
   // Logout handler
@@ -104,6 +142,8 @@ export const AuthProvider = ({ children }) => {
         isAdmin: user?.role === 'admin',
         login,
         signup,
+        verifyOtp,
+        resendOtp,
         logout,
       }}
     >

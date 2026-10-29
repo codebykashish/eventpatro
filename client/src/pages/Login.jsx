@@ -29,6 +29,10 @@ const Login = () => {
         navigate('/dashboard')
       }
     } catch (err) {
+      if (err.isUnverified) {
+        navigate('/verify-otp', { state: { email: err.email || email } })
+        return
+      }
       setError(err.message)
     } finally {
       setIsSubmitting(false)

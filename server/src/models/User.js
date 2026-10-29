@@ -48,6 +48,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    isVerified: {
+      type: Boolean,
+      default: false, // Students must verify email via 6-digit OTP
+    },
+    verificationOtp: {
+      type: String,
+      select: false, // Hidden by default for security
+    },
+    verificationOtpExpires: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true, // Automatically manages createdAt and updatedAt

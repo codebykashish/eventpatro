@@ -1,6 +1,12 @@
 const express = require('express')
 const rateLimit = require('express-rate-limit')
-const { signup, login, getMe } = require('../controllers/auth.controller')
+const {
+  signup,
+  verifyOtp,
+  resendOtp,
+  login,
+  getMe,
+} = require('../controllers/auth.controller')
 const { protect } = require('../middleware/auth')
 const validate = require('../middleware/validate')
 const { signupSchema, loginSchema } = require('../validations/auth.validation')
@@ -9,7 +15,7 @@ const router = express.Router()
 
 // Rate limiter for login route: Max 10 attempts per 15 minutes per IP
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 10,
   message: {
     success: false,
@@ -19,11 +25,13 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 })
 
-// Public routes
+// Public authentication routes
 router.post('/signup', validate(signupSchema), signup)
 router.post('/login', loginLimiter, validate(loginSchema), login)
+router.post('/verify-otp', verifyOtp)
+router.post('/resend-otp', resendOtp)
 
-// Protected routes (requires valid Bearer token)
+// Protected user routes
 router.get('/me', protect, getMe)
 
 module.exports = router

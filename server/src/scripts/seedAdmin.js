@@ -12,7 +12,7 @@ const seedAdmin = async () => {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@sunway.edu.np'
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Sunway2026'
 
-    // Create or update the administrator without a studentId
+    // Create or update the administrator with verified status and no studentId
     await User.findOneAndUpdate(
       { email: adminEmail },
       {
@@ -20,6 +20,7 @@ const seedAdmin = async () => {
         lastName: 'Administrator',
         $unset: { studentId: 1 }, // Removes studentId if previously assigned
         role: 'admin',
+        isVerified: true,
       },
       { upsert: false }
     )

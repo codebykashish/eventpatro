@@ -60,8 +60,12 @@ const Signup = () => {
     setIsSubmitting(true)
 
     try {
-      await signup(formData)
-      navigate('/dashboard')
+      const res = await signup(formData)
+      if (res.requiresVerification) {
+        navigate('/verify-otp', { state: { email: formData.email } })
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
       setError(err.message)
     } finally {
