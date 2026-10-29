@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { createEvent } from '../utils/api'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Settings } from 'lucide-react'
+import FormBuilder from '../components/FormBuilder'
 import './EventForm.css'
 
 const CATEGORIES = [
@@ -19,7 +20,12 @@ const CreateEventPage = () => {
     location: '',
     capacity: '',
     coverImage: '',
+    registrationType: 'open',
+    registrationDeadline: '',
   })
+
+  // Custom form questions state
+  const [formFields, setFormFields] = useState([])
 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -37,11 +43,21 @@ const CreateEventPage = () => {
     setSubmitting(true)
 
     try {
-      // Build the payload — convert capacity to number or null
+      // Validate multiple_choice fields have at least 2 options
+      for (const field of formFields) {
+        if (field.type === 'multiple_choice' && (!field.options || field.options.filter(Boolean).length < 2)) {
+          setError(`Question "${field.label}" needs at least 2 answer options.`)
+          setSubmitting(false)
+          return
+        }
+      }
+
       const payload = {
         ...form,
         capacity: form.capacity ? Number(form.capacity) : null,
         coverImage: form.coverImage || null,
+        registrationDeadline: form.registrationDeadline || null,
+        formFields: formFields.map(({ _tempId, ...f }) => f), // strip temp id before sending
       }
 
       await createEvent(payload)
@@ -116,7 +132,7 @@ const CreateEventPage = () => {
               </select>
             </div>
             <div className="form-field">
-              <label htmlFor="ef-date">Date & Time *</label>
+              <label htmlFor="ef-date">Date &amp; Time *</label>
               <input
                 id="ef-date"
                 name="date"
@@ -143,7 +159,7 @@ const CreateEventPage = () => {
               />
             </div>
             <div className="form-field">
-              <label htmlFor="ef-capacity">Capacity (leave blank for unlimited)</label>
+              <label htmlFor="ef-capacity">Capacity (blank = unlimited)</label>
               <input
                 id="ef-capacity"
                 name="capacity"
@@ -169,11 +185,48 @@ const CreateEventPage = () => {
             />
           </div>
 
+          {/* ── Phase 3: Registration settings ── */}
+          <div className="form-section-divider">
+            <Settings size={14} />
+            <span>Registration Settings</span>
+          </div>
+
+          <div className="form-row-2">
+            <div className="form-field">
+              <label htmlFor="ef-regType">Registration Type</label>
+              <select
+                id="ef-regType"
+                name="registrationType"
+                value={form.registrationType}
+                onChange={handleChange}
+              >
+                <option value="open">Open — Anyone can join instantly</option>
+                <option value="application">Application — Admin reviews &amp; selects</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="ef-deadline">Registration Deadline (optional)</label>
+              <input
+                id="ef-deadline"
+                name="registrationDeadline"
+                type="datetime-local"
+                value={form.registrationDeadline}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Form builder */}
+          <div className="form-field">
+            <label>Custom Registration Form</label>
+            <FormBuilder fields={formFields} onChange={setFormFields} />
+          </div>
+
           {/* Action buttons */}
           <div className="form-actions">
             <Link to="/events" className="btn-form-cancel">Cancel</Link>
             <button type="submit" className="btn-form-submit" disabled={submitting}>
-              {submitting ? 'Creating...' : 'Publish Event'}
+              {submitting ? 'Creating…' : 'Publish Event'}
             </button>
           </div>
         </form>

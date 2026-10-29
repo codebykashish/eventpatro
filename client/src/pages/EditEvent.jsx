@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { fetchEventById, updateEvent, deleteEvent } from '../utils/api'
-import { AlertCircle, CheckCircle2, Trash2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Trash2, Settings } from 'lucide-react'
+import FormBuilder from '../components/FormBuilder'
 import './EventForm.css'
 
 const CATEGORIES = [
@@ -29,14 +30,19 @@ const EditEventPage = () => {
     location: '',
     capacity: '',
     coverImage: '',
+    registrationType: 'open',
+    registrationDeadline: '',
   })
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  // Custom form questions
+  const [formFields, setFormFields] = useState([])
+
+  const [loading, setLoading]             = useState(true)
+  const [error, setError]                 = useState('')
+  const [success, setSuccess]             = useState('')
+  const [submitting, setSubmitting]       = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [deleting, setDeleting]           = useState(false)
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -51,14 +57,16 @@ const EditEventPage = () => {
           location: ev.location || '',
           capacity: ev.capacity !== null && ev.capacity !== undefined ? String(ev.capacity) : '',
           coverImage: ev.coverImage || '',
+          registrationType: ev.registrationType || 'open',
+          registrationDeadline: toDatetimeLocal(ev.registrationDeadline),
         })
+        setFormFields(ev.formFields || [])
       } catch (err) {
         setError(err.message || 'Failed to load event for editing')
       } finally {
         setLoading(false)
       }
     }
-
     loadEvent()
   }, [id])
 
@@ -74,15 +82,26 @@ const EditEventPage = () => {
     setSubmitting(true)
 
     try {
+      // Validate multiple_choice fields
+      for (const field of formFields) {
+        if (field.type === 'multiple_choice' && (!field.options || field.options.filter(Boolean).length < 2)) {
+          setError(`Question "${field.label}" needs at least 2 answer options.`)
+          setSubmitting(false)
+          return
+        }
+      }
+
       const payload = {
         ...form,
         capacity: form.capacity ? Number(form.capacity) : null,
         coverImage: form.coverImage || null,
+        registrationDeadline: form.registrationDeadline || null,
+        formFields: formFields.map(({ _tempId, ...f }) => f),
       }
 
       await updateEvent(id, payload)
       setSuccess('Event updated successfully!')
-      setTimeout(() => navigate(`/events/${id}`), 1200)
+      setTimeout(() => navigate(`/events/${id}`), 1500)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -91,11 +110,10 @@ const EditEventPage = () => {
   }
 
   const handleDelete = async () => {
-    setError('')
     setDeleting(true)
     try {
       await deleteEvent(id)
-      setSuccess('Event removed from listings.')
+      setSuccess('Event deleted.')
       setTimeout(() => navigate('/events'), 1200)
     } catch (err) {
       setError(err.message)
@@ -106,9 +124,8 @@ const EditEventPage = () => {
 
   if (loading) {
     return (
-      <div className="event-detail-loading" style={{ minHeight: '60vh' }}>
-        <div className="loading-spinner" />
-        <span>Loading event details...</span>
+      <div className="event-form-page">
+        <div className="event-form-loading">Loading event data…</div>
       </div>
     )
   }
@@ -117,88 +134,9 @@ const EditEventPage = () => {
     <div className="event-form-page">
       <div className="event-form-card">
         <div className="event-form-header">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1>Edit Event</h1>
-            <button
-              type="button"
-              className="btn-danger-outline"
-              onClick={() => setShowDeleteConfirm(true)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                border: '1px solid #dc2626',
-                color: '#dc2626',
-                background: 'transparent',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              <Trash2 size={15} /> Delete Event
-            </button>
-          </div>
-          <p>Update the event details or schedule below.</p>
+          <h1>Edit Event</h1>
+          <p>Update the details below and save your changes.</p>
         </div>
-
-        {/* Delete confirmation modal / prompt */}
-        {showDeleteConfirm && (
-          <div
-            style={{
-              background: '#fef2f2',
-              border: '1px solid #fecaca',
-              borderRadius: '8px',
-              padding: '16px',
-              marginBottom: '20px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-            }}
-          >
-            <strong style={{ color: '#991b1b', fontSize: '14px' }}>
-              Are you sure you want to delete this event?
-            </strong>
-            <p style={{ color: '#7f1d1d', fontSize: '13px', margin: 0 }}>
-              This will remove the event from the public listing.
-            </p>
-            <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                style={{
-                  background: '#dc2626',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '7px 14px',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                {deleting ? 'Deleting...' : 'Yes, Delete'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                style={{
-                  background: '#e5e7eb',
-                  color: '#374151',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '7px 14px',
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Feedback banners */}
         {error && (
@@ -237,7 +175,6 @@ const EditEventPage = () => {
               value={form.description}
               onChange={handleChange}
               required
-              placeholder="Describe what will happen, who should attend, and any other relevant details..."
             />
           </div>
 
@@ -254,7 +191,7 @@ const EditEventPage = () => {
               </select>
             </div>
             <div className="form-field">
-              <label htmlFor="ef-date">Date & Time *</label>
+              <label htmlFor="ef-date">Date &amp; Time *</label>
               <input
                 id="ef-date"
                 name="date"
@@ -277,11 +214,10 @@ const EditEventPage = () => {
                 value={form.location}
                 onChange={handleChange}
                 required
-                placeholder="e.g. Main Hall, Block A"
               />
             </div>
             <div className="form-field">
-              <label htmlFor="ef-capacity">Capacity (leave blank for unlimited)</label>
+              <label htmlFor="ef-capacity">Capacity (blank = unlimited)</label>
               <input
                 id="ef-capacity"
                 name="capacity"
@@ -289,7 +225,6 @@ const EditEventPage = () => {
                 min="1"
                 value={form.capacity}
                 onChange={handleChange}
-                placeholder="e.g. 100"
               />
             </div>
           </div>
@@ -307,13 +242,82 @@ const EditEventPage = () => {
             />
           </div>
 
+          {/* ── Phase 3: Registration settings ── */}
+          <div className="form-section-divider">
+            <Settings size={14} />
+            <span>Registration Settings</span>
+          </div>
+
+          <div className="form-row-2">
+            <div className="form-field">
+              <label htmlFor="ef-regType">Registration Type</label>
+              <select
+                id="ef-regType"
+                name="registrationType"
+                value={form.registrationType}
+                onChange={handleChange}
+              >
+                <option value="open">Open — Anyone can join instantly</option>
+                <option value="application">Application — Admin reviews &amp; selects</option>
+              </select>
+            </div>
+            <div className="form-field">
+              <label htmlFor="ef-deadline">Registration Deadline (optional)</label>
+              <input
+                id="ef-deadline"
+                name="registrationDeadline"
+                type="datetime-local"
+                value={form.registrationDeadline}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {/* Form builder */}
+          <div className="form-field">
+            <label>Custom Registration Form</label>
+            <FormBuilder fields={formFields} onChange={setFormFields} />
+          </div>
+
           {/* Action buttons */}
           <div className="form-actions">
             <Link to={`/events/${id}`} className="btn-form-cancel">Cancel</Link>
+            <button
+              type="button"
+              className="btn-form-delete"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+            >
+              <Trash2 size={14} /> Delete Event
+            </button>
             <button type="submit" className="btn-form-submit" disabled={submitting}>
-              {submitting ? 'Saving Changes...' : 'Save Changes'}
+              {submitting ? 'Saving…' : 'Save Changes'}
             </button>
           </div>
+
+          {/* Delete confirmation inline */}
+          {showDeleteConfirm && (
+            <div className="delete-confirm-box">
+              <p>Are you sure? This will remove the event from the public listing.</p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn-confirm-del"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting…' : 'Yes, Delete'}
+                </button>
+                <button
+                  type="button"
+                  className="btn-cancel-del"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div>

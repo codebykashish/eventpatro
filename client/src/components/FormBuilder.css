@@ -1,0 +1,255 @@
+/* ─── Form Builder ──────────────────────────────────────────────────────── */
+
+.form-builder {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  background: #fafafa;
+  margin-top: 4px;
+}
+
+.fb-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.fb-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.fb-hint {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.fb-empty {
+  text-align: center;
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 20px 0;
+  font-style: italic;
+}
+
+.fb-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* Individual question card */
+.fb-field-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.18s;
+}
+
+.fb-field-card:hover {
+  border-color: #881421;
+}
+
+.fb-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fb-drag-handle {
+  color: #d1d5db;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.fb-field-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: #881421;
+  background: #fdf2f4;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fb-label-input {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111827;
+  background: #fafafa;
+  transition: border-color 0.2s;
+}
+
+.fb-label-input:focus {
+  outline: none;
+  border-color: #881421;
+  background: #fff;
+}
+
+.fb-type-select {
+  padding: 8px 10px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fb-type-select:focus {
+  outline: none;
+  border-color: #881421;
+}
+
+.fb-required-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fb-required-label input[type="checkbox"] {
+  accent-color: #881421;
+  width: 14px;
+  height: 14px;
+}
+
+.fb-remove-btn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 5px;
+  transition: background 0.18s;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.fb-remove-btn:hover {
+  background: #fee2e2;
+}
+
+/* Multiple choice options */
+.fb-options {
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fb-options-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fb-option-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fb-option-bullet {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.fb-option-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #111827;
+  background: #fafafa;
+}
+
+.fb-option-input:focus {
+  outline: none;
+  border-color: #881421;
+  background: #fff;
+}
+
+.fb-remove-option {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.fb-remove-option:hover {
+  color: #dc2626;
+}
+
+.fb-add-option {
+  background: none;
+  border: none;
+  color: #881421;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: left;
+}
+
+/* Answer type preview */
+.fb-preview {
+  margin-left: 28px;
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 6px 10px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+/* Add question button */
+.fb-add-field-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: #fff;
+  border: 1.5px dashed #881421;
+  border-radius: 8px;
+  color: #881421;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  width: 100%;
+  justify-content: center;
+}
+
+.fb-add-field-btn:hover {
+  background: #fdf2f4;
+}

@@ -18,9 +18,7 @@
   transition: opacity 0.18s;
 }
 
-.detail-back-link:hover {
-  opacity: 0.75;
-}
+.detail-back-link:hover { opacity: 0.75; }
 
 /* Cover image / gradient */
 .detail-cover {
@@ -46,7 +44,22 @@
   letter-spacing: 0.04em;
 }
 
-/* ── Content Grid (main + sidebar) ──────────────────────────────────────── */
+/* Registration type badge on cover */
+.detail-reg-badge {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.badge-open { background: rgba(21, 128, 61, 0.85); color: #fff; }
+.badge-app  { background: rgba(109, 40, 217, 0.85); color: #fff; }
+
+/* ── Content Grid ────────────────────────────────────────────────────────── */
 .detail-content-grid {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -54,7 +67,6 @@
   align-items: start;
 }
 
-/* Left: title + description */
 .detail-title {
   font-size: clamp(22px, 3vw, 32px);
   font-weight: 800;
@@ -67,10 +79,10 @@
   font-size: 15px;
   color: #374151;
   line-height: 1.75;
-  white-space: pre-wrap; /* preserve line breaks */
+  white-space: pre-wrap;
 }
 
-/* ── Sidebar card ─────────────────────────────────────────────────────── */
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .detail-sidebar {
   display: flex;
   flex-direction: column;
@@ -117,6 +129,9 @@
   font-weight: 500;
 }
 
+.deadline-active { color: #b45309; font-weight: 600; }
+.deadline-past   { color: #b91c1c; font-weight: 600; }
+
 .spots-tag {
   display: inline-block;
   margin-left: 8px;
@@ -128,10 +143,7 @@
   font-weight: 600;
 }
 
-.spots-tag.full {
-  background: #fee2e2;
-  color: #b91c1c;
-}
+.spots-tag.full { background: #fee2e2; color: #b91c1c; }
 
 /* Feedback banners */
 .action-success,
@@ -142,22 +154,18 @@
   font-size: 13px;
   padding: 10px 14px;
   border-radius: 8px;
+  margin-top: 12px;
 }
 
-.action-success {
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  color: #15803d;
-}
-
-.action-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-}
+.action-success { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+.action-error   { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
 
 /* CTA buttons */
 .btn-register {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 13px;
   background: #881421;
@@ -168,34 +176,199 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, transform 0.15s;
+  margin-top: 16px;
 }
 
-.btn-register:hover:not(:disabled) {
-  background: #6b1019;
-  transform: translateY(-1px);
-}
-
-.btn-register:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.btn-register:hover:not(:disabled) { background: #6b1019; transform: translateY(-1px); }
+.btn-register:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btn-cancel-registration {
-  width: 100%;
-  padding: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 9px 16px;
   background: #fff;
   color: #b91c1c;
   border: 1.5px solid #fecaca;
-  border-radius: 10px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 
-.btn-cancel-registration:hover:not(:disabled) {
-  background: #fef2f2;
+.btn-cancel-registration:hover:not(:disabled) { background: #fef2f2; }
+
+/* ── Registration form section ───────────────────────────────────────────── */
+.reg-form-section {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid #e5e7eb;
 }
+
+.reg-status-loading { font-size: 13px; color: #9ca3af; font-style: italic; }
+
+/* My registration status card */
+.my-reg-status-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.my-reg-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.my-reg-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-reg-code { display: flex; flex-direction: column; gap: 3px; }
+
+.reg-code-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.reg-code-value {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.12em;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.my-reg-answers { margin-top: 4px; }
+
+.reg-answers-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.reg-answer-row { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; }
+.reg-q-label { font-size: 12px; font-weight: 600; color: #374151; }
+
+.reg-q-value {
+  font-size: 13px;
+  color: #6b7280;
+  padding-left: 8px;
+  border-left: 2px solid #e5e7eb;
+}
+
+/* Closed / full banners */
+.reg-closed-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Registration form */
+.registration-form {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.reg-form-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #881421;
+  margin-bottom: 20px;
+}
+
+.reg-form-fields { display: flex; flex-direction: column; gap: 18px; margin-bottom: 4px; }
+.reg-field { display: flex; flex-direction: column; gap: 6px; }
+.reg-field-label { font-size: 14px; font-weight: 600; color: #374151; }
+.req-star { color: #dc2626; }
+
+.reg-field-input,
+.reg-field-textarea,
+.reg-field-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111827;
+  background: #fafafa;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.reg-field-input:focus,
+.reg-field-textarea:focus,
+.reg-field-select:focus {
+  outline: none;
+  border-color: #881421;
+  background: #fff;
+}
+
+.reg-field-textarea { resize: vertical; min-height: 96px; }
+
+.reg-field-select-wrap { position: relative; }
+.reg-field-select { appearance: none; padding-right: 36px; cursor: pointer; }
+
+.select-chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6b7280;
+}
+
+/* ── Status Badges ───────────────────────────────────────────────────────── */
+.reg-status-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.status-confirmed { background: #dcfce7; color: #15803d; }
+.status-pending   { background: #fef3c7; color: #92400e; }
+.status-selected  { background: #ede9fe; color: #6d28d9; }
+.status-rejected  { background: #fee2e2; color: #b91c1c; }
+.status-cancelled { background: #f3f4f6; color: #9ca3af; }
 
 /* ── Loading / Error states ──────────────────────────────────────────────── */
 .event-detail-loading,
@@ -210,17 +383,10 @@
   text-align: center;
 }
 
-.event-detail-error svg {
-  color: #d1d5db;
-}
+.event-detail-error svg { color: #d1d5db; }
+.btn-back-link { color: #881421; font-weight: 500; text-decoration: none; }
 
-.btn-back-link {
-  color: #881421;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-/* ── Admin Controls & Attendee List ──────────────────────────────────────── */
+/* ── Admin Controls ──────────────────────────────────────────────────────── */
 .admin-controls-card {
   background: #fdf2f4;
   border: 1px solid #fecdd3;
@@ -242,10 +408,7 @@
   color: #881421;
 }
 
-.admin-controls-actions {
-  display: flex;
-  gap: 8px;
-}
+.admin-controls-actions { display: flex; gap: 8px; }
 
 .btn-admin-edit {
   flex: 1;
@@ -263,9 +426,7 @@
   transition: opacity 0.2s;
 }
 
-.btn-admin-edit:hover {
-  opacity: 0.9;
-}
+.btn-admin-edit:hover { opacity: 0.9; }
 
 .btn-admin-delete {
   display: inline-flex;
@@ -283,9 +444,7 @@
   transition: all 0.2s;
 }
 
-.btn-admin-delete:hover:not(:disabled) {
-  background: #fee2e2;
-}
+.btn-admin-delete:hover:not(:disabled) { background: #fee2e2; }
 
 .admin-delete-confirm-box {
   background: #fff;
@@ -296,15 +455,9 @@
   color: #991b1b;
 }
 
-.admin-delete-confirm-box p {
-  margin: 0 0 10px;
-  font-weight: 600;
-}
+.admin-delete-confirm-box p { margin: 0 0 10px; font-weight: 600; }
 
-.confirm-buttons {
-  display: flex;
-  gap: 8px;
-}
+.confirm-buttons { display: flex; gap: 8px; }
 
 .btn-confirm-delete {
   background: #dc2626;
@@ -327,16 +480,14 @@
   cursor: pointer;
 }
 
-/* ── Attendees Section ────────────────────────────────────────────────────── */
+/* ── Admin Registrations / Applications List ─────────────────────────────── */
 .admin-attendees-section {
   margin-top: 40px;
   padding-top: 28px;
   border-top: 1px solid #e5e7eb;
 }
 
-.attendees-header {
-  margin-bottom: 16px;
-}
+.attendees-header { margin-bottom: 16px; }
 
 .attendees-header h3 {
   font-size: 17px;
@@ -352,62 +503,102 @@
   margin: 0;
 }
 
-.attendees-list-table {
-  background: #fff;
+.admin-reg-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  overflow: hidden;
 }
 
-.attendees-table-header {
+.admin-reg-table { width: 100%; min-width: 560px; }
+
+.admin-reg-header {
   display: grid;
-  grid-template-columns: 40px 1fr 1fr;
+  grid-template-columns: 36px 1fr 110px 120px auto;
   padding: 10px 16px;
   background: #f9fafb;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: #6b7280;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.attendees-table-row {
-  display: grid;
-  grid-template-columns: 40px 1fr 1fr;
-  padding: 12px 16px;
-  font-size: 14px;
-  color: #374151;
+  gap: 12px;
   align-items: center;
-  border-bottom: 1px solid #f3f4f6;
 }
 
-.attendees-table-row:last-child {
-  border-bottom: none;
-}
-
-.row-num {
-  font-size: 12px;
-  color: #9ca3af;
-  font-weight: 600;
-}
-
-.row-name {
-  font-weight: 600;
-  color: #111827;
-}
-
-.row-email {
-  color: #6b7280;
+.admin-reg-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 110px 120px auto;
+  padding: 12px 16px;
   font-size: 13px;
+  color: #374151;
+  align-items: start;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 12px;
 }
+
+.admin-reg-row:last-child { border-bottom: none; }
+
+.reg-student-info { display: flex; flex-direction: column; gap: 2px; }
+.row-num { font-size: 12px; color: #9ca3af; font-weight: 600; padding-top: 2px; }
+.row-name { font-weight: 600; color: #111827; }
+.row-email { color: #6b7280; font-size: 12px; }
+
+.row-code {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  background: #f3f4f6;
+  padding: 3px 8px;
+  border-radius: 5px;
+  display: inline-block;
+  align-self: start;
+}
+
+/* Admin submitted answers inside row */
+.admin-reg-answers {
+  margin-top: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid #f0f0f0;
+}
+
+.admin-answer-row { display: flex; gap: 6px; font-size: 12px; }
+.admin-q { font-weight: 600; color: #374151; white-space: nowrap; }
+.admin-a { color: #6b7280; }
+
+/* Select / reject buttons */
+.admin-reg-actions { display: flex; gap: 6px; align-self: start; }
+
+.btn-select,
+.btn-reject {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.18s;
+}
+
+.btn-select { background: #ede9fe; color: #6d28d9; }
+.btn-select:hover { opacity: 0.8; }
+.btn-reject { background: #fee2e2; color: #b91c1c; }
+.btn-reject:hover { opacity: 0.8; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .detail-content-grid {
-    grid-template-columns: 1fr;
-  }
+  .detail-content-grid { grid-template-columns: 1fr; }
+  .detail-cover { height: 220px; }
 
-  .detail-cover {
-    height: 220px;
+  .admin-reg-header,
+  .admin-reg-row {
+    grid-template-columns: 36px 1fr 80px 90px auto;
+    font-size: 11px;
   }
 }

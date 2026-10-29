@@ -31,10 +31,10 @@ const request = async (path, options = {}) => {
 
 /**
  * Fetch paginated, filtered event list
- * @param {{ search?: string, category?: string, page?: number }} params
+ * @param {{ search?: string, category?: string, page?: number, limit?: number }} params
  */
-export const fetchEvents = ({ search = '', category = '', page = 1 } = {}) => {
-  const qs = new URLSearchParams({ search, category, page }).toString()
+export const fetchEvents = ({ search = '', category = '', page = 1, limit = 12 } = {}) => {
+  const qs = new URLSearchParams({ search, category, page, limit }).toString()
   return request(`/events?${qs}`)
 }
 
@@ -52,10 +52,35 @@ export const updateEvent = (id, data) =>
 /** Soft-delete an event (admin only) */
 export const deleteEvent = (id) => request(`/events/${id}`, { method: 'DELETE' })
 
-/** Register current user for an event */
-export const registerForEvent = (id) =>
-  request(`/events/${id}/register`, { method: 'POST' })
+// ─── Registration API ─────────────────────────────────────────────────────────
 
-/** Cancel current user's registration */
-export const cancelRegistration = (id) =>
-  request(`/events/${id}/register`, { method: 'DELETE' })
+/**
+ * Submit a registration for an event with optional form answers
+ * @param {string} eventId
+ * @param {{ answers: Array<{ fieldId: string, value: string }> }} body
+ */
+export const submitRegistration = (eventId, body = { answers: [] }) =>
+  request(`/events/${eventId}/registrations`, { method: 'POST', body: JSON.stringify(body) })
+
+/** Cancel the current student's active registration for an event */
+export const cancelRegistration = (eventId) =>
+  request(`/events/${eventId}/registrations`, { method: 'DELETE' })
+
+/** Check if the current student is registered for a specific event */
+export const getMyRegistrationForEvent = (eventId) =>
+  request(`/registrations/me/${eventId}`)
+
+/** Get all of the current student's registrations */
+export const getMyRegistrations = () => request('/registrations/me')
+
+/** Admin: fetch all registrations for an event */
+export const getEventRegistrations = (eventId) =>
+  request(`/events/${eventId}/registrations`)
+
+/** Admin: update a registration's status (select / reject) */
+export const updateRegistrationStatus = (eventId, regId, status) =>
+  request(`/events/${eventId}/registrations/${regId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
+

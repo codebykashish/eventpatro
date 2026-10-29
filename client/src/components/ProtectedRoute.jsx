@@ -14,9 +14,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     )
   }
 
-  // If user is not logged in, redirect to login page
+  // If user is not logged in, redirect to home page
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/" replace />
   }
 
   // If role is restricted (e.g., student trying to open admin page), redirect to dashboard

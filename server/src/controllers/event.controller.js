@@ -102,54 +102,8 @@ const deleteEvent = async (req, res) => {
   }
 }
 
-// ─── POST /api/events/:id/register ───────────────────────────────────────────
-// Logged-in users: register themselves for an event
-const registerForEvent = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id)
-
-    if (!event || !event.isPublished) {
-      return res.status(404).json({ message: 'Event not found' })
-    }
-
-    const userId = req.user._id.toString()
-
-    // Prevent double registration
-    if (event.registeredUsers.map((id) => id.toString()).includes(userId)) {
-      return res.status(400).json({ message: 'You are already registered for this event' })
-    }
-
-    // Enforce capacity limit
-    if (event.capacity !== null && event.registeredUsers.length >= event.capacity) {
-      return res.status(400).json({ message: 'Event is fully booked' })
-    }
-
-    event.registeredUsers.push(req.user._id)
-    await event.save()
-
-    res.json({ message: 'Registered successfully', spotsLeft: event.spotsLeft })
-  } catch (err) {
-    res.status(500).json({ message: 'Registration failed', error: err.message })
-  }
-}
-
-// ─── DELETE /api/events/:id/register ─────────────────────────────────────────
-// Logged-in users: cancel their own registration
-const cancelRegistration = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id)
-
-    if (!event) return res.status(404).json({ message: 'Event not found' })
-
-    const userId = req.user._id.toString()
-    event.registeredUsers = event.registeredUsers.filter((id) => id.toString() !== userId)
-    await event.save()
-
-    res.json({ message: 'Registration cancelled' })
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to cancel registration', error: err.message })
-  }
-}
+// ─── POST /api/events/:id/register (legacy stub — now handled by registration.controller.js) ─
+// This function is no longer exported; keeping the file note for reference.
 
 module.exports = {
   getEvents,
@@ -157,6 +111,5 @@ module.exports = {
   createEvent,
   updateEvent,
   deleteEvent,
-  registerForEvent,
-  cancelRegistration,
 }
+

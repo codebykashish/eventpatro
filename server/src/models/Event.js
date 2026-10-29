@@ -12,6 +12,38 @@ const CATEGORIES = [
   'other',
 ]
 
+// Supported question types for the custom registration form builder
+const FIELD_TYPES = ['short_answer', 'paragraph', 'multiple_choice']
+
+// Schema for one custom question in the registration form
+const formFieldSchema = new mongoose.Schema(
+  {
+    label: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+    },
+    // Type of input students will see
+    type: {
+      type: String,
+      enum: FIELD_TYPES,
+      required: true,
+    },
+    // Choices only used when type === 'multiple_choice'
+    options: {
+      type: [String],
+      default: [],
+    },
+    // Whether the student must fill this question before submitting
+    required: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: true } // keep _id so frontend can reference specific fields by id
+)
+
 const eventSchema = new mongoose.Schema(
   {
     // Basic details
@@ -66,7 +98,7 @@ const eventSchema = new mongoose.Schema(
       required: true,
     },
 
-    // List of user IDs who registered for this event
+    // List of user IDs who registered for this event (legacy — kept for spotsLeft virtual)
     registeredUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -78,6 +110,28 @@ const eventSchema = new mongoose.Schema(
     isPublished: {
       type: Boolean,
       default: true,
+    },
+
+    // --- Phase 3: Registration type and form builder ---
+
+    // 'open' = anyone can register instantly (Confirmed)
+    // 'application' = student applies and admin reviews (Pending → Selected/Rejected)
+    registrationType: {
+      type: String,
+      enum: ['open', 'application'],
+      default: 'open',
+    },
+
+    // Last date/time students can submit registrations (null = no deadline)
+    registrationDeadline: {
+      type: Date,
+      default: null,
+    },
+
+    // Custom questions admin builds for this event's registration form
+    formFields: {
+      type: [formFieldSchema],
+      default: [],
     },
   },
   {
@@ -97,4 +151,4 @@ eventSchema.set('toObject', { virtuals: true })
 
 const Event = mongoose.model('Event', eventSchema)
 
-module.exports = { Event, CATEGORIES }
+module.exports = { Event, CATEGORIES, FIELD_TYPES }

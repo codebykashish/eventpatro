@@ -12,6 +12,26 @@ const Navbar = () => {
 
   const isHomePage = location.pathname === '/'
 
+  // Smoothly scroll to a section on the landing page with animation
+  const scrollToSection = (e, sectionId) => {
+    e.preventDefault()
+    if (!isHomePage) {
+      navigate('/')
+      setTimeout(() => {
+        const el = document.getElementById(sectionId)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 120)
+      return
+    }
+
+    const el = document.getElementById(sectionId)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   // Execute logout after confirmation
   const confirmLogout = () => {
     setShowLogoutConfirm(false)
@@ -24,43 +44,64 @@ const Navbar = () => {
       <nav className={`navbar ${isHomePage ? 'navbar-hero-overlay' : ''}`}>
         <div className="navbar-container">
           {/* Brand identity without icon, written in cursive */}
-          <Link to="/" className="nav-brand">
+          <Link to="/" onClick={(e) => scrollToSection(e, 'home')} className="nav-brand">
             <span className="nav-title brand-cursive">Eventpatro</span>
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links with smooth scroll animations */}
           <div className="nav-center-links">
-            <Link to="/" className="nav-center-link">
-              Home
-            </Link>
-            <Link to="/events" className="nav-center-link">
-              Events
-            </Link>
             {isHomePage ? (
               <>
-                <a href="#story" className="nav-center-link">
+                <button
+                  type="button"
+                  onClick={(e) => scrollToSection(e, 'home')}
+                  className="nav-center-link nav-btn-link"
+                >
+                  Home
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => scrollToSection(e, 'upcoming-events')}
+                  className="nav-center-link nav-btn-link"
+                >
+                  Events
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => scrollToSection(e, 'story')}
+                  className="nav-center-link nav-btn-link"
+                >
                   Our Story
-                </a>
-                <a href="#how-it-works" className="nav-center-link">
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => scrollToSection(e, 'how-it-works')}
+                  className="nav-center-link nav-btn-link"
+                >
                   How It Works
-                </a>
-                <a href="#contact" className="nav-center-link">
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => scrollToSection(e, 'contact')}
+                  className="nav-center-link nav-btn-link"
+                >
                   Contact
-                </a>
+                </button>
               </>
             ) : (
-              <Link to="/events" className="nav-center-link">
-                Browse
-              </Link>
+              <>
+                <Link to="/dashboard" className="nav-center-link">
+                  Dashboard
+                </Link>
+                <Link to="/events" className="nav-center-link">
+                  All Events
+                </Link>
+              </>
             )}
           </div>
 
           {/* Right Actions */}
           <div className="nav-actions">
-            {/* Quick search button */}
-            <Link to="/events" className="nav-search-btn" title="Search events">
-              <Search size={17} />
-            </Link>
 
             {isAuthenticated ? (
               <>

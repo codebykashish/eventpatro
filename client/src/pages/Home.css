@@ -857,16 +857,33 @@
   gap: 10px;
 }
 
-.footer-col-links a {
+.footer-col-links a,
+.footer-link-btn {
+  background: none;
+  border: none;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   text-decoration: none;
   transition: color 0.15s ease;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
 }
 
-.footer-col-links a:hover {
+.footer-col-links a:hover,
+.footer-link-btn:hover {
   color: #ffffff;
   text-decoration: underline;
+}
+
+/* Scroll margin so sticky / floating navbar doesn't overlap titles */
+#home,
+#upcoming-events,
+#story,
+#how-it-works,
+#contact {
+  scroll-margin-top: 88px;
 }
 
 .contact-list {

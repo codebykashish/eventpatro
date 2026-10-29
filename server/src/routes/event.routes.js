@@ -8,9 +8,13 @@ const {
   createEvent,
   updateEvent,
   deleteEvent,
-  registerForEvent,
-  cancelRegistration,
 } = require('../controllers/event.controller')
+const {
+  createRegistration,
+  cancelRegistration,
+  getEventRegistrations,
+  updateRegistrationStatus,
+} = require('../controllers/registration.controller')
 
 const router = express.Router()
 
@@ -23,8 +27,13 @@ router.post('/', protect, restrictTo('admin'), validate(createEventSchema), crea
 router.put('/:id', protect, restrictTo('admin'), validate(updateEventSchema), updateEvent)
 router.delete('/:id', protect, restrictTo('admin'), deleteEvent)
 
-// ─── Logged-in user routes ────────────────────────────────────────────────────
-router.post('/:id/register', protect, registerForEvent)     // register for an event
-router.delete('/:id/register', protect, cancelRegistration) // cancel registration
+// ─── Registration routes (logged-in students) ─────────────────────────────────
+router.post('/:id/registrations', protect, createRegistration)    // submit registration + answers
+router.delete('/:id/registrations', protect, cancelRegistration)  // cancel active registration
+
+// ─── Admin: view and manage registrations for an event ────────────────────────
+router.get('/:id/registrations', protect, restrictTo('admin'), getEventRegistrations)
+router.patch('/:id/registrations/:regId', protect, restrictTo('admin'), updateRegistrationStatus)
 
 module.exports = router
+

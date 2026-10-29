@@ -59,14 +59,18 @@ const Home = () => {
     loadUpcoming()
   }, [])
 
-  // Handle Search Submission
+  // Smooth scroll helper
+  const scrollToSection = (sectionId) => {
+    const el = document.getElementById(sectionId)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  // Handle Search Submission — scrolls down smoothly to the upcoming events
   const handleSearchSubmit = (e) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/events?search=${encodeURIComponent(searchQuery.trim())}`)
-    } else {
-      navigate('/events')
-    }
+    scrollToSection('upcoming-events')
   }
 
   // Handle Quick Sign Up Submit
@@ -102,7 +106,7 @@ const Home = () => {
   return (
     <div className="home-page-root">
       {/* ── 1. Full-Screen Desktop Hero Section with Floating Bar ──────────── */}
-      <section className="hero-banner-fullscreen">
+      <section id="home" className="hero-banner-fullscreen">
         <div className="hero-bg-media" />
         <div className="hero-gradient-overlay" />
 
@@ -141,10 +145,14 @@ const Home = () => {
 
             <span className="hero-search-or">or</span>
 
-            <Link to="/events" className="btn-hero-browse">
+            <button
+              type="button"
+              onClick={() => scrollToSection('upcoming-events')}
+              className="btn-hero-browse"
+            >
               <Calendar size={15} />
-              <span>Browse All</span>
-            </Link>
+              <span>Explore Events</span>
+            </button>
           </form>
 
           {/* Quick Stats Banner inside Hero */}
@@ -168,7 +176,7 @@ const Home = () => {
       </section>
 
       {/* ── 2. Upcoming Events Section (Exactly 3 Events) ─────────────────── */}
-      <section className="events-showcase-section">
+      <section id="upcoming-events" className="events-showcase-section">
         <div className="section-container">
           <div className="showcase-header-centered">
             <span className="section-eyebrow">CURATED HAPPENINGS</span>
@@ -188,9 +196,14 @@ const Home = () => {
           ) : upcomingEvents.length === 0 ? (
             <div className="showcase-empty">
               <p>No upcoming events currently scheduled.</p>
-              <Link to="/events" className="btn-explore-more">
-                Browse Events
-              </Link>
+              <button
+                type="button"
+                onClick={() => openAuthModal('signup')}
+                className="btn-explore-more"
+                style={{ marginTop: '12px' }}
+              >
+                Sign Up to Stay Updated
+              </button>
             </div>
           ) : (
             <>
@@ -207,10 +220,14 @@ const Home = () => {
 
               {/* Centered Explore More Events Button below the 3 cards */}
               <div className="explore-more-wrap">
-                <Link to="/events" className="btn-explore-more">
+                <button
+                  type="button"
+                  onClick={() => openAuthModal('signup')}
+                  className="btn-explore-more"
+                >
                   <span>Explore More Events</span>
                   <ArrowRight size={17} />
-                </Link>
+                </button>
               </div>
             </>
           )}
@@ -586,10 +603,31 @@ const Home = () => {
             <div className="footer-col-links">
               <h4 className="footer-col-title">Navigation</h4>
               <ul>
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/events">All Events</Link></li>
-                <li><a href="#story">Our Story</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
+                <li>
+                  <button type="button" onClick={() => scrollToSection('home')} className="footer-link-btn">
+                    Home
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => scrollToSection('upcoming-events')} className="footer-link-btn">
+                    Upcoming Events
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => scrollToSection('story')} className="footer-link-btn">
+                    Our Story
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => scrollToSection('how-it-works')} className="footer-link-btn">
+                    How It Works
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => scrollToSection('contact')} className="footer-link-btn">
+                    Contact
+                  </button>
+                </li>
               </ul>
             </div>
 

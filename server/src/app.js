@@ -45,9 +45,14 @@ app.get('/api/health', (req, res) => {
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
-// Event routes (public listing + admin CRUD + user registration)
+// Event routes (public listing + admin CRUD + registration management)
 const eventRoutes = require('./routes/event.routes');
 app.use('/api/events', eventRoutes);
+
+// Registration routes (student's own registrations — /api/registrations/me)
+const registrationRoutes = require('./routes/registration.routes');
+app.use('/api/registrations', registrationRoutes);
+
 
 // --- 404 handler ---
 // If a request reaches this point, no route above matched it.

@@ -1,5 +1,22 @@
 const { z } = require('zod')
-const { CATEGORIES } = require('../models/Event')
+const { CATEGORIES, FIELD_TYPES } = require('../models/Event')
+
+// Validation for a single form field question
+const formFieldSchema = z.object({
+  label: z
+    .string({ required_error: 'Field label is required' })
+    .min(1, 'Label cannot be empty')
+    .max(200, 'Label cannot exceed 200 characters'),
+
+  type: z.enum(FIELD_TYPES, {
+    errorMap: () => ({ message: `Field type must be one of: ${FIELD_TYPES.join(', ')}` }),
+  }),
+
+  // Options required only for multiple_choice, ignored for others
+  options: z.array(z.string()).default([]),
+
+  required: z.boolean().default(false),
+})
 
 // Validation for creating a new event
 const createEventSchema = z.object({
@@ -33,9 +50,18 @@ const createEventSchema = z.object({
     .default(null),
 
   coverImage: z.string().url('Cover image must be a valid URL').nullable().optional().default(null),
+
+  // --- Phase 3 fields ---
+  registrationType: z.enum(['open', 'application']).default('open'),
+
+  registrationDeadline: z.coerce.date().nullable().optional().default(null),
+
+  // Array of custom form questions (may be empty)
+  formFields: z.array(formFieldSchema).default([]),
 })
 
 // For updating — all fields are optional
 const updateEventSchema = createEventSchema.partial()
 
 module.exports = { createEventSchema, updateEventSchema }
+

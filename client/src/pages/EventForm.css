@@ -165,3 +165,83 @@
     padding: 24px 18px;
   }
 }
+
+/* ── Phase 3 additions ────────────────────────────────────────────────────── */
+
+/* Section divider with icon and label */
+.form-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #881421;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid #fecdd3;
+  margin-top: 4px;
+}
+
+/* Delete button in form actions */
+.btn-form-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 20px;
+  border-radius: 9px;
+  border: 1.5px solid #fecaca;
+  background: #fff;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.btn-form-delete:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+/* Inline delete confirmation */
+.delete-confirm-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 13px;
+  color: #991b1b;
+}
+
+.delete-confirm-box p {
+  margin: 0 0 12px;
+  font-weight: 500;
+}
+
+.btn-confirm-del {
+  padding: 8px 16px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel-del {
+  padding: 8px 16px;
+  background: #fff;
+  color: #374151;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Loading state */
+.event-form-loading {
+  text-align: center;
+  padding: 60px;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
