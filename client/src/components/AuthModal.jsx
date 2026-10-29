@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { X, Eye, EyeOff, AlertCircle, CheckCircle2, Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import '../pages/Auth.css'
 import './AuthModal.css'
 
 const AuthModal = () => {
+  const navigate = useNavigate()
   const {
     authModal,
     closeAuthModal,
@@ -90,8 +92,9 @@ const AuthModal = () => {
     setError('')
     setIsSubmitting(true)
     try {
-      await login(loginEmail, loginPassword)
+      const loggedInUser = await login(loginEmail, loginPassword)
       closeAuthModal()
+      navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard')
     } catch (err) {
       if (err.isUnverified) {
         setVerifyEmail(err.email || loginEmail)
@@ -181,8 +184,9 @@ const AuthModal = () => {
     setError('')
     setIsSubmitting(true)
     try {
-      await verifyOtp(verifyEmail, code)
+      const loggedInUser = await verifyOtp(verifyEmail, code)
       closeAuthModal()
+      navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard')
     } catch (err) {
       setError(err.message || 'Invalid or expired verification code')
     } finally {

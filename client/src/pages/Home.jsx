@@ -22,11 +22,6 @@ const Home = () => {
   const navigate = useNavigate()
   const { user, isAuthenticated, openAuthModal, signup } = useAuth()
 
-  // 1. Authenticated visitors are automatically redirected to their dashboard
-  if (isAuthenticated && user) {
-    return <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} replace />
-  }
-
   const [searchQuery, setSearchQuery] = useState('')
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [loading, setLoading] = useState(true)
@@ -43,6 +38,13 @@ const Home = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [signupError, setSignupError] = useState('')
   const [signupSubmitting, setSignupSubmitting] = useState(false)
+
+  // Automatically redirect authenticated visitors to their appropriate dashboard without breaking hook order
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.role === 'admin' ? '/admin' : '/dashboard', { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
 
   // Fetch exactly 3 upcoming events for the showcase
   useEffect(() => {
@@ -101,6 +103,11 @@ const Home = () => {
     } finally {
       setSignupSubmitting(false)
     }
+  }
+
+  // If authenticated, render nothing while useEffect redirects to prevent flash
+  if (isAuthenticated && user) {
+    return null
   }
 
   return (

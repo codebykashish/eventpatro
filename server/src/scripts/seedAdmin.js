@@ -12,18 +12,25 @@ const seedAdmin = async () => {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@sunway.edu.np'
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Sunway2026'
 
-    // Create or update the administrator with verified status and no studentId
-    await User.findOneAndUpdate(
-      { email: adminEmail },
-      {
+    let admin = await User.findOne({ email: adminEmail }).select('+password')
+    if (admin) {
+      admin.firstName = 'College'
+      admin.lastName = 'Administrator'
+      admin.role = 'admin'
+      admin.isVerified = true
+      admin.password = adminPassword
+      admin.studentId = undefined
+      await admin.save()
+    } else {
+      admin = await User.create({
         firstName: 'College',
         lastName: 'Administrator',
-        $unset: { studentId: 1 }, // Removes studentId if previously assigned
+        email: adminEmail,
+        password: adminPassword,
         role: 'admin',
         isVerified: true,
-      },
-      { upsert: false }
-    )
+      })
+    }
 
     console.log('--- Admin Account Created Successfully ---')
     console.log(`Email:    ${adminEmail}`)
