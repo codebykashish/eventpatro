@@ -8,7 +8,6 @@ import {
   MapPin,
   Mail,
   Clock,
-  Check,
   AlertCircle,
   Eye,
   EyeOff,
@@ -400,8 +399,8 @@ const Home = () => {
             {/* Left Photo & Perks Column */}
             <div className="signup-perks-column">
               <img
-                src="/signup_banner.jpg"
-                alt="Students on campus celebrating together"
+                src="/last_image.jpg"
+                alt="SSRC campus events"
                 className="signup-perks-bg"
               />
               <div className="signup-perks-overlay" />
@@ -409,25 +408,8 @@ const Home = () => {
               <div className="signup-perks-content">
                 <span className="perks-badge">CAMPUS COMMUNITY</span>
                 <h3 className="perks-heading">
-                  Join 1,200+ students actively shaping campus life.
+                  Sign up early to stay informed.
                 </h3>
-                <ul className="perks-list">
-                  <li>
-                    <Check size={16} className="perk-check-icon" />
-                    <span>Free registration for all campus workshops</span>
-                  </li>
-                  <li>
-                    <Check size={16} className="perk-check-icon" />
-                    <span>Official attendance records for student portfolios</span>
-                  </li>
-                  <li>
-                    <Check size={16} className="perk-check-icon" />
-                    <span>Instant priority access to limited-seat hackathons</span>
-                  </li>
-                </ul>
-                <div className="perks-footer-note">
-                  * Exclusively for Sunway College Kathmandu students
-                </div>
               </div>
             </div>
 
