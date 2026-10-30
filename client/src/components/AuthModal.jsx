@@ -253,11 +253,11 @@ const AuthModal = () => {
         {/* Form card only — no red image panel, consistent size */}
         <div className="auth-main-card">
           <div className="auth-form-panel">
-            {/* Header with App Branding and red Eventpatro */}
+            {/* Header with App Branding and SSRC Portal */}
             <div className="form-header">
-              <div className="auth-brand-logo brand-cursive">Eventpatro</div>
+              <div className="auth-brand-logo brand-cursive">SSRC Events</div>
               <h2>
-                Welcome to <span className="brand-red-text brand-cursive">Eventpatro</span>
+                Welcome to the <span className="brand-red-text brand-cursive">SSRC Portal</span>
               </h2>
               <p className="form-subtitle">
                 {mode === 'login'

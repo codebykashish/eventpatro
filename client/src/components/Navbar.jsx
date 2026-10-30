@@ -57,9 +57,10 @@ const Navbar = () => {
         }`}
       >
         <div className="navbar-container">
-          {/* Brand identity without icon, written in cursive */}
+          {/* Brand identity with logo on left */}
           <Link to="/" onClick={(e) => scrollToSection(e, 'home')} className="nav-brand">
-            <span className="nav-title brand-cursive">Eventpatro</span>
+            <img src="/logo.png" alt="SSRC Events Logo" className="nav-logo" />
+            <span className="nav-title brand-cursive">SSRC Events</span>
           </Link>
 
           {/* Center Navigation Links with smooth scroll animations */}

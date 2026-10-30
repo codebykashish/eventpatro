@@ -123,9 +123,9 @@ const VerifyOtp = () => {
         {/* Clean form card without red image panel */}
         <div className="auth-form-panel">
           <div className="form-header">
-            <div className="auth-brand-logo brand-cursive">Eventpatro</div>
+            <div className="auth-brand-logo brand-cursive">SSRC Events</div>
             <h2>
-              Welcome to <span className="brand-red-text brand-cursive">Eventpatro</span>
+              Welcome to the <span className="brand-red-text brand-cursive">SSRC Portal</span>
             </h2>
             <p className="form-subtitle">
               Enter the 6-digit code sent to <strong className="email-highlight">{email}</strong>

@@ -268,7 +268,7 @@ const Home = () => {
             <div className="zigzag-row">
               <div className="zigzag-media">
                 <img
-                  src="/scattered_events.jpg"
+                  src="/about1.jpeg"
                   alt="Students reading bulletin boards and checking phones in campus hallway"
                   className="zigzag-img"
                   loading="lazy"
@@ -296,7 +296,7 @@ const Home = () => {
             <div className="zigzag-row reverse">
               <div className="zigzag-media">
                 <img
-                  src="/connected_events.jpg"
+                  src="/about2.jpeg"
                   alt="Students collaborating together at a modern wooden conference table"
                   className="zigzag-img"
                   loading="lazy"
@@ -323,7 +323,7 @@ const Home = () => {
             <div className="zigzag-row">
               <div className="zigzag-media">
                 <img
-                  src="/signup_banner.jpg"
+                  src="/about3.jpeg"
                   alt="Sunway students celebrating together after a campus event"
                   className="zigzag-img"
                   loading="lazy"
@@ -436,7 +436,7 @@ const Home = () => {
               <div className="quick-form-header">
                 <span className="form-eyebrow">FAST ENROLLMENT</span>
                 <h3 className="quick-form-title">
-                  Get Started with <span className="brand-cursive brand-red-text">Eventpatro</span>
+                  Get Started with <span className="brand-cursive brand-red-text">SSRC Events</span>
                 </h3>
                 <p className="quick-form-sub">
                   Create your student account in 60 seconds.
@@ -579,7 +579,7 @@ const Home = () => {
           <div className="footer-contact-grid">
             {/* Brand & Mission */}
             <div className="footer-col-brand">
-              <span className="footer-brand-title brand-cursive">Eventpatro</span>
+              <span className="footer-brand-title brand-cursive">SSRC Events</span>
               <p className="footer-brand-desc">
                 The centralized university event discovery and registration platform for Sunway College Kathmandu.
               </p>
@@ -668,7 +668,7 @@ const Home = () => {
           {/* Bottom Copyright Row */}
           <div className="footer-bottom-bar">
             <span className="copyright-text">
-              © {new Date().getFullYear()} Eventpatro. All rights reserved.
+              © {new Date().getFullYear()} SSRC Events. All rights reserved.
             </span>
             <span className="college-text">
               Sunway College Kathmandu

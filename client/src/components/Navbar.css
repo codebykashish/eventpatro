@@ -59,11 +59,18 @@
   padding: 8px 24px;
 }
 
-/* Brand title without icon written in cursive */
+/* Brand title with logo written in cursive */
 .nav-brand {
   display: flex;
   align-items: center;
+  gap: 10px;
   text-decoration: none;
+}
+
+.nav-logo {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
 }
 
 .nav-title {
