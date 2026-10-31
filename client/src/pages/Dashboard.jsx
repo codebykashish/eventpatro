@@ -632,6 +632,11 @@ const Dashboard = () => {
                                     </span>
                                   </div>
                                 )}
+                                {new Date(evt.date) < now && (
+                                  <span className="portal-past-pill card-pill-overlay">
+                                    Past Event
+                                  </span>
+                                )}
                                 {isRegistered && (
                                   <span className="portal-registered-pill card-pill-overlay">
                                     <Check size={11} strokeWidth={2.5} />
@@ -644,12 +649,17 @@ const Dashboard = () => {
                                   {evt.category ? (
                                     <span className="portal-event-category-tag">{evt.category}</span>
                                   ) : <span />}
-                                  {remainingDays && (
+                                  {new Date(evt.date) < now ? (
+                                    <span className="portal-event-countdown-pill past">
+                                      <Clock size={12} className="meta-svg" />
+                                      <span>Completed</span>
+                                    </span>
+                                  ) : remainingDays ? (
                                     <span className="portal-event-countdown-pill">
                                       <Clock size={12} className="meta-svg" />
                                       <span>{remainingDays}</span>
                                     </span>
-                                  )}
+                                  ) : null}
                                 </div>
                                 <h3 className="portal-event-title">{evt.title}</h3>
                                 {descSnippet && (
@@ -812,10 +822,7 @@ const Dashboard = () => {
                                 onChange={() => toggleCategory(cat.id)}
                                 className="filter-checkbox"
                               />
-                              <span className="filter-cat-badge">
-                                <span className="cat-emoji">{cat.icon}</span>
-                                <span className="cat-name">{cat.label}</span>
-                              </span>
+                              <span className="filter-checkbox-label">{cat.label}</span>
                             </label>
                           )
                         })}

@@ -1286,6 +1286,26 @@
   letter-spacing: 0.01em;
 }
 
+/* Past event countdown state — muted grey */
+.portal-event-countdown-pill.past {
+  color: #94a3b8;
+}
+
+/* Past event pill — overlaid badge on dashboard feed card image */
+.portal-past-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
 .portal-event-title {
   font-size: 17.5px;
   font-weight: 700;
