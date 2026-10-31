@@ -114,7 +114,7 @@ const EditEventPage = () => {
     try {
       await deleteEvent(id)
       setSuccess('Event deleted.')
-      setTimeout(() => navigate('/events'), 1200)
+      setTimeout(() => navigate('/admin'), 1200)
     } catch (err) {
       setError(err.message)
       setDeleting(false)

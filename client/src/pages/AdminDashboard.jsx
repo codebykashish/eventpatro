@@ -142,9 +142,6 @@ const AdminDashboard = () => {
             <Link to="/admin/events/new" className="btn-primary-action" style={{ textDecoration: 'none', padding: '8px 18px', fontSize: '13px', borderRadius: '8px' }}>
               + Create New Event
             </Link>
-            <Link to="/events" className="btn-secondary-action" style={{ textDecoration: 'none', padding: '8px 18px', fontSize: '13px', borderRadius: '8px', background: '#f3f4f6', color: '#374151' }}>
-              Public Events Page
-            </Link>
           </div>
         </div>
 

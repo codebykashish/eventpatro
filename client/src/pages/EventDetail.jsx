@@ -38,11 +38,20 @@ const STATUS_CONFIG = {
   cancelled: { label: 'Cancelled', cls: 'status-cancelled' },
 }
 
-const EventDetailPage = () => {
-  const { id } = useParams()
+const EventDetailPage = ({ eventId: propId, onBack }) => {
+  const params = useParams()
+  const id = propId || params.id
   const navigate = useNavigate()
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack()
+    } else {
+      navigate(isAdmin ? '/admin' : '/dashboard')
+    }
+  }
 
   const [event, setEvent]           = useState(null)
   const [loading, setLoading]       = useState(true)
@@ -100,10 +109,13 @@ const EventDetailPage = () => {
   }, [id, isAdmin])
 
   useEffect(() => {
+    setLoading(true)
+    setError('')
+    setEvent(null)
     loadEvent()
     loadMyRegistration()
     loadRegistrations()
-  }, [loadEvent, loadMyRegistration, loadRegistrations])
+  }, [id, loadEvent, loadMyRegistration, loadRegistrations])
 
   // Initialise answer state when event loads (one blank entry per field)
   useEffect(() => {
@@ -156,7 +168,10 @@ const EventDetailPage = () => {
     try {
       await deleteEvent(id)
       setActionMsg('Event deleted.')
-      setTimeout(() => navigate('/events'), 1200)
+      setTimeout(() => {
+        if (onBack) onBack()
+        else navigate(isAdmin ? '/admin' : '/dashboard')
+      }, 1200)
     } catch (err) {
       setActionError(err.message)
       setDeleting(false)
@@ -200,7 +215,14 @@ const EventDetailPage = () => {
       <div className="event-detail-error">
         <AlertCircle size={40} />
         <p>{error || 'Event not found.'}</p>
-        <Link to="/events" className="btn-back-link">← Back to Events</Link>
+        <button
+          type="button"
+          onClick={handleBack}
+          className="btn-back-link"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
+        >
+          ← Back to {isAdmin ? 'Admin' : 'Dashboard'}
+        </button>
       </div>
     )
   }
@@ -210,10 +232,15 @@ const EventDetailPage = () => {
   return (
     <div className="event-detail-page">
       {/* ── Back navigation ── */}
-      <Link to="/events" className="detail-back-link">
+      <button
+        type="button"
+        onClick={handleBack}
+        className="detail-back-link"
+        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
+      >
         <ArrowLeft size={16} />
-        All Events
-      </Link>
+        Back to {isAdmin ? 'Admin' : 'Dashboard'}
+      </button>
 
       {/* ── Cover ── */}
       <div

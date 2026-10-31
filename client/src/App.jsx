@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
+import { useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import Home from './pages/Home'
@@ -8,15 +9,35 @@ import Signup from './pages/Signup'
 import VerifyOtp from './pages/VerifyOtp'
 import Dashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
-import EventsPage from './pages/Events'
 import EventDetailPage from './pages/EventDetail'
 import CreateEventPage from './pages/CreateEvent'
 import EditEventPage from './pages/EditEvent'
 import AuthModal from './components/AuthModal'
 
+// Automatically scrolls window to top on every navigation
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
+// Role-aware redirect so /events never renders for authenticated users
+function EventsRouteRedirect() {
+  const { user, isAuthenticated, loading } = useAuth()
+  if (loading) return null
+  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (user?.role === 'admin') return <Navigate to="/admin" replace />
+  return <Navigate to="/dashboard" replace />
+}
+
 function App() {
   return (
     <BrowserRouter>
+      {/* Scroll restoration on navigation */}
+      <ScrollToTop />
+
       {/* Provide user auth context throughout the entire application */}
       <AuthProvider>
         {/* Global authentication modal popup */}
@@ -34,20 +55,13 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-otp" element={<VerifyOtp />} />
 
-            {/* Event browsing protected for logged-in students & admins only */}
-            <Route
-              path="/events"
-              element={
-                <ProtectedRoute>
-                  <EventsPage />
-                </ProtectedRoute>
-              }
-            />
+            {/* Standalone /events redirected directly to dashboard/admin for logged-in users */}
+            <Route path="/events" element={<EventsRouteRedirect />} />
             <Route
               path="/events/:id"
               element={
                 <ProtectedRoute>
-                  <EventDetailPage />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />

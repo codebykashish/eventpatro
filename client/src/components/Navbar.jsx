@@ -12,6 +12,12 @@ const Navbar = () => {
   const location = useLocation()
 
   const isHomePage = location.pathname === '/'
+  const isPortalRoute = location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/events') || location.pathname.startsWith('/admin')
+
+  // Portal views have their own dedicated sidebar and topbar — never render old navbar
+  if (isPortalRoute || (isAuthenticated && !isHomePage)) {
+    return null
+  }
 
   // Track window scroll to smoothly elevate floating sticky navbar
   useEffect(() => {
@@ -105,11 +111,8 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <Link to="/dashboard" className="nav-center-link">
+                <Link to={isAdmin ? "/admin" : "/dashboard"} className="nav-center-link">
                   Dashboard
-                </Link>
-                <Link to="/events" className="nav-center-link">
-                  All Events
                 </Link>
               </>
             )}

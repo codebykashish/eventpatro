@@ -49,6 +49,7 @@ const Home = () => {
   useEffect(() => {
     const loadUpcoming = async () => {
       try {
+        setLoading(true)
         const data = await fetchEvents({ limit: 3 })
         setUpcomingEvents(data.events || [])
       } catch (err) {
@@ -57,8 +58,10 @@ const Home = () => {
         setLoading(false)
       }
     }
-    loadUpcoming()
-  }, [])
+    if (!isAuthenticated) {
+      loadUpcoming()
+    }
+  }, [isAuthenticated])
 
   // Smooth scroll helper
   const scrollToSection = (sectionId) => {

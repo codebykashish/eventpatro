@@ -62,7 +62,7 @@ const CreateEventPage = () => {
 
       await createEvent(payload)
       setSuccess('Event created successfully!')
-      setTimeout(() => navigate('/events'), 1500)
+      setTimeout(() => navigate('/admin'), 1500)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -224,7 +224,7 @@ const CreateEventPage = () => {
 
           {/* Action buttons */}
           <div className="form-actions">
-            <Link to="/events" className="btn-form-cancel">Cancel</Link>
+            <Link to="/admin" className="btn-form-cancel">Cancel</Link>
             <button type="submit" className="btn-form-submit" disabled={submitting}>
               {submitting ? 'Creating…' : 'Publish Event'}
             </button>
