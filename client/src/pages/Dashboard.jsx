@@ -114,7 +114,7 @@ const getRemainingDays = (iso) => {
 }
 
 const Dashboard = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, updateProfile } = useAuth()
   const navigate = useNavigate()
   const { id: routeEventId } = useParams()
 
@@ -154,6 +154,44 @@ const Dashboard = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [hasSeenUpdates, setHasSeenUpdates] = useState(false)
   const [profileActivityTab, setProfileActivityTab] = useState('registered')
+
+  // Edit Profile Modal state
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    studentId: '',
+    profilePicture: '',
+  })
+  const [editSubmitting, setEditSubmitting] = useState(false)
+  const [editError, setEditError] = useState('')
+
+  const handleOpenEditProfile = () => {
+    setEditFormData({
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      email: user?.email || '',
+      studentId: user?.studentId || '',
+      profilePicture: user?.profilePicture || '',
+    })
+    setEditError('')
+    setShowEditProfileModal(true)
+  }
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    setEditError('')
+    setEditSubmitting(true)
+    try {
+      await updateProfile(editFormData)
+      setShowEditProfileModal(false)
+    } catch (err) {
+      setEditError(err.message || 'Failed to update profile')
+    } finally {
+      setEditSubmitting(false)
+    }
+  }
 
   // Explore Events Filter States
   const [filterSearch, setFilterSearch] = useState('')
@@ -1320,7 +1358,12 @@ const Dashboard = () => {
                     <div className="profile-avatar-circle">
                       {getInitials(user?.firstName, user?.lastName)}
                     </div>
-                    <button className="profile-avatar-edit-btn" title="Edit profile picture">
+                    <button
+                      type="button"
+                      className="profile-avatar-edit-btn"
+                      title="Edit profile information"
+                      onClick={handleOpenEditProfile}
+                    >
                       <Pencil size={13} strokeWidth={2.5} />
                     </button>
                   </div>
@@ -1561,6 +1604,131 @@ const Dashboard = () => {
                 Sign Out
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Edit Profile Modal Overlay ────────────────────────────────────── */}
+      {showEditProfileModal && (
+        <div className="portal-modal-backdrop" onClick={() => !editSubmitting && setShowEditProfileModal(false)}>
+          <div
+            className="portal-modal-card edit-profile-modal-card"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Cross close button at top */}
+            <button
+              type="button"
+              className="edit-profile-close-btn"
+              onClick={() => setShowEditProfileModal(false)}
+              disabled={editSubmitting}
+              title="Close"
+            >
+              <X size={18} strokeWidth={2.4} />
+            </button>
+
+            {/* Profile Picture in Center */}
+            <div className="edit-profile-avatar-center">
+              <div className="profile-avatar-circle edit-profile-avatar-large">
+                {getInitials(editFormData.firstName, editFormData.lastName)}
+              </div>
+              <span className="edit-profile-avatar-badge">
+                <Pencil size={12} strokeWidth={2.5} />
+              </span>
+            </div>
+
+            <h3 className="edit-profile-modal-title">Edit Account Profile</h3>
+            <p className="edit-profile-modal-subtitle">
+              Update your personal and student information below
+            </p>
+
+            {editError && (
+              <div className="edit-profile-error-alert">
+                <AlertTriangle size={15} color="#b91c1c" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProfile} className="edit-profile-form">
+              <div className="edit-profile-form-row">
+                <div className="edit-profile-input-group">
+                  <label htmlFor="editFirstName">First Name</label>
+                  <input
+                    id="editFirstName"
+                    type="text"
+                    required
+                    value={editFormData.firstName}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({ ...prev, firstName: e.target.value }))
+                    }
+                    placeholder="First name"
+                  />
+                </div>
+
+                <div className="edit-profile-input-group">
+                  <label htmlFor="editLastName">Last Name</label>
+                  <input
+                    id="editLastName"
+                    type="text"
+                    required
+                    value={editFormData.lastName}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({ ...prev, lastName: e.target.value }))
+                    }
+                    placeholder="Last name"
+                  />
+                </div>
+              </div>
+
+              <div className="edit-profile-input-group">
+                <label htmlFor="editEmail">Email Address</label>
+                <input
+                  id="editEmail"
+                  type="email"
+                  required
+                  value={editFormData.email}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({ ...prev, email: e.target.value }))
+                  }
+                  placeholder="student@sunway.edu.np"
+                />
+              </div>
+
+              {user?.role === 'student' && (
+                <div className="edit-profile-input-group">
+                  <label htmlFor="editStudentId">Student ID</label>
+                  <input
+                    id="editStudentId"
+                    type="text"
+                    value={editFormData.studentId}
+                    onChange={(e) =>
+                      setEditFormData((prev) => ({ ...prev, studentId: e.target.value }))
+                    }
+                    placeholder="e.g. 26140472"
+                  />
+                </div>
+              )}
+
+              {/* Form Action Buttons with Submit */}
+              <div className="edit-profile-actions">
+                <button
+                  type="button"
+                  className="modal-btn-cancel"
+                  onClick={() => setShowEditProfileModal(false)}
+                  disabled={editSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="edit-profile-submit-btn"
+                  disabled={editSubmitting}
+                >
+                  {editSubmitting ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

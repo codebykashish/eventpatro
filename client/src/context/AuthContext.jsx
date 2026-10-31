@@ -132,6 +132,30 @@ export const AuthProvider = ({ children }) => {
     return data
   }
 
+  // Update profile handler
+  const updateProfile = async (profileData) => {
+    const savedToken = localStorage.getItem('token') || token
+    const response = await fetch(`${apiUrl}/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${savedToken}`,
+      },
+      body: JSON.stringify(profileData),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update profile')
+    }
+
+    if (data.user) {
+      setUser(data.user)
+    }
+    return data.user
+  }
+
   // Logout handler
   const logout = () => {
     localStorage.removeItem('token')
@@ -144,6 +168,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         token,
         loading,
         isAuthenticated: !!user,
@@ -156,6 +181,7 @@ export const AuthProvider = ({ children }) => {
         signup,
         verifyOtp,
         resendOtp,
+        updateProfile,
         logout,
       }}
     >

@@ -6,6 +6,7 @@ const {
   resendOtp,
   login,
   getMe,
+  updateProfile,
 } = require('../controllers/auth.controller')
 const { protect } = require('../middleware/auth')
 const validate = require('../middleware/validate')
@@ -33,5 +34,6 @@ router.post('/resend-otp', resendOtp)
 
 // Protected user routes
 router.get('/me', protect, getMe)
+router.put('/profile', protect, updateProfile)
 
 module.exports = router

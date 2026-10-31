@@ -266,10 +266,71 @@ const getMe = async (req, res) => {
   })
 }
 
+// @desc    Update user profile details
+// @route   PUT /api/auth/profile
+// @access  Private
+const updateProfile = async (req, res, next) => {
+  try {
+    const { firstName, lastName, studentId, email, profilePicture } = req.body
+
+    const user = await User.findById(req.user._id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    // Check if new email is already in use by another user
+    if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+      const existingEmail = await User.findOne({
+        email: email.toLowerCase(),
+        _id: { $ne: user._id },
+      })
+      if (existingEmail) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already in use by another account',
+        })
+      }
+      user.email = email.toLowerCase().trim()
+    }
+
+    // Check studentId uniqueness if updated
+    if (studentId !== undefined && studentId !== user.studentId) {
+      if (studentId.trim()) {
+        const existingId = await User.findOne({
+          studentId: studentId.trim().toUpperCase(),
+          _id: { $ne: user._id },
+        })
+        if (existingId) {
+          return res.status(400).json({
+            success: false,
+            message: 'Student ID is already registered to another user',
+          })
+        }
+        user.studentId = studentId.trim().toUpperCase()
+      }
+    }
+
+    if (firstName) user.firstName = firstName.trim()
+    if (lastName) user.lastName = lastName.trim()
+    if (profilePicture !== undefined) user.profilePicture = profilePicture
+
+    await user.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: formatUserResponse(user),
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   signup,
   verifyOtp,
   resendOtp,
   login,
   getMe,
+  updateProfile,
 }
