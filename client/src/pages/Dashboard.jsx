@@ -152,6 +152,7 @@ const Dashboard = () => {
   // Explore Events Filter States
   const [filterSearch, setFilterSearch] = useState('')
   const [selectedCategories, setSelectedCategories] = useState([])
+  const [timelineFilter, setTimelineFilter] = useState('all') // 'all' | 'upcoming' | 'past'
   const [dateFilter, setDateFilter] = useState('any')
   const [availabilityFilters, setAvailabilityFilters] = useState({
     openRegistration: false,
@@ -180,6 +181,7 @@ const Dashboard = () => {
   const clearAllFilters = () => {
     setFilterSearch('')
     setSelectedCategories([])
+    setTimelineFilter('all')
     setDateFilter('any')
     setAvailabilityFilters({ openRegistration: false, availableSeats: false })
     setCurrentPage(1)
@@ -293,7 +295,13 @@ const Dashboard = () => {
         if (!matchesCat) return false
       }
 
-      // 3. Date
+      // 3. Timeline Filter (Upcoming vs Past)
+      const evtDate = evt.date ? new Date(evt.date) : null
+      const isPastEvent = evtDate && evtDate < now
+      if (timelineFilter === 'upcoming' && isPastEvent) return false
+      if (timelineFilter === 'past' && !isPastEvent) return false
+
+      // 4. Date window (week / month)
       if (dateFilter !== 'any' && evt.date) {
         const evtTime = new Date(evt.date).getTime()
         const currTime = new Date().getTime()
@@ -305,7 +313,7 @@ const Dashboard = () => {
         }
       }
 
-      // 4. Availability
+      // 5. Availability
       if (availabilityFilters.openRegistration) {
         if (evt.registrationDeadline && new Date(evt.registrationDeadline) < new Date()) {
           return false
@@ -735,7 +743,57 @@ const Dashboard = () => {
                       <h3 className="filter-card-title">Filter Events</h3>
                     </div>
 
-
+                    {/* Timeline Group: Upcoming vs Past Events */}
+                    <div className="filter-group">
+                      <div className="filter-group-header">
+                        <Clock size={14} className="filter-group-icon" />
+                        <span className="filter-group-title">Event Status</span>
+                      </div>
+                      <div className="filter-options-list">
+                        <label className="filter-radio-row">
+                          <input
+                            type="radio"
+                            name="timelineFilter"
+                            value="all"
+                            checked={timelineFilter === 'all'}
+                            onChange={(e) => {
+                              setTimelineFilter(e.target.value)
+                              setCurrentPage(1)
+                            }}
+                            className="filter-radio"
+                          />
+                          <span className="filter-radio-label">All Events</span>
+                        </label>
+                        <label className="filter-radio-row">
+                          <input
+                            type="radio"
+                            name="timelineFilter"
+                            value="upcoming"
+                            checked={timelineFilter === 'upcoming'}
+                            onChange={(e) => {
+                              setTimelineFilter(e.target.value)
+                              setCurrentPage(1)
+                            }}
+                            className="filter-radio"
+                          />
+                          <span className="filter-radio-label">Upcoming Events</span>
+                        </label>
+                        <label className="filter-radio-row">
+                          <input
+                            type="radio"
+                            name="timelineFilter"
+                            value="past"
+                            checked={timelineFilter === 'past'}
+                            onChange={(e) => {
+                              setTimelineFilter(e.target.value)
+                              setCurrentPage(1)
+                            }}
+                            className="filter-radio"
+                          />
+                          <span className="filter-radio-label">Past Events</span>
+                        </label>
+                      </div>
+                    </div>
 
                     {/* Categories Group */}
                     <div className="filter-group">
@@ -917,7 +975,25 @@ const Dashboard = () => {
                         </span>
                       )}
 
+                      {timelineFilter !== 'all' && (
+                        <span className="filter-chip">
+                          <span>{timelineFilter === 'upcoming' ? 'Upcoming Events' : 'Past Events'}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTimelineFilter('all')
+                              setCurrentPage(1)
+                            }}
+                            className="chip-remove-btn"
+                            aria-label="Remove timeline filter"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      )}
+
                       {(selectedCategories.length > 0 ||
+                        timelineFilter !== 'all' ||
                         dateFilter !== 'any' ||
                         availabilityFilters.openRegistration ||
                         availabilityFilters.availableSeats ||
@@ -979,11 +1055,29 @@ const Dashboard = () => {
                                   {categoryLabel}
                                 </span>
 
-                                {isRegistered && (
-                                  <span className="explore-registered-badge">
-                                    <Check size={11} strokeWidth={2.6} /> Registered
-                                  </span>
-                                )}
+                                {(() => {
+                                  const isPast = evt.date && new Date(evt.date) < now
+                                  const isFull = capacityCount !== null && capacityCount !== undefined && enrolledCount >= capacityCount
+                                  return (
+                                    <div className="explore-card-top-badges">
+                                      {isPast && (
+                                        <span className="explore-past-event-badge">
+                                          Past Event
+                                        </span>
+                                      )}
+                                      {!isPast && isFull && (
+                                        <span className="explore-full-badge">
+                                          No Seats Available
+                                        </span>
+                                      )}
+                                      {isRegistered && (
+                                        <span className="explore-registered-badge">
+                                          <Check size={11} strokeWidth={2.6} /> Registered
+                                        </span>
+                                      )}
+                                    </div>
+                                  )
+                                })()}
                               </div>
 
                               {/* Card Body */}
@@ -1007,11 +1101,29 @@ const Dashboard = () => {
 
                                 {/* Card Bottom Row */}
                                 <div className="explore-card-footer">
-                                  <span className="explore-spots-count">
-                                    <Users size={13} color="#881421" strokeWidth={2.2} />
-                                    {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Unlimited spots'}
-                                  </span>
                                   {(() => {
+                                    const isFull = capacityCount !== null && capacityCount !== undefined && enrolledCount >= capacityCount
+                                    return (
+                                      <span className={`explore-spots-count ${isFull ? 'spots-full' : ''}`}>
+                                        <Users size={13} color={isFull ? '#b91c1c' : '#881421'} strokeWidth={2.2} />
+                                        {isFull
+                                          ? 'No seats available'
+                                          : capacityCount
+                                            ? `${enrolledCount} / ${capacityCount} spots`
+                                            : 'Unlimited spots'}
+                                      </span>
+                                    )
+                                  })()}
+                                  {(() => {
+                                    const isPast = evt.date && new Date(evt.date) < now
+                                    if (isPast) {
+                                      return (
+                                        <span className="explore-days-left past">
+                                          <Clock size={13} color="#64748b" strokeWidth={2.2} />
+                                          Completed
+                                        </span>
+                                      )
+                                    }
                                     const rem = getRemainingDays(evt.date)
                                     return rem ? (
                                       <span className="explore-days-left">

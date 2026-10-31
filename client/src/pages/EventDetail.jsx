@@ -253,11 +253,13 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
   // ── Derived values ─────────────────────────────────────────────────────────
   const isRegistered   = myRegistration && myRegistration.status !== 'cancelled'
+  const isPastEvent    = event?.date && new Date(event.date) < new Date()
   const deadlinePassed = event?.registrationDeadline && new Date() > new Date(event.registrationDeadline)
-  const isFull         = event?.capacity !== null && event?.spotsLeft === 0 && !isRegistered
+  const isFull         = event?.capacity !== null && event?.capacity !== undefined && (event?.spotsLeft === 0 || (event?.registeredUsers?.length ?? 0) >= event.capacity) && !isRegistered
   const canCancel      = isRegistered &&
     ['confirmed', 'pending'].includes(myRegistration?.status) &&
-    !deadlinePassed
+    !deadlinePassed &&
+    !isPastEvent
 
   const hasMentor = !!(event?.mentor && (event.mentor.name || event.mentor.occupation))
   const remainingDays = getRemainingDays(event?.date)
@@ -323,6 +325,12 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             <span className="nc-text-category-tag">
               {event.category.toUpperCase()}
             </span>
+          )}
+          {isPastEvent && (
+            <span className="nc-past-tag-pill">Past Event</span>
+          )}
+          {!isPastEvent && isFull && (
+            <span className="nc-seats-full-pill">No Seats Available</span>
           )}
           {event.registrationType === 'application' && (
             <span className="nc-badge-app-pill">Application Required</span>
@@ -775,13 +783,17 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                     <Check size={16} strokeWidth={2.6} />
                     <span>You are enrolled for this event</span>
                   </div>
+                ) : isPastEvent ? (
+                  <button type="button" className="nc-enroll-cta-btn disabled" disabled>
+                    Past Event (Enrollment Closed)
+                  </button>
                 ) : deadlinePassed ? (
                   <button type="button" className="nc-enroll-cta-btn disabled" disabled>
                     Enrollment Closed
                   </button>
                 ) : isFull ? (
                   <button type="button" className="nc-enroll-cta-btn disabled" disabled>
-                    Event Fully Booked
+                    No Seats Available
                   </button>
                 ) : (
                   <button

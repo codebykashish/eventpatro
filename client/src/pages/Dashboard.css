@@ -2540,6 +2540,46 @@
   text-transform: capitalize;
 }
 
+.explore-card-top-badges {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.explore-past-event-badge {
+  background: rgba(15, 23, 42, 0.88);
+  color: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  backdrop-filter: blur(6px);
+  letter-spacing: 0.03em;
+}
+
+.explore-full-badge {
+  background: rgba(185, 28, 28, 0.9);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  backdrop-filter: blur(6px);
+}
+
+.spots-full {
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+
+.explore-days-left.past {
+  color: #64748b !important;
+}
+
 /* Card Body */
 .explore-card-body {
   padding: 16px 18px 16px;

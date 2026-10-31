@@ -95,6 +95,29 @@
   border: 1px solid #bbf7d0;
 }
 
+.nc-past-tag-pill {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid #cbd5e1;
+}
+
+.nc-seats-full-pill {
+  display: inline-block;
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #fecaca;
+}
+
 .nc-event-headline {
   font-size: clamp(24px, 2.7vw, 34px);
   font-weight: 800;
