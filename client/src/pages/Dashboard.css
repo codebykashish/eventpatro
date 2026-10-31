@@ -2115,8 +2115,8 @@
 /* Two-column layout: Sticky Filter Sidebar + Main Content */
 .explore-layout-wrap {
   display: grid;
-  grid-template-columns: 290px 1fr;
-  gap: 28px;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
   align-items: start;
   position: relative;
 }
@@ -2142,12 +2142,12 @@
 .explore-filter-card {
   background: #ffffff;
   border-radius: 20px;
-  padding: 22px 20px;
+  padding: 20px 18px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(226, 232, 240, 0.85);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .explore-filter-header {
@@ -2203,7 +2203,7 @@
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   padding-top: 10px;
   border-top: 1px solid #f1f5f9;
 }
@@ -2221,26 +2221,109 @@
   color: #881421;
 }
 
+/* Filter card header (title row) */
+.filter-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.filter-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Group header row (icon + label) */
+.filter-group-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.filter-group-icon {
+  color: #881421;
+  flex-shrink: 0;
+}
+
+/* Options list wrapper inside each group */
+.filter-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Category badge pill (emoji + label) inside checkbox rows */
+.filter-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f8fafc;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-checkbox-row:has(input:checked) .filter-cat-badge,
+.filter-cat-badge.active {
+  background: rgba(136, 20, 33, 0.08);
+  color: #881421;
+  border-color: rgba(136, 20, 33, 0.3);
+}
+
+.cat-emoji {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.cat-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+/* Radio row label text */
+.filter-radio-label-text,
+.filter-checkbox-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  white-space: nowrap;
+}
+
 /* Categories List */
 .filter-categories-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.filter-cat-row {
+.filter-cat-row,
+.filter-radio-row,
+.filter-checkbox-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   cursor: pointer;
   user-select: none;
+  flex-wrap: nowrap;
 }
 
 .filter-cat-row input[type="checkbox"],
-.filter-checkbox-label input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+.filter-checkbox-row input[type="checkbox"],
+.filter-checkbox-label input[type="checkbox"],
+.filter-radio-row input[type="radio"] {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
   accent-color: #881421;
   cursor: pointer;
 }
@@ -2273,67 +2356,37 @@
 .filter-radio-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
-.filter-radio-label {
+.filter-radio-label,
+.filter-checkbox-label {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: 10px;
   font-size: 13px;
   font-weight: 500;
   color: #475569;
   cursor: pointer;
-}
-
-.filter-radio-label input[type="radio"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #881421;
-  cursor: pointer;
+  flex-wrap: nowrap;
 }
 
 /* Checkboxes */
 .filter-checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 7px;
 }
 
-.filter-checkbox-label {
-  display: flex;
+/* Days left badge in card footer */
+.explore-days-left {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-  cursor: pointer;
-}
-
-/* Apply Filters Button */
-.filter-apply-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 12px;
-  background: #881421;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(136, 20, 33, 0.25);
-  margin-top: 4px;
-}
-
-.filter-apply-btn:hover {
-  background: #70101b;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(136, 20, 33, 0.32);
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #881421;
 }
 
 /* Main Content Area */
@@ -2565,19 +2618,7 @@
   color: #881421;
 }
 
-.explore-view-details {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #881421;
-  transition: gap 0.15s ease;
-}
-
-.explore-event-card:hover .explore-view-details {
-  gap: 7px;
-}
+/* Removed: explore-view-details (replaced by explore-days-left) */
 
 /* Empty State */
 .explore-empty-state {
@@ -2600,10 +2641,10 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .explore-layout-wrap {
-    grid-template-columns: 260px 1fr;
-    gap: 20px;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
   }
 }
 

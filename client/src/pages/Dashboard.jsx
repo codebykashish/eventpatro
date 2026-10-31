@@ -713,27 +713,7 @@ const Dashboard = () => {
                       <h3 className="filter-card-title">Filter Events</h3>
                     </div>
 
-                    {/* Search by event name input */}
-                    <div className="filter-search-box">
-                      <Search size={15} className="filter-search-icon" />
-                      <input
-                        type="text"
-                        placeholder="Search by event name..."
-                        value={filterSearch}
-                        onChange={(e) => setFilterSearch(e.target.value)}
-                        className="filter-search-input"
-                      />
-                      {filterSearch && (
-                        <button
-                          type="button"
-                          onClick={() => setFilterSearch('')}
-                          className="filter-clear-input-btn"
-                          aria-label="Clear search"
-                        >
-                          <X size={13} />
-                        </button>
-                      )}
-                    </div>
+
 
                     {/* Categories Group */}
                     <div className="filter-group">
@@ -833,18 +813,7 @@ const Dashboard = () => {
                       </div>
                     </div>
 
-                    {/* Apply Filters Button */}
-                    <button
-                      type="button"
-                      className="filter-apply-btn"
-                      onClick={() => {
-                        const el = document.querySelector('.explore-content-main')
-                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                      }}
-                    >
-                      <Filter size={15} />
-                      <span>Apply Filters</span>
-                    </button>
+
                   </div>
                 </aside>
 
@@ -1019,9 +988,15 @@ const Dashboard = () => {
                                   <Users size={13} color="#881421" strokeWidth={2.2} />
                                   {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Unlimited spots'}
                                 </span>
-                                <span className="explore-view-details">
-                                  View details <ArrowRight size={13} />
-                                </span>
+                                {(() => {
+                                  const rem = getRemainingDays(evt.date)
+                                  return rem ? (
+                                    <span className="explore-days-left">
+                                      <Clock size={13} color="#881421" strokeWidth={2.2} />
+                                      {rem}
+                                    </span>
+                                  ) : null
+                                })()}
                               </div>
                             </div>
                           </div>
