@@ -4,8 +4,7 @@ import {
   Calendar, MapPin, Users, CheckCircle2, AlertCircle,
   Edit, Trash2, Shield, UserCheck, Clock, Send, XCircle, ChevronDown,
   ClipboardList, FileText, Share2, Copy, Check, Coffee, Laptop,
-  Award, ExternalLink, Mail, Phone, User as UserIcon, BookOpen,
-  Sparkles, Layers, UserX, Info, CheckSquare, Target, HelpCircle
+  Award, ExternalLink, Mail, Phone, User as UserIcon, UserX, X
 } from 'lucide-react'
 import {
   fetchEventById, deleteEvent,
@@ -78,6 +77,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
 
+  // Modal state for custom application / question forms
+  const [showEnrollModal, setShowEnrollModal] = useState(false)
+
   // Tab navigation: 'overview' | 'instructor'
   const [activeTab, setActiveTab] = useState('overview')
 
@@ -143,8 +145,37 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     setTimeout(() => setCopiedLink(false), 2200)
   }
 
-  // ── Student register ───────────────────────────────────────────────────────
-  const handleSubmitRegistration = async (e) => {
+  // ── Handle Enroll Now click from right sidebar ─────────────────────────────
+  const handleEnrollClick = async () => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
+
+    // If event has custom registration questions, open interactive modal
+    if (event?.formFields?.length > 0) {
+      setShowEnrollModal(true)
+      return
+    }
+
+    // Instant 1-click enrollment for open events without questionnaires
+    setSubmitting(true)
+    setActionMsg('')
+    setActionError('')
+    try {
+      const res = await submitRegistration(id, [])
+      setActionMsg(res.message || 'Successfully enrolled!')
+      await loadMyRegistration()
+      await loadEvent()
+    } catch (err) {
+      setActionError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // ── Handle Modal Registration Form Submission ──────────────────────────────
+  const handleModalSubmit = async (e) => {
     e.preventDefault()
     if (!user) {
       navigate('/login')
@@ -163,6 +194,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     try {
       const res = await submitRegistration(id, formattedAnswers)
       setActionMsg(res.message || 'Registration submitted!')
+      setShowEnrollModal(false)
       await loadMyRegistration()
       await loadEvent()
     } catch (err) {
@@ -174,13 +206,13 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
   // ── Student cancel registration ────────────────────────────────────────────
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel your registration?')) return
+    if (!window.confirm('Are you sure you want to cancel your enrollment?')) return
     setSubmitting(true)
     setActionMsg('')
     setActionError('')
     try {
       const res = await cancelRegistration(id)
-      setActionMsg(res.message || 'Registration cancelled.')
+      setActionMsg(res.message || 'Enrollment cancelled.')
       setMyRegistration(null)
       await loadEvent()
     } catch (err) {
@@ -223,7 +255,6 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   const isRegistered   = myRegistration && myRegistration.status !== 'cancelled'
   const deadlinePassed = event?.registrationDeadline && new Date() > new Date(event.registrationDeadline)
   const isFull         = event?.capacity !== null && event?.spotsLeft === 0 && !isRegistered
-  const hasForm        = event?.formFields?.length > 0
   const canCancel      = isRegistered &&
     ['confirmed', 'pending'].includes(myRegistration?.status) &&
     !deadlinePassed
@@ -256,7 +287,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     )
   }
 
-  // Fallback rich outcomes & requirements if none supplied in DB
+  // Fallback rich outcomes & requirements
   const displayOutcomes = event.learningOutcomes?.length > 0 ? event.learningOutcomes : [
     'Gain hands-on practical experience through interactive sessions and live demonstrations.',
     'Collaborate and connect directly with fellow campus innovators and industry leaders.',
@@ -285,26 +316,27 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
         <span className="nc-breadcrumb-current">Details</span>
       </nav>
 
-      {/* ── Event Title Row (Headline, Category Tag & Badge) ── */}
+      {/* ── Event Title Row (Clean text pills without AI icons) ── */}
       <div className="nc-header-title-row">
         <div className="nc-title-tag-group">
-          <span className="nc-status-badge-pill">
-            <Sparkles size={13} />
-            {event.category ? event.category.toUpperCase() : 'EVENT'}
-          </span>
+          {event.category && (
+            <span className="nc-text-category-tag">
+              {event.category.toUpperCase()}
+            </span>
+          )}
           {event.registrationType === 'application' && (
             <span className="nc-badge-app-pill">Application Required</span>
           )}
           {event.isFree && (
-            <span className="nc-free-tag-pill">Free Admission</span>
+            <span className="nc-free-tag-pill">Free</span>
           )}
         </div>
         <h1 className="nc-event-headline">{event.title}</h1>
       </div>
 
-      {/* ── Side-by-Side Main Section: Left = Image + Description, Right = Cards ── */}
+      {/* ── Main Side-by-Side Flow ── */}
       <div className="nc-hero-two-column-layout">
-        {/* LEFT COLUMN: Hero Image + Tabs & Detailed Content */}
+        {/* LEFT COLUMN: Hero Image + Natural Human Layout */}
         <div className="nc-left-main-flow">
           {/* Cover Hero Image */}
           <div className="nc-fullwidth-image-wrapper">
@@ -347,83 +379,53 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="nc-tab-content">
-              {/* Section 1: About This Event */}
-              <section className="nc-content-block">
-                <div className="nc-block-header">
-                  <BookOpen size={18} color="#881421" />
-                  <h2 className="nc-block-title">About This Event</h2>
-                </div>
+              {/* Description Section */}
+              <section className="nc-editorial-section">
+                <h2 className="nc-editorial-heading">About the event</h2>
                 <div className="nc-description-text">
                   {event.description}
                 </div>
               </section>
 
-              {/* Section 2: What You'll Learn & Explore (Learning Outcomes) */}
-              <section className="nc-content-block">
-                <div className="nc-block-header">
-                  <Target size={18} color="#881421" />
-                  <h2 className="nc-block-title">What You'll Explore &amp; Outcomes</h2>
-                </div>
-                <div className="nc-outcomes-grid">
+              {/* What You'll Learn & Explore */}
+              <section className="nc-editorial-section">
+                <h2 className="nc-editorial-heading">What you will learn &amp; outcomes</h2>
+                <div className="nc-natural-outcomes-list">
                   {displayOutcomes.map((item, i) => (
-                    <div key={i} className="nc-outcome-card">
-                      <div className="nc-outcome-badge">
-                        <CheckCircle2 size={16} color="#881421" />
-                      </div>
-                      <span className="nc-outcome-text">{item}</span>
+                    <div key={i} className="nc-natural-outcome-row">
+                      <span className="nc-item-index">{i + 1}.</span>
+                      <p className="nc-outcome-description">{item}</p>
                     </div>
                   ))}
                 </div>
               </section>
 
-              {/* Section 3: Requirements & Prerequisites */}
-              <section className="nc-content-block">
-                <div className="nc-block-header">
-                  <CheckSquare size={18} color="#881421" />
-                  <h2 className="nc-block-title">Requirements &amp; Prerequisites</h2>
-                </div>
-                <div className="nc-requirements-list">
+              {/* Requirements & Prerequisites */}
+              <section className="nc-editorial-section">
+                <h2 className="nc-editorial-heading">Requirements</h2>
+                <ul className="nc-natural-bullet-list">
                   {displayRequirements.map((req, i) => (
-                    <div key={i} className="nc-requirement-item">
-                      <span className="nc-bullet-dot">•</span>
-                      <span>{req}</span>
-                    </div>
+                    <li key={i} className="nc-natural-bullet-item">
+                      {req}
+                    </li>
                   ))}
-                </div>
+                </ul>
               </section>
 
-              {/* Section 4: Event Format & Highlights */}
-              <section className="nc-content-block">
-                <div className="nc-block-header">
-                  <Info size={18} color="#881421" />
-                  <h2 className="nc-block-title">Event Highlights &amp; Inclusions</h2>
-                </div>
+              {/* Event Inclusions & Highlights */}
+              <section className="nc-editorial-section">
+                <h2 className="nc-editorial-heading">Key highlights</h2>
                 <div className="nc-highlights-chips-row">
-                  <div className="nc-highlight-chip">
-                    <Award size={15} color="#881421" />
-                    <span>Certificate of Participation</span>
-                  </div>
+                  <span className="nc-editorial-pill">Certificate of Participation</span>
                   {event.hasBreakfast && (
-                    <div className="nc-highlight-chip">
-                      <Coffee size={15} color="#881421" />
-                      <span>Complimentary Breakfast &amp; Snacks</span>
-                    </div>
+                    <span className="nc-editorial-pill">Breakfast &amp; Refreshments Provided</span>
                   )}
                   {event.laptopRequired ? (
-                    <div className="nc-highlight-chip">
-                      <Laptop size={15} color="#881421" />
-                      <span>Bring Your Own Laptop</span>
-                    </div>
+                    <span className="nc-editorial-pill">Laptop Required</span>
                   ) : (
-                    <div className="nc-highlight-chip">
-                      <Laptop size={15} color="#881421" />
-                      <span>No Laptop Required</span>
-                    </div>
+                    <span className="nc-editorial-pill">No Laptop Required</span>
                   )}
-                  <div className="nc-highlight-chip">
-                    <Users size={15} color="#881421" />
-                    <span>Interactive Q&amp;A Session</span>
-                  </div>
+                  <span className="nc-editorial-pill">Interactive Live Q&amp;A</span>
                 </div>
               </section>
             </div>
@@ -433,11 +435,8 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           {activeTab === 'instructor' && (
             <div className="nc-tab-content">
               {hasMentor ? (
-                <section className="nc-content-block">
-                  <div className="nc-block-header">
-                    <UserIcon size={18} color="#881421" />
-                    <h2 className="nc-block-title">About the Instructor</h2>
-                  </div>
+                <section className="nc-editorial-section">
+                  <h2 className="nc-editorial-heading">Instructor Profile</h2>
                   <div className="nc-mentor-profile-card">
                     <div className="nc-mentor-avatar-wrap">
                       {event.mentor.photo ? (
@@ -448,7 +447,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                         />
                       ) : (
                         <div className="nc-mentor-avatar-fallback">
-                          <UserIcon size={44} color="#881421" />
+                          <UserIcon size={40} color="#881421" />
                         </div>
                       )}
                     </div>
@@ -461,7 +460,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                         <p className="nc-mentor-bio">{event.mentor.bio}</p>
                       ) : (
                         <p className="nc-mentor-bio">
-                          Industry specialist leading this session with practical demonstrations and guidance for participants.
+                          Industry practitioner leading this campus session with practical insights and hands-on guidance.
                         </p>
                       )}
                       {event.mentor.linkedin && (
@@ -480,163 +479,65 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                 </section>
               ) : (
                 <div className="nc-no-instructor-state">
-                  <UserX size={44} color="#9ca3af" />
+                  <UserX size={40} color="#9ca3af" />
                   <h3 className="nc-no-inst-title">No instructor found</h3>
                   <p className="nc-no-inst-desc">
-                    This event is organized directly by the Sunway Student Representative Committee and campus student leads.
+                    This event is coordinated directly by Sunway Student Representative Committee and campus student leads.
                   </p>
                 </div>
               )}
             </div>
           )}
 
-          {/* ── Student Registration Form / Status ── */}
-          {!isAdmin && (
-            <div className="nc-registration-area" id="reg-form">
-              {myRegistration === undefined ? (
-                <div className="reg-status-loading">Checking your registration…</div>
-              ) : isRegistered ? (
-                <div className="my-reg-status-card">
-                  <div className="my-reg-header">
-                    <ClipboardList size={18} color="#881421" />
-                    <span>Your Registration Status</span>
-                  </div>
-                  <div className="my-reg-body">
-                    <span className={`reg-status-badge ${STATUS_CONFIG[myRegistration.status]?.cls}`}>
-                      {STATUS_CONFIG[myRegistration.status]?.label || myRegistration.status}
-                    </span>
-                    <div className="my-reg-code">
-                      <span className="reg-code-label">Registration Passcode</span>
-                      <span className="reg-code-value">{myRegistration.registrationCode}</span>
-                    </div>
-                    {myRegistration.answers?.length > 0 && (
-                      <div className="my-reg-answers">
-                        <p className="reg-answers-title">Your submitted answers:</p>
-                        {myRegistration.answers.map((a, i) => (
-                          <div key={i} className="reg-answer-row">
-                            <span className="reg-q-label">{a.label}</span>
-                            <span className="reg-q-value">{a.value || '—'}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {canCancel && (
-                      <button
-                        type="button"
-                        className="btn-cancel-registration"
-                        onClick={handleCancel}
-                        disabled={submitting}
-                      >
-                        <XCircle size={15} />
-                        {submitting ? 'Cancelling…' : 'Cancel Registration'}
-                      </button>
-                    )}
-                  </div>
+          {/* Registration status confirmation (only shown when student has enrolled) */}
+          {!isAdmin && isRegistered && (
+            <div className="nc-enrolled-status-box">
+              <div className="my-reg-header">
+                <ClipboardList size={18} color="#881421" />
+                <span>Your Enrollment Status</span>
+              </div>
+              <div className="my-reg-body">
+                <span className={`reg-status-badge ${STATUS_CONFIG[myRegistration.status]?.cls}`}>
+                  {STATUS_CONFIG[myRegistration.status]?.label || myRegistration.status}
+                </span>
+                <div className="my-reg-code">
+                  <span className="reg-code-label">Passcode</span>
+                  <span className="reg-code-value">{myRegistration.registrationCode}</span>
                 </div>
-              ) : (
-                /* Registration input form */
-                <form className="registration-form" onSubmit={handleSubmitRegistration}>
-                  <div className="reg-form-header">
-                    <FileText size={18} color="#881421" />
-                    <span>
-                      {event.registrationType === 'application'
-                        ? 'Submit Application for Review'
-                        : 'Enroll for this Event'}
-                    </span>
+                {myRegistration.answers?.length > 0 && (
+                  <div className="my-reg-answers">
+                    <p className="reg-answers-title">Your submitted details:</p>
+                    {myRegistration.answers.map((a, i) => (
+                      <div key={i} className="reg-answer-row">
+                        <span className="reg-q-label">{a.label}</span>
+                        <span className="reg-q-value">{a.value || '—'}</span>
+                      </div>
+                    ))}
                   </div>
-
-                  {hasForm && (
-                    <div className="reg-form-fields">
-                      {event.formFields.map((field) => (
-                        <div key={field._id} className="reg-field">
-                          <label className="reg-field-label">
-                            {field.label}
-                            {field.required && <span className="req-star"> *</span>}
-                          </label>
-
-                          {field.type === 'short_answer' && (
-                            <input
-                              type="text"
-                              className="reg-field-input"
-                              value={answers[field._id] || ''}
-                              onChange={(e) =>
-                                setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
-                              }
-                              required={field.required}
-                              placeholder="Your answer…"
-                            />
-                          )}
-
-                          {field.type === 'paragraph' && (
-                            <textarea
-                              className="reg-field-textarea"
-                              rows={4}
-                              value={answers[field._id] || ''}
-                              onChange={(e) =>
-                                setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
-                              }
-                              required={field.required}
-                              placeholder="Your answer…"
-                            />
-                          )}
-
-                          {field.type === 'multiple_choice' && (
-                            <div className="reg-field-select-wrap">
-                              <select
-                                className="reg-field-select"
-                                value={answers[field._id] || ''}
-                                onChange={(e) =>
-                                  setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
-                                }
-                                required={field.required}
-                              >
-                                <option value="">— Select an option —</option>
-                                {field.options.map((opt, i) => (
-                                  <option key={i} value={opt}>{opt}</option>
-                                ))}
-                              </select>
-                              <ChevronDown size={14} className="select-chevron" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {actionMsg && (
-                    <div className="action-success">
-                      <CheckCircle2 size={14} /> {actionMsg}
-                    </div>
-                  )}
-                  {actionError && (
-                    <div className="action-error">
-                      <AlertCircle size={14} /> {actionError}
-                    </div>
-                  )}
-
-                  {!deadlinePassed && !isFull && (
-                    <button type="submit" className="nc-enroll-cta-btn" disabled={submitting}>
-                      <Send size={15} />
-                      {submitting
-                        ? 'Submitting…'
-                        : event.registrationType === 'application'
-                          ? 'Submit Application'
-                          : 'Enroll Now'}
-                    </button>
-                  )}
-                </form>
-              )}
+                )}
+                {canCancel && (
+                  <button
+                    type="button"
+                    className="btn-cancel-registration"
+                    onClick={handleCancel}
+                    disabled={submitting}
+                  >
+                    <XCircle size={14} />
+                    {submitting ? 'Cancelling…' : 'Cancel Enrollment'}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
-          {/* ── Admin: Registrations & Applications Manager ── */}
+          {/* Admin Attendees Section */}
           {isAdmin && (
             <div className="admin-attendees-section">
               <div className="attendees-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <UserCheck size={18} color="#881421" />
                   <h3>
-                    {event.registrationType === 'application' ? 'Applications' : 'Registrations'}
+                    {event.registrationType === 'application' ? 'Applications' : 'Enrollments'}
                     {' '}({registrations.length})
                   </h3>
                 </div>
@@ -725,9 +626,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           )}
         </div>
 
-        {/* RIGHT COLUMN: Wider Info Cards, Contact & Share (Side-by-side with Left Flow) */}
+        {/* RIGHT COLUMN: Sidebar with single primary Enroll Now CTA */}
         <aside className="nc-right-sidebar-flow">
-          {/* Admin Quick Action Card */}
+          {/* Admin Controls */}
           {isAdmin && (
             <div className="nc-admin-card">
               <div className="nc-admin-title">
@@ -763,9 +664,21 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             </div>
           )}
 
-          {/* Primary Logistics Card: Wide, Clear, Side-by-Side to Left Content */}
+          {/* Logistics Summary Card */}
           <div className="nc-summary-card">
-            {/* Parameters Table */}
+            {/* Feedback messages */}
+            {actionMsg && (
+              <div className="action-success" style={{ marginBottom: '14px' }}>
+                <CheckCircle2 size={14} /> {actionMsg}
+              </div>
+            )}
+            {actionError && (
+              <div className="action-error" style={{ marginBottom: '14px' }}>
+                <AlertCircle size={14} /> {actionError}
+              </div>
+            )}
+
+            {/* Parameters List */}
             <div className="nc-param-list">
               <div className="nc-param-row">
                 <span className="nc-param-label">
@@ -796,10 +709,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               )}
 
               <div className="nc-param-row">
-                <span className="nc-param-label">
-                  <Layers size={15} className="nc-param-icon" />
-                  Category :
-                </span>
+                <span className="nc-param-label">Category :</span>
                 <span className="nc-param-val" style={{ textTransform: 'capitalize' }}>
                   {event.category || 'General'}
                 </span>
@@ -829,7 +739,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                 <div className="nc-param-row">
                   <span className="nc-param-label">
                     <Clock size={15} className="nc-param-icon" />
-                    Registration Deadline :
+                    Deadline :
                   </span>
                   <span className={`nc-param-val ${deadlinePassed ? 'nc-deadline-closed' : ''}`}>
                     {formatShortDate(event.registrationDeadline)}
@@ -838,7 +748,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               )}
             </div>
 
-            {/* Price & Countdown Section */}
+            {/* Price & Countdown */}
             <div className="nc-price-section">
               <div className="nc-price-row">
                 <span className="nc-price-tag">
@@ -857,26 +767,35 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               )}
             </div>
 
-            {/* Enroll Now CTA */}
+            {/* Sole Primary Enroll Now CTA Button */}
             {!isAdmin && (
               <div className="nc-cta-container">
                 {isRegistered ? (
                   <div className="nc-registered-notice">
                     <Check size={16} strokeWidth={2.6} />
-                    <span>You are registered for this event</span>
+                    <span>You are enrolled for this event</span>
                   </div>
                 ) : deadlinePassed ? (
                   <button type="button" className="nc-enroll-cta-btn disabled" disabled>
-                    Registration Closed
+                    Enrollment Closed
                   </button>
                 ) : isFull ? (
                   <button type="button" className="nc-enroll-cta-btn disabled" disabled>
                     Event Fully Booked
                   </button>
                 ) : (
-                  <a href="#reg-form" className="nc-enroll-cta-btn">
-                    {event.registrationType === 'application' ? 'Apply Now' : 'Enroll Now'}
-                  </a>
+                  <button
+                    type="button"
+                    onClick={handleEnrollClick}
+                    className="nc-enroll-cta-btn"
+                    disabled={submitting}
+                  >
+                    {submitting
+                      ? 'Processing…'
+                      : event.registrationType === 'application'
+                        ? 'Apply Now'
+                        : 'Enroll Now'}
+                  </button>
                 )}
               </div>
             )}
@@ -903,7 +822,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                 )}
                 <li className="nc-inclusion-item">
                   <CheckCircle2 size={14} color="#881421" />
-                  <span>Networking with peers and guest speakers</span>
+                  <span>Networking with peers and organizers</span>
                 </li>
               </ul>
             </div>
@@ -912,7 +831,6 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           {/* Contact Person Card for Queries */}
           <div className="nc-contact-card">
             <h4 className="nc-card-header-small">
-              <UserCheck size={16} color="#881421" />
               <span>Any queries? Contact Us</span>
             </h4>
             <div className="nc-contact-details">
@@ -938,7 +856,6 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           {/* Share Event Card */}
           <div className="nc-share-card">
             <h4 className="nc-card-header-small">
-              <Share2 size={15} color="#881421" />
               <span>Share this event:</span>
             </h4>
             <div className="nc-share-actions">
@@ -954,6 +871,102 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           </div>
         </aside>
       </div>
+
+      {/* ── Modal for Questionnaire / Application Questions (if any) ── */}
+      {showEnrollModal && (
+        <div className="nc-modal-backdrop" onClick={() => setShowEnrollModal(false)}>
+          <div className="nc-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="nc-modal-header">
+              <h3 className="nc-modal-title">
+                {event.registrationType === 'application' ? 'Event Application Form' : 'Complete Enrollment'}
+              </h3>
+              <button
+                type="button"
+                className="nc-modal-close-btn"
+                onClick={() => setShowEnrollModal(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleModalSubmit} className="nc-modal-form">
+              <div className="reg-form-fields">
+                {event.formFields.map((field) => (
+                  <div key={field._id} className="reg-field">
+                    <label className="reg-field-label">
+                      {field.label}
+                      {field.required && <span className="req-star"> *</span>}
+                    </label>
+
+                    {field.type === 'short_answer' && (
+                      <input
+                        type="text"
+                        className="reg-field-input"
+                        value={answers[field._id] || ''}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
+                        }
+                        required={field.required}
+                        placeholder="Your answer…"
+                      />
+                    )}
+
+                    {field.type === 'paragraph' && (
+                      <textarea
+                        className="reg-field-textarea"
+                        rows={3}
+                        value={answers[field._id] || ''}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
+                        }
+                        required={field.required}
+                        placeholder="Your answer…"
+                      />
+                    )}
+
+                    {field.type === 'multiple_choice' && (
+                      <div className="reg-field-select-wrap">
+                        <select
+                          className="reg-field-select"
+                          value={answers[field._id] || ''}
+                          onChange={(e) =>
+                            setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
+                          }
+                          required={field.required}
+                        >
+                          <option value="">— Select an option —</option>
+                          {field.options.map((opt, i) => (
+                            <option key={i} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                        <ChevronDown size={14} className="select-chevron" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="nc-modal-footer">
+                <button
+                  type="button"
+                  className="nc-modal-cancel-btn"
+                  onClick={() => setShowEnrollModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="nc-enroll-cta-btn"
+                  style={{ width: 'auto', padding: '10px 24px' }}
+                  disabled={submitting}
+                >
+                  {submitting ? 'Submitting…' : 'Submit & Enroll'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
