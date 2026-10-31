@@ -3,7 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle,
   Edit, Trash2, Shield, UserCheck, Clock, Send, XCircle, ChevronDown,
-  ClipboardList, FileText,
+  ClipboardList, FileText, Share2, Copy, Check, Coffee, Laptop,
+  Award, ExternalLink, Mail, Phone, User as UserIcon, BookOpen,
+  Sparkles, Layers
 } from 'lucide-react'
 import {
   fetchEventById, deleteEvent,
@@ -12,22 +14,6 @@ import {
 } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import './EventDetail.css'
-
-// Category colours (matches EventCard)
-const CATEGORY_COLORS = {
-  academic: '#3b82f6', cultural: '#ec4899', sports: '#22c55e',
-  workshop: '#f59e0b', seminar: '#8b5cf6', social: '#14b8a6',
-  club: '#f97316', other: '#6b7280',
-}
-
-const formatDate = (iso) =>
-  new Date(iso).toLocaleDateString('en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
-
-const formatShortDate = (iso) =>
-  new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
 // Status badge config
 const STATUS_CONFIG = {
@@ -38,6 +24,35 @@ const STATUS_CONFIG = {
   cancelled: { label: 'Cancelled', cls: 'status-cancelled' },
 }
 
+const formatDate = (iso) => {
+  if (!iso) return 'TBA'
+  return new Date(iso).toLocaleDateString('en-GB', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+const formatShortDate = (iso) => {
+  if (!iso) return 'TBA'
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const getRemainingDays = (iso) => {
+  if (!iso) return null
+  const eventDate = new Date(iso)
+  if (isNaN(eventDate.getTime())) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const targetDate = new Date(eventDate)
+  targetDate.setHours(0, 0, 0, 0)
+  const diffTime = targetDate - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) return 'Completed'
+  if (diffDays === 0) return 'Starts Today'
+  if (diffDays === 1) return '1 day left for the event to start'
+  return `${diffDays} days left for the event to start`
+}
+
 const EventDetailPage = ({ eventId: propId, onBack }) => {
   const params = useParams()
   const id = propId || params.id
@@ -45,22 +60,26 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   const { user } = useAuth()
   const isAdmin = user?.role === 'admin'
 
-  const handleBack = () => {
+  const handleBackToEvents = () => {
     if (onBack) {
       onBack()
     } else {
-      navigate(isAdmin ? '/admin' : '/dashboard')
+      navigate('/dashboard')
     }
   }
 
-  const [event, setEvent]           = useState(null)
-  const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState('')
-  const [actionMsg, setActionMsg]   = useState('')
+  const [event, setEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [actionMsg, setActionMsg] = useState('')
   const [actionError, setActionError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [deleting, setDeleting]     = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [copiedLink, setCopiedLink] = useState(false)
+
+  // Tab navigation in left overview: 'overview' | 'mentor'
+  const [activeTab, setActiveTab] = useState('overview')
 
   // Student's current registration for this event (null = not registered)
   const [myRegistration, setMyRegistration] = useState(undefined) // undefined = loading
@@ -69,9 +88,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   const [answers, setAnswers] = useState({})
 
   // Admin: list of all registrations for this event
-  const [registrations, setRegistrations]   = useState([])
-  const [regLoading, setRegLoading]         = useState(false)
-  const [regActionMsg, setRegActionMsg]     = useState('')
+  const [registrations, setRegistrations] = useState([])
+  const [regLoading, setRegLoading] = useState(false)
+  const [regActionMsg, setRegActionMsg] = useState('')
 
   // Load event details
   const loadEvent = useCallback(async () => {
@@ -103,41 +122,49 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     try {
       const data = await getEventRegistrations(id)
       setRegistrations(data.registrations || [])
-    } catch { /* silent */ } finally {
+    } catch (err) {
+      setRegActionMsg(`Could not load attendees: ${err.message}`)
+    } finally {
       setRegLoading(false)
     }
   }, [id, isAdmin])
 
   useEffect(() => {
-    setLoading(true)
-    setError('')
-    setEvent(null)
     loadEvent()
     loadMyRegistration()
     loadRegistrations()
-  }, [id, loadEvent, loadMyRegistration, loadRegistrations])
+  }, [loadEvent, loadMyRegistration, loadRegistrations])
 
-  // Initialise answer state when event loads (one blank entry per field)
-  useEffect(() => {
-    if (!event?.formFields?.length) return
-    setAnswers(Object.fromEntries(event.formFields.map((f) => [f._id, ''])))
-  }, [event])
+  // Copy shareable link
+  const handleCopyLink = () => {
+    const url = window.location.origin + `/events/${id}`
+    navigator.clipboard.writeText(url)
+    setCopiedLink(true)
+    setTimeout(() => setCopiedLink(false), 2200)
+  }
 
-  // ── Registration submit ────────────────────────────────────────────────────
+  // ── Student register ───────────────────────────────────────────────────────
   const handleSubmitRegistration = async (e) => {
     e.preventDefault()
+    if (!user) {
+      navigate('/login')
+      return
+    }
+
     setSubmitting(true)
     setActionMsg('')
     setActionError('')
+
+    const formattedAnswers = Object.entries(answers).map(([fieldId, value]) => ({
+      fieldId,
+      value: String(value),
+    }))
+
     try {
-      const payload = event.formFields.map((f) => ({
-        fieldId: f._id,
-        label: f.label,
-        value: answers[f._id] || '',
-      }))
-      const res = await submitRegistration(id, { answers: payload })
-      setActionMsg(res.message || 'Registered successfully!')
-      await Promise.all([loadEvent(), loadMyRegistration()])
+      const res = await submitRegistration(id, formattedAnswers)
+      setActionMsg(res.message || 'Registration submitted!')
+      await loadMyRegistration()
+      await loadEvent()
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -145,8 +172,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     }
   }
 
-  // ── Cancel registration ────────────────────────────────────────────────────
+  // ── Student cancel registration ────────────────────────────────────────────
   const handleCancel = async () => {
+    if (!window.confirm('Are you sure you want to cancel your registration?')) return
     setSubmitting(true)
     setActionMsg('')
     setActionError('')
@@ -192,20 +220,23 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   }
 
   // ── Derived values ─────────────────────────────────────────────────────────
-  const isRegistered      = myRegistration && myRegistration.status !== 'cancelled'
-  const deadlinePassed    = event?.registrationDeadline && new Date() > new Date(event.registrationDeadline)
-  const isFull            = event?.capacity !== null && event?.spotsLeft === 0 && !isRegistered
-  const hasForm           = event?.formFields?.length > 0
-  const canCancel         = isRegistered &&
+  const isRegistered   = myRegistration && myRegistration.status !== 'cancelled'
+  const deadlinePassed = event?.registrationDeadline && new Date() > new Date(event.registrationDeadline)
+  const isFull         = event?.capacity !== null && event?.spotsLeft === 0 && !isRegistered
+  const hasForm        = event?.formFields?.length > 0
+  const canCancel      = isRegistered &&
     ['confirmed', 'pending'].includes(myRegistration?.status) &&
     !deadlinePassed
 
-  // ─────────────────────────────────────────────────────────────────────────
+  const isWorkshopOrSeminar = ['workshop', 'seminar'].includes(event?.category)
+  const hasMentor = isWorkshopOrSeminar && (event?.mentor?.name || event?.mentor?.occupation)
+  const remainingDays = getRemainingDays(event?.date)
+
   if (loading) {
     return (
       <div className="event-detail-loading">
         <div className="loading-spinner" />
-        <span>Loading event...</span>
+        <span>Loading event details...</span>
       </div>
     )
   }
@@ -217,74 +248,192 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
         <p>{error || 'Event not found.'}</p>
         <button
           type="button"
-          onClick={handleBack}
+          onClick={handleBackToEvents}
           className="btn-back-link"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
         >
-          ← Back to {isAdmin ? 'Admin' : 'Dashboard'}
+          ← Back to Events
         </button>
       </div>
     )
   }
 
-  const badgeColor = CATEGORY_COLORS[event.category] || CATEGORY_COLORS.other
-
   return (
-    <div className="event-detail-page">
-      {/* ── Back navigation ── */}
-      <button
-        type="button"
-        onClick={handleBack}
-        className="detail-back-link"
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
-      >
-        <ArrowLeft size={16} />
-        Back to {isAdmin ? 'Admin' : 'Dashboard'}
-      </button>
+    <div className="nextcoach-event-detail-container">
+      {/* ── Breadcrumb Navigation ── */}
+      <nav className="nc-breadcrumb-bar" aria-label="Breadcrumb">
+        <button
+          type="button"
+          onClick={handleBackToEvents}
+          className="nc-breadcrumb-link"
+        >
+          Events
+        </button>
+        <span className="nc-breadcrumb-sep">&gt;</span>
+        <span className="nc-breadcrumb-current">Details</span>
+      </nav>
 
-      {/* ── Cover ── */}
-      <div
-        className="detail-cover"
-        style={{
-          backgroundImage: event.coverImage
-            ? `url(${event.coverImage})`
-            : 'linear-gradient(135deg, #881421 0%, #3d0a10 100%)',
-        }}
-      >
-        <span className="detail-category-badge" style={{ background: badgeColor }}>
-          {event.category}
-        </span>
-        {/* Registration type badge */}
-        <span className={`detail-reg-badge ${event.registrationType === 'application' ? 'badge-app' : 'badge-open'}`}>
-          {event.registrationType === 'application' ? '📋 Application Required' : '✅ Open Registration'}
-        </span>
+      {/* ── Event Title Row (Above Full-Width Image) ── */}
+      <div className="nc-header-title-row">
+        <div className="nc-title-tag-group">
+          <span className="nc-status-badge-pill">
+            <Sparkles size={13} />
+            {event.category ? event.category.toUpperCase() : 'EVENT'}
+          </span>
+          {event.registrationType === 'application' && (
+            <span className="nc-badge-app-pill">Application Required</span>
+          )}
+        </div>
+        <h1 className="nc-event-headline">{event.title}</h1>
       </div>
 
-      {/* ── Content grid ── */}
-      <div className="detail-content-grid">
-        {/* Left: main info */}
-        <div className="detail-main">
-          <h1 className="detail-title">{event.title}</h1>
-          <p className="detail-description">{event.description}</p>
+      {/* ── Full-Width Hero Cover Image ── */}
+      <div className="nc-fullwidth-image-wrapper">
+        <img
+          src={event.coverImage || '/connected_events.jpg'}
+          alt={event.title}
+          className="nc-fullwidth-image"
+        />
+        <div className="nc-image-overlay-category">
+          <span className="nc-category-overlay-tag">
+            {event.category || 'Campus Event'}
+          </span>
+          {event.location && (
+            <span className="nc-location-overlay-tag">
+              <MapPin size={13} />
+              {event.location}
+            </span>
+          )}
+        </div>
+      </div>
 
-          {/* ── Registration form for students ── */}
+      {/* ── Main Two-Column Layout (Left: Tabs & Content, Right: Summary Cards) ── */}
+      <div className="nc-detail-grid">
+        {/* Left Column: Tabs, Description, Mentor, Registration Form */}
+        <div className="nc-detail-left-column">
+          {/* Navigation Tabs */}
+          <div className="nc-tabs-header">
+            <button
+              type="button"
+              className={`nc-tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              Overview
+            </button>
+            {hasMentor && (
+              <button
+                type="button"
+                className={`nc-tab-btn ${activeTab === 'mentor' ? 'active' : ''}`}
+                onClick={() => setActiveTab('mentor')}
+              >
+                Instructor / Mentor
+              </button>
+            )}
+          </div>
+
+          {/* Tab 1: Overview */}
+          {activeTab === 'overview' && (
+            <div className="nc-tab-content">
+              {/* Description Section */}
+              <section className="nc-content-block">
+                <h2 className="nc-block-title">Description</h2>
+                <div className="nc-description-text">
+                  {event.description}
+                </div>
+              </section>
+
+              {/* What You Will Learn / Outcomes */}
+              {event.learningOutcomes && event.learningOutcomes.length > 0 && (
+                <section className="nc-content-block">
+                  <h2 className="nc-block-title">What you'll explore &amp; learn</h2>
+                  <div className="nc-outcomes-list">
+                    {event.learningOutcomes.map((item, i) => (
+                      <div key={i} className="nc-outcome-item">
+                        <CheckCircle2 size={16} color="#881421" className="nc-check-icon" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Requirements & Prerequisites */}
+              {event.requirements && event.requirements.length > 0 && (
+                <section className="nc-content-block">
+                  <h2 className="nc-block-title">Requirements &amp; Prerequisites</h2>
+                  <div className="nc-requirements-list">
+                    {event.requirements.map((req, i) => (
+                      <div key={i} className="nc-requirement-item">
+                        <span className="nc-bullet-dot">•</span>
+                        <span>{req}</span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {/* Tab 2: Mentor / Instructor (only for workshop/seminar) */}
+          {activeTab === 'mentor' && hasMentor && (
+            <div className="nc-tab-content">
+              <section className="nc-content-block">
+                <h2 className="nc-block-title">About the Instructor</h2>
+                <div className="nc-mentor-profile-card">
+                  <div className="nc-mentor-avatar-wrap">
+                    {event.mentor.photo ? (
+                      <img
+                        src={event.mentor.photo}
+                        alt={event.mentor.name}
+                        className="nc-mentor-avatar"
+                      />
+                    ) : (
+                      <div className="nc-mentor-avatar-fallback">
+                        <UserIcon size={36} color="#881421" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="nc-mentor-info">
+                    <h3 className="nc-mentor-name">{event.mentor.name}</h3>
+                    {event.mentor.occupation && (
+                      <p className="nc-mentor-occupation">{event.mentor.occupation}</p>
+                    )}
+                    {event.mentor.bio && (
+                      <p className="nc-mentor-bio">{event.mentor.bio}</p>
+                    )}
+                    {event.mentor.linkedin && (
+                      <a
+                        href={event.mentor.linkedin}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="nc-mentor-linkedin-btn"
+                      >
+                        <ExternalLink size={14} />
+                        <span>LinkedIn Profile</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </section>
+            </div>
+          )}
+
+          {/* ── Student Registration Form / Status ── */}
           {!isAdmin && (
-            <div className="reg-form-section">
-              {/* Already registered — show status card */}
+            <div className="nc-registration-area">
               {myRegistration === undefined ? (
                 <div className="reg-status-loading">Checking your registration…</div>
               ) : isRegistered ? (
                 <div className="my-reg-status-card">
                   <div className="my-reg-header">
-                    <ClipboardList size={18} />
-                    <span>Your Registration</span>
+                    <ClipboardList size={18} color="#881421" />
+                    <span>Your Registration Status</span>
                   </div>
                   <div className="my-reg-body">
                     <span className={`reg-status-badge ${STATUS_CONFIG[myRegistration.status]?.cls}`}>
                       {STATUS_CONFIG[myRegistration.status]?.label || myRegistration.status}
                     </span>
                     <div className="my-reg-code">
-                      <span className="reg-code-label">Registration Code</span>
+                      <span className="reg-code-label">Registration Passcode</span>
                       <span className="reg-code-value">{myRegistration.registrationCode}</span>
                     </div>
                     {myRegistration.answers?.length > 0 && (
@@ -311,24 +460,14 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                     )}
                   </div>
                 </div>
-              ) : deadlinePassed ? (
-                <div className="reg-closed-card">
-                  <Clock size={18} />
-                  <span>Registration for this event has closed.</span>
-                </div>
-              ) : isFull ? (
-                <div className="reg-closed-card">
-                  <Users size={18} />
-                  <span>This event is fully booked.</span>
-                </div>
               ) : (
-                /* Registration form */
+                /* Registration input form */
                 <form className="registration-form" onSubmit={handleSubmitRegistration} id="reg-form">
                   <div className="reg-form-header">
-                    <FileText size={18} />
+                    <FileText size={18} color="#881421" />
                     <span>
                       {event.registrationType === 'application'
-                        ? 'Submit Your Application'
+                        ? 'Submit Application for Review'
                         : 'Register for this Event'}
                     </span>
                   </div>
@@ -402,28 +541,22 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                     </div>
                   )}
 
-                  <button type="submit" className="btn-register" disabled={submitting}>
-                    <Send size={15} />
-                    {submitting
-                      ? 'Submitting…'
-                      : event.registrationType === 'application'
-                        ? 'Submit Application'
-                        : 'Register Now'}
-                  </button>
+                  {!deadlinePassed && !isFull && (
+                    <button type="submit" className="nc-enroll-cta-btn" disabled={submitting}>
+                      <Send size={15} />
+                      {submitting
+                        ? 'Submitting…'
+                        : event.registrationType === 'application'
+                          ? 'Submit Application'
+                          : 'Confirm & Register Now'}
+                    </button>
+                  )}
                 </form>
-              )}
-
-              {/* Non-form action feedback (cancel success/error) */}
-              {!isRegistered && (actionMsg || actionError) && (
-                <>
-                  {actionMsg && <div className="action-success"><CheckCircle2 size={14} /> {actionMsg}</div>}
-                  {actionError && <div className="action-error"><AlertCircle size={14} /> {actionError}</div>}
-                </>
               )}
             </div>
           )}
 
-          {/* ── Admin: Registrations / Applications list ── */}
+          {/* ── Admin: Registrations & Applications Manager ── */}
           {isAdmin && (
             <div className="admin-attendees-section">
               <div className="attendees-header">
@@ -464,7 +597,6 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                             {reg.student?.firstName} {reg.student?.lastName}
                           </span>
                           <span className="row-email">{reg.student?.email}</span>
-                          {/* Show submitted answers */}
                           {reg.answers?.length > 0 && (
                             <div className="admin-reg-answers">
                               {reg.answers.map((a, i) => (
@@ -520,31 +652,31 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           )}
         </div>
 
-        {/* Right: sidebar */}
-        <aside className="detail-sidebar">
+        {/* ── Right Column: Sidebar Details Card ── */}
+        <aside className="nc-detail-sidebar">
           {/* Admin Controls */}
           {isAdmin && (
-            <div className="admin-controls-card">
-              <div className="admin-controls-title">
-                <Shield size={16} />
-                <span>Admin Actions</span>
+            <div className="nc-admin-card">
+              <div className="nc-admin-title">
+                <Shield size={16} color="#881421" />
+                <span>Admin Management</span>
               </div>
-              <div className="admin-controls-actions">
-                <Link to={`/admin/events/${event._id}/edit`} className="btn-admin-edit">
+              <div className="nc-admin-actions">
+                <Link to={`/admin/events/${event._id}/edit`} className="nc-btn-admin-edit">
                   <Edit size={14} /> Edit Event
                 </Link>
                 <button
                   type="button"
-                  className="btn-admin-delete"
+                  className="nc-btn-admin-delete"
                   onClick={() => setShowDeleteModal(true)}
                   disabled={deleting}
                 >
-                  <Trash2 size={14} /> Delete Event
+                  <Trash2 size={14} /> Delete
                 </button>
               </div>
               {showDeleteModal && (
                 <div className="admin-delete-confirm-box">
-                  <p>Remove this event from the public listing?</p>
+                  <p>Remove this event from public listing?</p>
                   <div className="confirm-buttons">
                     <button type="button" className="btn-confirm-delete" onClick={handleDelete} disabled={deleting}>
                       {deleting ? 'Deleting…' : 'Yes, Delete'}
@@ -558,55 +690,193 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             </div>
           )}
 
-          {/* Event info card */}
-          <div className="detail-info-card">
-            <div className="info-row">
-              <Calendar size={16} />
-              <div>
-                <span className="info-label">Date &amp; Time</span>
-                <span className="info-value">{formatDate(event.date)}</span>
+          {/* Primary Logistics & Registration Card */}
+          <div className="nc-summary-card">
+            {/* Rows of event parameters */}
+            <div className="nc-param-list">
+              <div className="nc-param-row">
+                <span className="nc-param-label">
+                  <Calendar size={14} className="nc-param-icon" />
+                  Date :
+                </span>
+                <span className="nc-param-val">{formatDate(event.date)}</span>
               </div>
-            </div>
-            <div className="info-row">
-              <MapPin size={16} />
-              <div>
-                <span className="info-label">Location</span>
-                <span className="info-value">{event.location}</span>
-              </div>
-            </div>
-            {event.registrationDeadline && (
-              <div className="info-row">
-                <Clock size={16} />
-                <div>
-                  <span className="info-label">Registration Deadline</span>
-                  <span className={`info-value ${deadlinePassed ? 'deadline-past' : 'deadline-active'}`}>
-                    {formatShortDate(event.registrationDeadline)}
-                    {deadlinePassed ? ' (Closed)' : ''}
+
+              {event.location && (
+                <div className="nc-param-row">
+                  <span className="nc-param-label">
+                    <MapPin size={14} className="nc-param-icon" />
+                    Location :
                   </span>
+                  <span className="nc-param-val">{event.location}</span>
                 </div>
+              )}
+
+              {event.duration && (
+                <div className="nc-param-row">
+                  <span className="nc-param-label">
+                    <Clock size={14} className="nc-param-icon" />
+                    Duration :
+                  </span>
+                  <span className="nc-param-val">{event.duration}</span>
+                </div>
+              )}
+
+              <div className="nc-param-row">
+                <span className="nc-param-label">
+                  <Layers size={14} className="nc-param-icon" />
+                  Category :
+                </span>
+                <span className="nc-param-val" style={{ textTransform: 'capitalize' }}>
+                  {event.category || 'General'}
+                </span>
               </div>
-            )}
-            {event.capacity !== null && (
-              <div className="info-row">
-                <Users size={16} />
-                <div>
-                  <span className="info-label">Capacity</span>
-                  <span className="info-value">
-                    {event.registeredUsers?.length ?? 0} / {event.capacity} registered
-                    {!isRegistered && (
-                      <span className={`spots-tag ${event.spotsLeft === 0 ? 'full' : ''}`}>
-                        {event.spotsLeft === 0 ? 'Full' : `${event.spotsLeft} spots left`}
+
+              <div className="nc-param-row">
+                <span className="nc-param-label">
+                  <Users size={14} className="nc-param-icon" />
+                  Seats left :
+                </span>
+                <span className="nc-param-val">
+                  {event.capacity !== null ? (
+                    event.spotsLeft !== null ? (
+                      <span className={event.spotsLeft === 0 ? 'nc-seats-full' : 'nc-seats-avail'}>
+                        {event.spotsLeft} / {event.capacity}
                       </span>
-                    )}
+                    ) : (
+                      `${event.capacity}`
+                    )
+                  ) : (
+                    'Unlimited'
+                  )}
+                </span>
+              </div>
+
+              {event.registrationDeadline && (
+                <div className="nc-param-row">
+                  <span className="nc-param-label">
+                    <Clock size={14} className="nc-param-icon" />
+                    Deadline :
+                  </span>
+                  <span className={`nc-param-val ${deadlinePassed ? 'nc-deadline-closed' : ''}`}>
+                    {formatShortDate(event.registrationDeadline)}
                   </span>
                 </div>
+              )}
+            </div>
+
+            {/* Price & Status */}
+            <div className="nc-price-section">
+              <div className="nc-price-row">
+                <span className="nc-price-tag">
+                  {event.fee || (event.isFree ? 'Free Admission' : 'Free')}
+                </span>
+                <span className="nc-fee-sub">
+                  {event.isFree ? 'Complimentary Campus Event' : 'Registration Fee'}
+                </span>
+              </div>
+
+              {remainingDays && (
+                <div className="nc-countdown-row">
+                  <Clock size={14} color="#881421" />
+                  <span>{remainingDays}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Enroll Now / Action Button */}
+            {!isAdmin && (
+              <div className="nc-cta-container">
+                {isRegistered ? (
+                  <div className="nc-registered-notice">
+                    <Check size={16} strokeWidth={2.6} />
+                    <span>You are registered for this event</span>
+                  </div>
+                ) : deadlinePassed ? (
+                  <button type="button" className="nc-enroll-cta-btn disabled" disabled>
+                    Registration Closed
+                  </button>
+                ) : isFull ? (
+                  <button type="button" className="nc-enroll-cta-btn disabled" disabled>
+                    Event Fully Booked
+                  </button>
+                ) : (
+                  <a href="#reg-form" className="nc-enroll-cta-btn">
+                    {event.registrationType === 'application' ? 'Apply Now' : 'Enroll Now'}
+                  </a>
+                )}
               </div>
             )}
-            <div className="info-row">
-              <span className="organiser-label">Organised by</span>
-              <span className="info-value">
-                {event.organiser?.firstName} {event.organiser?.lastName}
-              </span>
+
+            {/* Event Inclusions / Highlights */}
+            <div className="nc-inclusions-section">
+              <h4 className="nc-inclusions-title">This event includes:</h4>
+              <ul className="nc-inclusions-list">
+                <li className="nc-inclusion-item">
+                  <Award size={14} color="#881421" />
+                  <span>Certificate of participation</span>
+                </li>
+                {event.hasBreakfast && (
+                  <li className="nc-inclusion-item">
+                    <Coffee size={14} color="#881421" />
+                    <span>Breakfast &amp; refreshments included</span>
+                  </li>
+                )}
+                {event.laptopRequired && (
+                  <li className="nc-inclusion-item">
+                    <Laptop size={14} color="#881421" />
+                    <span>Bring your own laptop</span>
+                  </li>
+                )}
+                <li className="nc-inclusion-item">
+                  <CheckCircle2 size={14} color="#881421" />
+                  <span>Hands-on campus experience &amp; networking</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* ── Contact Person for Queries Card ── */}
+          <div className="nc-contact-card">
+            <h4 className="nc-card-header-small">
+              <UserCheck size={16} color="#881421" />
+              <span>Any queries? Contact Us</span>
+            </h4>
+            <div className="nc-contact-details">
+              <div className="nc-contact-name">
+                {event.contactPerson?.name || `${event.organiser?.firstName || 'Campus'} ${event.organiser?.lastName || 'Events Team'}`}
+              </div>
+              {event.contactPerson?.phone && (
+                <a href={`tel:${event.contactPerson.phone}`} className="nc-contact-link">
+                  <Phone size={13} color="#881421" />
+                  <span>{event.contactPerson.phone}</span>
+                </a>
+              )}
+              <a
+                href={`mailto:${event.contactPerson?.email || event.organiser?.email || 'events@sunway.edu.np'}`}
+                className="nc-contact-link"
+              >
+                <Mail size={13} color="#881421" />
+                <span>{event.contactPerson?.email || event.organiser?.email || 'events@sunway.edu.np'}</span>
+              </a>
+            </div>
+          </div>
+
+          {/* ── Share Event / Copy Link Card ── */}
+          <div className="nc-share-card">
+            <h4 className="nc-card-header-small">
+              <Share2 size={15} color="#881421" />
+              <span>Share this event:</span>
+            </h4>
+            <div className="nc-share-actions">
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="nc-copy-link-btn"
+              >
+                {copiedLink ? <Check size={14} color="#15803d" /> : <Copy size={14} />}
+                <span>{copiedLink ? 'Link Copied!' : 'Copy Link'}</span>
+              </button>
             </div>
           </div>
         </aside>

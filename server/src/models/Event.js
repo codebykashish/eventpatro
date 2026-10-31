@@ -133,6 +133,58 @@ const eventSchema = new mongoose.Schema(
       type: [formFieldSchema],
       default: [],
     },
+
+    // Mentor / Instructor (primarily for workshop / seminar)
+    mentor: {
+      name: { type: String, trim: true, default: '' },
+      occupation: { type: String, trim: true, default: '' },
+      photo: { type: String, default: '' },
+      linkedin: { type: String, trim: true, default: '' },
+      bio: { type: String, default: '' },
+    },
+
+    // Contact person for queries
+    contactPerson: {
+      name: { type: String, trim: true, default: '' },
+      email: { type: String, trim: true, default: '' },
+      phone: { type: String, trim: true, default: '' },
+    },
+
+    // Event outcomes & prerequisites
+    learningOutcomes: {
+      type: [String],
+      default: [],
+    },
+    requirements: {
+      type: [String],
+      default: [],
+    },
+
+    // Pricing & Logistics
+    isFree: {
+      type: Boolean,
+      default: true,
+    },
+    fee: {
+      type: String,
+      default: 'Free',
+    },
+    duration: {
+      type: String,
+      default: '',
+    },
+    hasBreakfast: {
+      type: Boolean,
+      default: false,
+    },
+    laptopRequired: {
+      type: Boolean,
+      default: false,
+    },
+    certificateProvided: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true, // adds createdAt and updatedAt automatically
