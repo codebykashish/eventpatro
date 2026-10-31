@@ -36,6 +36,9 @@ const FILTER_CATEGORIES = [
   { id: 'sports', label: 'Sports', icon: '🏆' },
 ]
 
+// Number of events displayed per page in the Explore tab
+const EVENTS_PER_PAGE = 6
+
 // Category colors for badges
 const CATEGORY_COLORS = {
   academic: '#3b82f6',
@@ -156,10 +159,14 @@ const Dashboard = () => {
   })
   const [sortBy, setSortBy] = useState('upcoming')
 
+  // Pagination for Explore Events tab (resets to 1 whenever filters/sort change)
+  const [currentPage, setCurrentPage] = useState(1)
+
   const toggleCategory = (catId) => {
     setSelectedCategories((prev) =>
       prev.includes(catId) ? prev.filter((c) => c !== catId) : [...prev, catId]
     )
+    setCurrentPage(1)
   }
 
   const toggleAvailability = (key) => {
@@ -167,6 +174,7 @@ const Dashboard = () => {
       ...prev,
       [key]: !prev[key],
     }))
+    setCurrentPage(1)
   }
 
   const clearAllFilters = () => {
@@ -174,6 +182,7 @@ const Dashboard = () => {
     setSelectedCategories([])
     setDateFilter('any')
     setAvailabilityFilters({ openRegistration: false, availableSeats: false })
+    setCurrentPage(1)
   }
 
   // Data state
@@ -320,6 +329,19 @@ const Dashboard = () => {
       }
       return 0
     })
+
+  // Pagination derived values
+  const totalPages = Math.max(1, Math.ceil(exploreFilteredEvents.length / EVENTS_PER_PAGE))
+  const safePage = Math.min(currentPage, totalPages)
+  const paginatedEvents = exploreFilteredEvents.slice(
+    (safePage - 1) * EVENTS_PER_PAGE,
+    safePage * EVENTS_PER_PAGE
+  )
+
+  const goToPage = (page) => {
+    setCurrentPage(page)
+    document.querySelector('.explore-content-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // Execute logout
   const handleConfirmLogout = () => {
@@ -911,7 +933,7 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Event Cards Grid: exactly 2 per row as in the image */}
+                  {/* Event Cards Grid: exactly 2 per row — paginated */}
                   {exploreFilteredEvents.length === 0 ? (
                     <div className="explore-empty-state">
                       <p>No events match the selected filters.</p>
@@ -924,85 +946,144 @@ const Dashboard = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="explore-cards-grid">
-                      {exploreFilteredEvents.map((evt) => {
-                        const isRegistered = registeredEventIds.has(evt._id)
-                        const descSnippet = evt.description
-                          ? evt.description.slice(0, 110) + (evt.description.length > 110 ? '…' : '')
-                          : ''
-                        const enrolledCount = evt.registeredUsers?.length ?? 0
-                        const capacityCount = evt.capacity
-                        const categoryLabel = evt.category || 'Event'
+                    <>
+                      <div className="explore-cards-grid">
+                        {paginatedEvents.map((evt) => {
+                          const isRegistered = registeredEventIds.has(evt._id)
+                          const descSnippet = evt.description
+                            ? evt.description.slice(0, 110) + (evt.description.length > 110 ? '…' : '')
+                            : ''
+                          const enrolledCount = evt.registeredUsers?.length ?? 0
+                          const capacityCount = evt.capacity
+                          const categoryLabel = evt.category || 'Event'
 
-                        return (
-                          <div
-                            key={evt._id}
-                            onClick={() => handleOpenEvent(evt._id)}
-                            className="explore-event-card"
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && handleOpenEvent(evt._id)}
-                          >
-                            {/* Card Cover Image with Category overlay on image top-left */}
+                          return (
                             <div
-                              className="explore-card-cover"
-                              style={{
-                                backgroundImage: evt.coverImage
-                                  ? `url(${evt.coverImage})`
-                                  : `linear-gradient(135deg, #881421 0%, #3d0a10 100%)`,
-                              }}
+                              key={evt._id}
+                              onClick={() => handleOpenEvent(evt._id)}
+                              className="explore-event-card"
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && handleOpenEvent(evt._id)}
                             >
-                              <span className="explore-card-cat-tag">
-                                {categoryLabel}
-                              </span>
-
-                              {isRegistered && (
-                                <span className="explore-registered-badge">
-                                  <Check size={11} strokeWidth={2.6} /> Registered
+                              {/* Card Cover Image with Category overlay on image top-left */}
+                              <div
+                                className="explore-card-cover"
+                                style={{
+                                  backgroundImage: evt.coverImage
+                                    ? `url(${evt.coverImage})`
+                                    : `linear-gradient(135deg, #881421 0%, #3d0a10 100%)`,
+                                }}
+                              >
+                                <span className="explore-card-cat-tag">
+                                  {categoryLabel}
                                 </span>
-                              )}
-                            </div>
 
-                            {/* Card Body */}
-                            <div className="explore-card-body">
-                              <h3 className="explore-card-title">{evt.title}</h3>
-                              {descSnippet && (
-                                <p className="explore-card-snippet">{descSnippet}</p>
-                              )}
-
-                              {/* Date & Location with red icons */}
-                              <div className="explore-card-meta">
-                                <div className="explore-meta-item">
-                                  <Calendar size={13} color="#881421" strokeWidth={2.2} />
-                                  <span>{formatEventDate(evt.date)}{evt.date && ` • ${formatEventTime(evt.date)}`}</span>
-                                </div>
-                                <div className="explore-meta-item">
-                                  <MapPin size={13} color="#881421" strokeWidth={2.2} />
-                                  <span>{evt.location || 'Sunway College Campus'}</span>
-                                </div>
+                                {isRegistered && (
+                                  <span className="explore-registered-badge">
+                                    <Check size={11} strokeWidth={2.6} /> Registered
+                                  </span>
+                                )}
                               </div>
 
-                              {/* Card Bottom Row: Enrolled count on left, View details on right */}
-                              <div className="explore-card-footer">
-                                <span className="explore-spots-count">
-                                  <Users size={13} color="#881421" strokeWidth={2.2} />
-                                  {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Unlimited spots'}
-                                </span>
-                                {(() => {
-                                  const rem = getRemainingDays(evt.date)
-                                  return rem ? (
-                                    <span className="explore-days-left">
-                                      <Clock size={13} color="#881421" strokeWidth={2.2} />
-                                      {rem}
-                                    </span>
-                                  ) : null
-                                })()}
+                              {/* Card Body */}
+                              <div className="explore-card-body">
+                                <h3 className="explore-card-title">{evt.title}</h3>
+                                {descSnippet && (
+                                  <p className="explore-card-snippet">{descSnippet}</p>
+                                )}
+
+                                {/* Date & Location with red icons */}
+                                <div className="explore-card-meta">
+                                  <div className="explore-meta-item">
+                                    <Calendar size={13} color="#881421" strokeWidth={2.2} />
+                                    <span>{formatEventDate(evt.date)}{evt.date && ` • ${formatEventTime(evt.date)}`}</span>
+                                  </div>
+                                  <div className="explore-meta-item">
+                                    <MapPin size={13} color="#881421" strokeWidth={2.2} />
+                                    <span>{evt.location || 'Sunway College Campus'}</span>
+                                  </div>
+                                </div>
+
+                                {/* Card Bottom Row */}
+                                <div className="explore-card-footer">
+                                  <span className="explore-spots-count">
+                                    <Users size={13} color="#881421" strokeWidth={2.2} />
+                                    {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Unlimited spots'}
+                                  </span>
+                                  {(() => {
+                                    const rem = getRemainingDays(evt.date)
+                                    return rem ? (
+                                      <span className="explore-days-left">
+                                        <Clock size={13} color="#881421" strokeWidth={2.2} />
+                                        {rem}
+                                      </span>
+                                    ) : null
+                                  })()}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )
-                      })}
-                    </div>
+                          )
+                        })}
+                      </div>
+
+                      {/* ── Pagination Bar ── */}
+                      {totalPages > 1 && (
+                        <div className="explore-pagination">
+                          {/* Previous */}
+                          <button
+                            type="button"
+                            className="page-nav-btn"
+                            onClick={() => goToPage(safePage - 1)}
+                            disabled={safePage === 1}
+                            aria-label="Previous page"
+                          >
+                            ‹
+                          </button>
+
+                          {/* Numbered pages with ellipsis */}
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                            const nearCurrent = Math.abs(page - safePage) <= 1
+                            const isEdge = page === 1 || page === totalPages
+                            const show = isEdge || nearCurrent
+
+                            const ellipsisBefore = page === safePage - 2 && safePage > 3
+                            const ellipsisAfter = page === safePage + 2 && safePage < totalPages - 2
+
+                            if (ellipsisBefore || ellipsisAfter) {
+                              return (
+                                <span key={`ell-${page}`} className="page-ellipsis">
+                                  …
+                                </span>
+                              )
+                            }
+                            if (!show) return null
+                            return (
+                              <button
+                                key={page}
+                                type="button"
+                                className={`page-num-btn${page === safePage ? ' active' : ''}`}
+                                onClick={() => goToPage(page)}
+                                aria-current={page === safePage ? 'page' : undefined}
+                              >
+                                {page}
+                              </button>
+                            )
+                          })}
+
+                          {/* Next */}
+                          <button
+                            type="button"
+                            className="page-nav-btn"
+                            onClick={() => goToPage(safePage + 1)}
+                            disabled={safePage === totalPages}
+                            aria-label="Next page"
+                          >
+                            ›
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
