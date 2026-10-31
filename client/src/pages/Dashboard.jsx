@@ -37,7 +37,7 @@ const FILTER_CATEGORIES = [
 ]
 
 // Number of events displayed per page in the Explore tab
-const EVENTS_PER_PAGE = 6
+const EVENTS_PER_PAGE = 9
 
 // Category colors for badges
 const CATEGORY_COLORS = {

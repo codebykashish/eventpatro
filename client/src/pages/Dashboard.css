@@ -2501,7 +2501,7 @@
 /* Event Cards Grid (2-column layout matching mockup) */
 .explore-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
 
@@ -2706,6 +2706,10 @@
     grid-template-columns: 280px 1fr;
     gap: 18px;
   }
+  /* 3 cols → 2 cols on tablet */
+  .explore-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 860px) {
@@ -2716,6 +2720,7 @@
     position: static;
     max-height: none;
   }
+  /* 2 cols → 1 col on mobile */
   .explore-cards-grid {
     grid-template-columns: 1fr;
   }
