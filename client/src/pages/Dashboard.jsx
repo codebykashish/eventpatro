@@ -1446,44 +1446,72 @@ const Dashboard = () => {
                     }
 
                     return (
-                      <div className="profile-event-list">
+                      <div className="profile-events-grid">
                         {list.map((reg) => {
                           const evt = reg.event || {}
                           const isPast = evt.date && new Date(evt.date) < now
+                          const enrolledCount = evt.registeredUsers?.length ?? 0
+                          const capacityCount = evt.capacity
+                          const isFull = capacityCount !== null && capacityCount !== undefined && enrolledCount >= capacityCount
+                          const categoryLabel = evt.category || 'Event'
+
                           return (
-                            <div key={reg._id} className="profile-event-row" onClick={() => evt._id && handleOpenEvent(evt._id)}>
-                              {/* Cover thumbnail */}
+                            <div
+                              key={reg._id}
+                              className="profile-event-post-card"
+                              onClick={() => evt._id && handleOpenEvent(evt._id)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && evt._id && handleOpenEvent(evt._id)}
+                            >
+                              {/* Post Card Cover */}
                               <div
-                                className="profile-event-thumb"
+                                className="profile-post-cover"
                                 style={{
                                   backgroundImage: evt.coverImage
                                     ? `url(${evt.coverImage})`
                                     : `linear-gradient(135deg, #881421 0%, #3d0a10 100%)`,
                                 }}
                               >
-                                {isPast && <span className="profile-past-badge">Past</span>}
-                              </div>
-
-                              {/* Info */}
-                              <div className="profile-event-row-info">
-                                <span className="profile-event-row-category">{evt.category || 'Event'}</span>
-                                <h4 className="profile-event-row-title">{evt.title || 'Campus Event'}</h4>
-                                <div className="profile-event-row-meta">
-                                  <span><CalendarDays size={12} /> {formatEventDate(evt.date)}</span>
-                                  <span><MapPin size={12} /> {evt.location || 'Sunway Campus'}</span>
+                                <span className="profile-post-cat-tag">
+                                  {categoryLabel}
+                                </span>
+                                <div className="profile-post-top-badges">
+                                  {isPast && (
+                                    <span className="profile-post-badge past">
+                                      Past Event
+                                    </span>
+                                  )}
+                                  <span className={`reg-status-chip ${STATUS_CONFIG[reg.status]?.cls || ''}`}>
+                                    {STATUS_CONFIG[reg.status]?.label || reg.status || 'Registered'}
+                                  </span>
                                 </div>
                               </div>
 
-                              {/* Status chip + link */}
-                              <div className="profile-event-row-right">
-                                <span className={`reg-status-chip ${STATUS_CONFIG[reg.status]?.cls || ''}`}>
-                                  {STATUS_CONFIG[reg.status]?.label || reg.status || 'Registered'}
-                                </span>
-                                {evt._id && (
-                                  <button className="profile-view-link" title="View event details">
-                                    <ExternalLink size={14} strokeWidth={2} />
-                                  </button>
-                                )}
+                              {/* Post Card Body */}
+                              <div className="profile-post-body">
+                                <h4 className="profile-post-title">{evt.title || 'Campus Event'}</h4>
+
+                                <div className="profile-post-meta">
+                                  <div className="profile-post-meta-item">
+                                    <Calendar size={12} color="#881421" strokeWidth={2.2} />
+                                    <span>{formatEventDate(evt.date)}{evt.date && ` • ${formatEventTime(evt.date)}`}</span>
+                                  </div>
+                                  <div className="profile-post-meta-item">
+                                    <MapPin size={12} color="#881421" strokeWidth={2.2} />
+                                    <span>{evt.location || 'Sunway College Campus'}</span>
+                                  </div>
+                                </div>
+
+                                <div className="profile-post-footer">
+                                  <span className="profile-post-spots">
+                                    <Users size={12} color="#881421" strokeWidth={2.2} />
+                                    {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Campus event'}
+                                  </span>
+                                  <span className="profile-post-view-btn">
+                                    View Details <ArrowRight size={12} strokeWidth={2.4} />
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           )
