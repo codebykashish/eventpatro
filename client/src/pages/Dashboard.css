@@ -1569,19 +1569,19 @@
   width: 100%;
 }
 
-/* ── Hero card (avatar + name + stats) ── */
+/* ── Hero card (avatar + name + stats) — WIDER ── */
 .profile-hero-card {
-  flex: 0 0 340px;
+  flex: 1.25;
   background: #ffffff;
   border: 1px solid #edf2f7;
   border-radius: 20px;
-  padding: 34px 30px 28px;
+  padding: 34px 36px 30px;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
   text-align: center;
 }
 
@@ -1592,18 +1592,18 @@
 }
 
 .profile-avatar-circle {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
   background: linear-gradient(135deg, #fdf2f2, #fff0f0);
   color: #881421;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid rgba(136, 20, 33, 0.18);
-  box-shadow: 0 4px 16px rgba(136, 20, 33, 0.12);
+  border: 3.5px solid rgba(136, 20, 33, 0.18);
+  box-shadow: 0 4px 18px rgba(136, 20, 33, 0.14);
   letter-spacing: -1px;
 }
 
@@ -1638,7 +1638,7 @@
   gap: 8px;
 }
 .profile-hero-name {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: #1e293b;
   margin: 0;
@@ -1646,13 +1646,13 @@
 }
 .profile-hero-role-pill {
   display: inline-block;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #881421;
   background: #fdf2f2;
   border: 1px solid rgba(136, 20, 33, 0.18);
   border-radius: 999px;
-  padding: 3px 14px;
+  padding: 3px 16px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
@@ -1662,24 +1662,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-top: 6px;
+  gap: 32px;
+  margin-top: 8px;
   width: 100%;
+  max-width: 420px;
 }
 .profile-stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 .profile-stat-number {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: #1e293b;
   line-height: 1;
 }
 .profile-stat-label {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
@@ -1687,34 +1688,34 @@
 }
 .profile-stat-divider {
   width: 1px;
-  height: 32px;
+  height: 36px;
   background: #e2e8f0;
 }
 
-/* ── Info card (Account Information) ── */
+/* ── Info card (Account Information) — NARROWER ── */
 .profile-info-card {
-  flex: 1;
+  flex: 0 0 420px;
   background: #ffffff;
   border: 1px solid #edf2f7;
   border-radius: 20px;
-  padding: 32px 36px;
+  padding: 32px 32px;
   box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 .profile-info-card-title {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin: 0 0 20px;
+  margin: 0 0 18px;
 }
 .profile-info-fields-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 22px 40px;
+  gap: 18px 24px;
 }
 .profile-info-field {
   display: flex;
@@ -1722,16 +1723,17 @@
   gap: 4px;
 }
 .profile-info-label {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 .profile-info-value {
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #1e293b;
+  word-break: break-word;
 }
 
 /* ── Activity section (Instagram style) ── */
