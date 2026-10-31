@@ -1311,77 +1311,79 @@ const Dashboard = () => {
           {activeTab === 'profile' && (
             <section className="portal-full-tab-section profile-page-section">
 
-              {/* ── Top Hero Block ── */}
-              <div className="profile-hero-card">
-
-                {/* Avatar + pencil */}
-                <div className="profile-avatar-wrap">
-                  <div className="profile-avatar-circle">
-                    {getInitials(user?.firstName, user?.lastName)}
-                  </div>
-                  <button className="profile-avatar-edit-btn" title="Edit profile picture">
-                    <Pencil size={13} strokeWidth={2.5} />
-                  </button>
-                </div>
-
-                {/* Name + role pill */}
-                <div className="profile-hero-identity">
-                  <h2 className="profile-hero-name">
-                    {user?.firstName} {user?.lastName}
-                  </h2>
-                  <span className="profile-hero-role-pill">
-                    {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student'}
-                  </span>
-                </div>
-
-                {/* Quick stat row */}
-                <div className="profile-stats-row">
-                  <div className="profile-stat-item">
-                    <span className="profile-stat-number">{registrations.length}</span>
-                    <span className="profile-stat-label">Registered</span>
-                  </div>
-                  <div className="profile-stat-divider" />
-                  <div className="profile-stat-item">
-                    <span className="profile-stat-number">
-                      {registrations.filter(r => r.status === 'attended').length}
-                    </span>
-                    <span className="profile-stat-label">Attended</span>
-                  </div>
-                  <div className="profile-stat-divider" />
-                  <div className="profile-stat-item">
-                    <span className="profile-stat-number">
-                      {registrations.filter(r => new Date(r.event?.date) < new Date()).length}
-                    </span>
-                    <span className="profile-stat-label">Completed</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Info Card ── */}
-              <div className="profile-info-card">
-                <h3 className="profile-info-card-title">Account Information</h3>
-                <div className="profile-info-fields-grid">
-                  <div className="profile-info-field">
-                    <span className="profile-info-label">Full Name</span>
-                    <span className="profile-info-value">{user?.firstName} {user?.lastName}</span>
-                  </div>
-                  <div className="profile-info-field">
-                    <span className="profile-info-label">Email Address</span>
-                    <span className="profile-info-value">{user?.email}</span>
-                  </div>
-                  {user?.studentId && (
-                    <div className="profile-info-field">
-                      <span className="profile-info-label">Student ID</span>
-                      <span className="profile-info-value">{user.studentId}</span>
+              {/* ── Top Row: Hero Card & Account Info beside each other ── */}
+              <div className="profile-top-row">
+                {/* Hero Block (Avatar + stats) */}
+                <div className="profile-hero-card">
+                  {/* Avatar + pencil */}
+                  <div className="profile-avatar-wrap">
+                    <div className="profile-avatar-circle">
+                      {getInitials(user?.firstName, user?.lastName)}
                     </div>
-                  )}
-                  <div className="profile-info-field">
-                    <span className="profile-info-label">Account Role</span>
-                    <span className="profile-info-value capitalize">{user?.role || 'Student'}</span>
+                    <button className="profile-avatar-edit-btn" title="Edit profile picture">
+                      <Pencil size={13} strokeWidth={2.5} />
+                    </button>
                   </div>
-                  <div className="profile-info-field">
-                    <span className="profile-info-label">Affiliation</span>
-                    <span className="profile-info-value">Sunway College Kathmandu</span>
+
+                  {/* Name + role pill */}
+                  <div className="profile-hero-identity">
+                    <h2 className="profile-hero-name">
+                      {user?.firstName} {user?.lastName}
+                    </h2>
+                    <span className="profile-hero-role-pill">
+                      {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student'}
+                    </span>
+                  </div>
+
+                  {/* Quick stat row */}
+                  <div className="profile-stats-row">
+                    <div className="profile-stat-item">
+                      <span className="profile-stat-number">{registrations.length}</span>
+                      <span className="profile-stat-label">Registered</span>
+                    </div>
+                    <div className="profile-stat-divider" />
+                    <div className="profile-stat-item">
+                      <span className="profile-stat-number">
+                        {registrations.filter(r => r.status === 'attended').length}
+                      </span>
+                      <span className="profile-stat-label">Attended</span>
+                    </div>
+                    <div className="profile-stat-divider" />
+                    <div className="profile-stat-item">
+                      <span className="profile-stat-number">
+                        {registrations.filter(r => new Date(r.event?.date) < new Date()).length}
+                      </span>
+                      <span className="profile-stat-label">Completed</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Account Information Card beside hero */}
+                <div className="profile-info-card">
+                  <h3 className="profile-info-card-title">Account Information</h3>
+                  <div className="profile-info-fields-grid">
+                    <div className="profile-info-field">
+                      <span className="profile-info-label">Full Name</span>
+                      <span className="profile-info-value">{user?.firstName} {user?.lastName}</span>
+                    </div>
+                    <div className="profile-info-field">
+                      <span className="profile-info-label">Email Address</span>
+                      <span className="profile-info-value">{user?.email}</span>
+                    </div>
+                    {user?.studentId && (
+                      <div className="profile-info-field">
+                        <span className="profile-info-label">Student ID</span>
+                        <span className="profile-info-value">{user.studentId}</span>
+                      </div>
+                    )}
+                    <div className="profile-info-field">
+                      <span className="profile-info-label">Account Role</span>
+                      <span className="profile-info-value capitalize">{user?.role || 'Student'}</span>
+                    </div>
+                    <div className="profile-info-field">
+                      <span className="profile-info-label">Affiliation</span>
+                      <span className="profile-info-value">Sunway College Kathmandu</span>
+                    </div>
                   </div>
                 </div>
               </div>
