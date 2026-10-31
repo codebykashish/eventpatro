@@ -38,9 +38,9 @@ const Login = () => {
       setEmail('')
       setPassword('')
       if (user.role === 'admin') {
-        navigate('/admin')
+        window.location.href = '/admin'
       } else {
-        navigate('/dashboard')
+        window.location.href = '/dashboard'
       }
     } catch (err) {
       if (err.isUnverified) {

@@ -124,7 +124,7 @@ const AuthModal = () => {
       const loggedInUser = await login(loginEmail, loginPassword)
       resetFormFields()
       closeAuthModal()
-      navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard')
+      window.location.href = loggedInUser.role === 'admin' ? '/admin' : '/dashboard'
     } catch (err) {
       if (err.isUnverified) {
         setVerifyEmail(err.email || loginEmail)

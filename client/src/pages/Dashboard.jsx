@@ -16,12 +16,25 @@ import {
   Sparkles,
   Hourglass,
   Users,
+  Filter,
+  X,
+  ArrowRight,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchEvents, getMyRegistrations } from '../utils/api'
 import CampusIllustration from '../components/CampusIllustration'
 import EventDetailPage from './EventDetail'
 import './Dashboard.css'
+
+// Categories for the filter sidebar matching the mockup
+const FILTER_CATEGORIES = [
+  { id: 'workshop', label: 'Workshop', icon: '🔧' },
+  { id: 'hackathon', label: 'Hackathon', icon: '</>' },
+  { id: 'seminar', label: 'Seminar', icon: '🎓' },
+  { id: 'cultural', label: 'Cultural', icon: '🎭' },
+  { id: 'sports', label: 'Sports', icon: '🏆' },
+]
 
 // Category colors for badges
 const CATEGORY_COLORS = {
@@ -133,6 +146,36 @@ const Dashboard = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [hasSeenUpdates, setHasSeenUpdates] = useState(false)
 
+  // Explore Events Filter States
+  const [filterSearch, setFilterSearch] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState([])
+  const [dateFilter, setDateFilter] = useState('any')
+  const [availabilityFilters, setAvailabilityFilters] = useState({
+    openRegistration: false,
+    availableSeats: false,
+  })
+  const [sortBy, setSortBy] = useState('upcoming')
+
+  const toggleCategory = (catId) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catId) ? prev.filter((c) => c !== catId) : [...prev, catId]
+    )
+  }
+
+  const toggleAvailability = (key) => {
+    setAvailabilityFilters((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
+
+  const clearAllFilters = () => {
+    setFilterSearch('')
+    setSelectedCategories([])
+    setDateFilter('any')
+    setAvailabilityFilters({ openRegistration: false, availableSeats: false })
+  }
+
   // Data state
   const [events, setEvents] = useState([])
   const [registrations, setRegistrations] = useState([])
@@ -216,11 +259,72 @@ const Dashboard = () => {
     )
   })
 
+  // Filtered and sorted events for Explore Campus Events tab
+  const exploreFilteredEvents = events
+    .filter((evt) => {
+      // 1. Search text
+      if (filterSearch.trim()) {
+        const q = filterSearch.toLowerCase()
+        const matches =
+          evt.title?.toLowerCase().includes(q) ||
+          evt.description?.toLowerCase().includes(q) ||
+          evt.location?.toLowerCase().includes(q)
+        if (!matches) return false
+      }
+
+      // 2. Categories
+      if (selectedCategories.length > 0) {
+        const cat = (evt.category || '').toLowerCase()
+        const matchesCat = selectedCategories.some((c) => {
+          if (c === 'hackathon') {
+            return cat.includes('hackathon') || evt.title?.toLowerCase().includes('hackathon')
+          }
+          return cat === c
+        })
+        if (!matchesCat) return false
+      }
+
+      // 3. Date
+      if (dateFilter !== 'any' && evt.date) {
+        const evtTime = new Date(evt.date).getTime()
+        const currTime = new Date().getTime()
+        const diffDays = (evtTime - currTime) / (1000 * 60 * 60 * 24)
+        if (dateFilter === 'week') {
+          if (diffDays < 0 || diffDays > 7) return false
+        } else if (dateFilter === 'month') {
+          if (diffDays < 0 || diffDays > 30) return false
+        }
+      }
+
+      // 4. Availability
+      if (availabilityFilters.openRegistration) {
+        if (evt.registrationDeadline && new Date(evt.registrationDeadline) < new Date()) {
+          return false
+        }
+      }
+      if (availabilityFilters.availableSeats) {
+        if (evt.capacity && (evt.registeredUsers?.length ?? 0) >= evt.capacity) {
+          return false
+        }
+      }
+
+      return true
+    })
+    .sort((a, b) => {
+      if (sortBy === 'upcoming') {
+        return new Date(a.date || 0) - new Date(b.date || 0)
+      } else if (sortBy === 'newest') {
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      } else if (sortBy === 'popular') {
+        return (b.registeredUsers?.length ?? 0) - (a.registeredUsers?.length ?? 0)
+      }
+      return 0
+    })
+
   // Execute logout
   const handleConfirmLogout = () => {
     setShowLogoutModal(false)
     logout()
-    navigate('/')
   }
 
   return (
@@ -581,126 +685,355 @@ const Dashboard = () => {
           )}
 
           {activeTab === 'events' && (
-            <section className="portal-full-tab-section">
-              <div className="portal-block-header">
-                <div className="portal-title-with-accent">
-                  <span className="portal-title-accent-bar" />
-                  <h2 className="portal-block-title">All Campus Events</h2>
+            <section className="explore-events-section">
+              {/* Top Header Row matching mockup */}
+              <div className="explore-events-header">
+                <div className="explore-header-left">
+                  <div className="portal-title-accent-bar" style={{ width: '40px', height: '4px', marginBottom: '8px' }} />
+                  <h1 className="explore-main-title">Explore Campus Events</h1>
+                  <p className="explore-main-subtitle">
+                    Discover, join and be part of exciting events at Sunway College.
+                  </p>
+                </div>
+                <div className="explore-header-right">
+                  <span className="explore-events-count">
+                    <strong>{exploreFilteredEvents.length}</strong> events found
+                  </span>
                 </div>
               </div>
 
-              {events.length === 0 ? (
-                <div className="portal-empty-events">
-                  <p>No campus events available currently.</p>
-                </div>
-              ) : (
-                <div className="portal-events-grid-2col">
-                  {events.map((evt) => {
-                    const isRegistered = registeredEventIds.has(evt._id)
-                    const remainingDays = getRemainingDays(evt.date)
-                    const descSnippet = evt.description
-                      ? evt.description.slice(0, 140) + (evt.description.length > 140 ? '…' : '')
-                      : ''
-                    const enrolledCount = evt.registeredUsers?.length ?? 0
-                    const capacityCount = evt.capacity || 60
-                    const badgeColor = CATEGORY_COLORS[evt.category] || '#881421'
+              {/* Two-Column Layout: Sticky Left Filter + Right Scrollable Cards */}
+              <div className="explore-layout-wrap">
+                {/* ── Fixed / Sticky Left Filter Sidebar ── */}
+                <aside className="explore-filter-sidebar">
+                  <div className="explore-filter-card">
+                    {/* Filter Card Header */}
+                    <div className="filter-card-header">
+                      <Filter size={18} color="#881421" strokeWidth={2.5} />
+                      <h3 className="filter-card-title">Filter Events</h3>
+                    </div>
 
-                    return (
-                      <div
-                        key={evt._id}
-                        onClick={() => handleOpenEvent(evt._id)}
-                        className="portal-grid-event-card"
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && handleOpenEvent(evt._id)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {/* ── Top Cover Image ── */}
-                        <div
-                          className="portal-grid-cover"
-                          style={{
-                            backgroundImage: evt.coverImage
-                              ? `url(${evt.coverImage})`
-                              : `linear-gradient(135deg, #881421 0%, #3d0a10 100%)`,
-                          }}
+                    {/* Search by event name input */}
+                    <div className="filter-search-box">
+                      <Search size={15} className="filter-search-icon" />
+                      <input
+                        type="text"
+                        placeholder="Search by event name..."
+                        value={filterSearch}
+                        onChange={(e) => setFilterSearch(e.target.value)}
+                        className="filter-search-input"
+                      />
+                      {filterSearch && (
+                        <button
+                          type="button"
+                          onClick={() => setFilterSearch('')}
+                          className="filter-clear-input-btn"
+                          aria-label="Clear search"
                         >
-                          {/* Date badge on the picture */}
-                          {evt.date && (
-                            <div className="portal-grid-date-badge">
-                              <span className="grid-date-month">
-                                {new Date(evt.date).toLocaleString('en-US', { month: 'short' }).toUpperCase()}
-                              </span>
-                              <span className="grid-date-day">
-                                {new Date(evt.date).getDate()}
-                              </span>
-                            </div>
-                          )}
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
 
-                          {/* Registered pill overlay if registered */}
-                          {isRegistered && (
-                            <span className="portal-registered-pill card-pill-overlay">
-                              <Check size={12} strokeWidth={2.5} />
-                              <span>Registered</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* ── White Information Area ── */}
-                        <div className="portal-grid-card-body">
-                          {/* Category badge in the white part */}
-                          {evt.category && (
-                            <div className="portal-grid-cat-wrap">
-                              <span
-                                className="portal-grid-category-pill"
-                                style={{ background: badgeColor }}
-                              >
-                                {evt.category}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Title */}
-                          <h3 className="portal-grid-card-title">{evt.title}</h3>
-
-                          {/* Description excerpt */}
-                          {descSnippet && (
-                            <p className="portal-grid-card-desc">{descSnippet}</p>
-                          )}
-
-                          {/* Timing & Location with RED icons */}
-                          <div className="portal-grid-meta-list">
-                            <div className="portal-grid-meta-item">
-                              <Calendar size={14} color="#881421" strokeWidth={2.2} />
-                              <span>{formatEventDate(evt.date)}{evt.date && ` • ${formatEventTime(evt.date)}`}</span>
-                            </div>
-                            <div className="portal-grid-meta-item">
-                              <MapPin size={14} color="#881421" strokeWidth={2.2} />
-                              <span>{evt.location || 'Sunway College Campus'}</span>
-                            </div>
-                          </div>
-
-                          {/* Subtle Divider */}
-                          <div className="portal-grid-card-divider" />
-
-                          {/* Bottom Row: Remaining time (bottom-left) and enrolled count (bottom-right) */}
-                          <div className="portal-grid-card-bottom-row">
-                            <div className="portal-grid-bottom-left">
-                              <Clock size={13} color="#881421" strokeWidth={2.2} />
-                              <span>{remainingDays || 'Upcoming'}</span>
-                            </div>
-                            <div className="portal-grid-bottom-right">
-                              <Users size={13} color="#881421" strokeWidth={2.2} />
-                              <span>{enrolledCount}/{capacityCount} enrolled</span>
-                            </div>
-                          </div>
-                        </div>
+                    {/* Categories Group */}
+                    <div className="filter-group">
+                      <div className="filter-group-header">
+                        <SlidersHorizontal size={14} className="filter-group-icon" />
+                        <span className="filter-group-title">Categories</span>
                       </div>
-                    )
-                  })}
+                      <div className="filter-options-list">
+                        {FILTER_CATEGORIES.map((cat) => {
+                          const isChecked = selectedCategories.includes(cat.id)
+                          return (
+                            <label key={cat.id} className="filter-checkbox-row">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => toggleCategory(cat.id)}
+                                className="filter-checkbox"
+                              />
+                              <span className="filter-cat-badge">
+                                <span className="cat-emoji">{cat.icon}</span>
+                                <span className="cat-name">{cat.label}</span>
+                              </span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Date Group */}
+                    <div className="filter-group">
+                      <div className="filter-group-header">
+                        <Calendar size={14} className="filter-group-icon" />
+                        <span className="filter-group-title">Date</span>
+                      </div>
+                      <div className="filter-options-list">
+                        <label className="filter-radio-row">
+                          <input
+                            type="radio"
+                            name="dateFilter"
+                            value="any"
+                            checked={dateFilter === 'any'}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="filter-radio"
+                          />
+                          <span className="filter-radio-label">Any date</span>
+                        </label>
+                        <label className="filter-radio-row">
+                          <input
+                            type="radio"
+                            name="dateFilter"
+                            value="week"
+                            checked={dateFilter === 'week'}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="filter-radio"
+                          />
+                          <span className="filter-radio-label">This week</span>
+                        </label>
+                        <label className="filter-radio-row">
+                          <input
+                            type="radio"
+                            name="dateFilter"
+                            value="month"
+                            checked={dateFilter === 'month'}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="filter-radio"
+                          />
+                          <span className="filter-radio-label">This month</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Availability Group */}
+                    <div className="filter-group">
+                      <div className="filter-group-header">
+                        <Users size={14} className="filter-group-icon" />
+                        <span className="filter-group-title">Availability</span>
+                      </div>
+                      <div className="filter-options-list">
+                        <label className="filter-checkbox-row">
+                          <input
+                            type="checkbox"
+                            checked={availabilityFilters.openRegistration}
+                            onChange={() => toggleAvailability('openRegistration')}
+                            className="filter-checkbox"
+                          />
+                          <span className="filter-checkbox-label">Open for registration</span>
+                        </label>
+                        <label className="filter-checkbox-row">
+                          <input
+                            type="checkbox"
+                            checked={availabilityFilters.availableSeats}
+                            onChange={() => toggleAvailability('availableSeats')}
+                            className="filter-checkbox"
+                          />
+                          <span className="filter-checkbox-label">Available seats only</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Apply Filters Button */}
+                    <button
+                      type="button"
+                      className="filter-apply-btn"
+                      onClick={() => {
+                        const el = document.querySelector('.explore-content-main')
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }}
+                    >
+                      <Filter size={15} />
+                      <span>Apply Filters</span>
+                    </button>
+                  </div>
+                </aside>
+
+                {/* ── Right Content Area: Sort Bar, Filter Chips & Cards ── */}
+                <div className="explore-content-main">
+                  {/* Top Bar: Sort By dropdown + Active filter tags */}
+                  <div className="explore-actions-bar">
+                    <div className="explore-sort-wrap">
+                      <label className="explore-sort-label">Sort by:</label>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="explore-sort-select"
+                      >
+                        <option value="upcoming">Upcoming first</option>
+                        <option value="newest">Newest first</option>
+                        <option value="popular">Most popular</option>
+                      </select>
+                    </div>
+
+                    {/* Active Filter Chips */}
+                    <div className="explore-active-chips">
+                      {selectedCategories.map((catId) => {
+                        const cat = FILTER_CATEGORIES.find((c) => c.id === catId)
+                        return (
+                          <span key={catId} className="filter-chip">
+                            <span>{cat?.label || catId}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleCategory(catId)}
+                              className="chip-remove-btn"
+                              aria-label={`Remove ${cat?.label} filter`}
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        )
+                      })}
+
+                      {dateFilter !== 'any' && (
+                        <span className="filter-chip">
+                          <span>{dateFilter === 'week' ? 'This week' : 'This month'}</span>
+                          <button
+                            type="button"
+                            onClick={() => setDateFilter('any')}
+                            className="chip-remove-btn"
+                            aria-label="Remove date filter"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      )}
+
+                      {availabilityFilters.openRegistration && (
+                        <span className="filter-chip">
+                          <span>Open for registration</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleAvailability('openRegistration')}
+                            className="chip-remove-btn"
+                            aria-label="Remove open registration filter"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      )}
+
+                      {availabilityFilters.availableSeats && (
+                        <span className="filter-chip">
+                          <span>Available seats</span>
+                          <button
+                            type="button"
+                            onClick={() => toggleAvailability('availableSeats')}
+                            className="chip-remove-btn"
+                            aria-label="Remove available seats filter"
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      )}
+
+                      {(selectedCategories.length > 0 ||
+                        dateFilter !== 'any' ||
+                        availabilityFilters.openRegistration ||
+                        availabilityFilters.availableSeats ||
+                        filterSearch) && (
+                        <button
+                          type="button"
+                          onClick={clearAllFilters}
+                          className="filter-clear-all-btn"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Event Cards Grid: exactly 2 per row as in the image */}
+                  {exploreFilteredEvents.length === 0 ? (
+                    <div className="explore-empty-state">
+                      <p>No events match the selected filters.</p>
+                      <button
+                        type="button"
+                        onClick={clearAllFilters}
+                        className="btn-reset-filters-clean"
+                      >
+                        Reset All Filters
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="explore-cards-grid">
+                      {exploreFilteredEvents.map((evt) => {
+                        const isRegistered = registeredEventIds.has(evt._id)
+                        const descSnippet = evt.description
+                          ? evt.description.slice(0, 110) + (evt.description.length > 110 ? '…' : '')
+                          : ''
+                        const enrolledCount = evt.registeredUsers?.length ?? 0
+                        const capacityCount = evt.capacity
+                        const categoryLabel = evt.category || 'Event'
+
+                        return (
+                          <div
+                            key={evt._id}
+                            onClick={() => handleOpenEvent(evt._id)}
+                            className="explore-event-card"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && handleOpenEvent(evt._id)}
+                          >
+                            {/* Card Cover Image with Category overlay on image top-left */}
+                            <div
+                              className="explore-card-cover"
+                              style={{
+                                backgroundImage: evt.coverImage
+                                  ? `url(${evt.coverImage})`
+                                  : `linear-gradient(135deg, #881421 0%, #3d0a10 100%)`,
+                              }}
+                            >
+                              <span className="explore-card-cat-tag">
+                                {categoryLabel}
+                              </span>
+
+                              {isRegistered && (
+                                <span className="explore-registered-badge">
+                                  <Check size={11} strokeWidth={2.6} /> Registered
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Card Body */}
+                            <div className="explore-card-body">
+                              <h3 className="explore-card-title">{evt.title}</h3>
+                              {descSnippet && (
+                                <p className="explore-card-snippet">{descSnippet}</p>
+                              )}
+
+                              {/* Date & Location with red icons */}
+                              <div className="explore-card-meta">
+                                <div className="explore-meta-item">
+                                  <Calendar size={13} color="#881421" strokeWidth={2.2} />
+                                  <span>{formatEventDate(evt.date)}{evt.date && ` • ${formatEventTime(evt.date)}`}</span>
+                                </div>
+                                <div className="explore-meta-item">
+                                  <MapPin size={13} color="#881421" strokeWidth={2.2} />
+                                  <span>{evt.location || 'Sunway College Campus'}</span>
+                                </div>
+                              </div>
+
+                              {/* Card Bottom Row: Enrolled count on left, View details on right */}
+                              <div className="explore-card-footer">
+                                <span className="explore-spots-count">
+                                  <Users size={13} color="#881421" strokeWidth={2.2} />
+                                  {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Unlimited spots'}
+                                </span>
+                                <span className="explore-view-details">
+                                  View details <ArrowRight size={13} />
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </section>
           )}
+
 
           {activeTab === 'registrations' && (
             <section className="portal-full-tab-section">
