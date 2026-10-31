@@ -1551,58 +1551,365 @@
   font-weight: 500;
 }
 
-/* Profile Tab */
-.portal-profile-box {
-  background: #ffffff;
-  border: 1px solid #edf2f7;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+/* ═══════════════════════════════════════════════════════════════
+   PROFILE PAGE — Instagram-style redesign
+   ═══════════════════════════════════════════════════════════════ */
+.profile-page-section {
   display: flex;
-  gap: 32px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 780px;
 }
 
-.profile-box-avatar {
-  width: 76px;
-  height: 76px;
+/* ── Hero card (avatar + name + stats) ── */
+.profile-hero-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 20px;
+  padding: 36px 40px 28px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+/* Avatar wrap holds the circle + pencil positioned below */
+.profile-avatar-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.profile-avatar-circle {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: #fdf2f2;
+  background: linear-gradient(135deg, #fdf2f2, #fff0f0);
   color: #881421;
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(136, 20, 33, 0.2);
-  flex-shrink: 0;
+  border: 3px solid rgba(136, 20, 33, 0.18);
+  box-shadow: 0 4px 16px rgba(136, 20, 33, 0.12);
+  letter-spacing: -1px;
 }
 
-.profile-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  flex: 1;
+/* Pencil edit button — small circle below avatar */
+.profile-avatar-edit-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #881421;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(136, 20, 33, 0.3);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.profile-avatar-edit-btn:hover {
+  background: #6d0f18;
+  transform: scale(1.1);
 }
 
-.profile-field {
+/* Name + role pill */
+.profile-hero-identity {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+}
+.profile-hero-name {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+.profile-hero-role-pill {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #881421;
+  background: #fdf2f2;
+  border: 1px solid rgba(136, 20, 33, 0.18);
+  border-radius: 999px;
+  padding: 3px 14px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
-.field-label {
-  font-size: 12px;
+/* Stat row */
+.profile-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-top: 6px;
+}
+.profile-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.profile-stat-number {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+.profile-stat-label {
+  font-size: 11.5px;
   font-weight: 600;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+.profile-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: #e2e8f0;
+}
 
-.field-value {
-  font-size: 15px;
+/* ── Info card ── */
+.profile-info-card {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+.profile-info-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 20px;
+}
+.profile-info-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 36px;
+}
+.profile-info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.profile-info-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.profile-info-value {
+  font-size: 14.5px;
   font-weight: 700;
   color: #1e293b;
+}
+
+/* ── Activity tabs (Instagram style) ── */
+.profile-activity-section {
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+}
+.profile-activity-tabs {
+  display: flex;
+  border-bottom: 1px solid #f1f5f9;
+}
+.profile-activity-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  margin-bottom: -1px;
+}
+.profile-activity-tab.active {
+  color: #881421;
+  border-bottom-color: #881421;
+}
+.profile-activity-tab:hover:not(.active) {
+  color: #475569;
+}
+
+.profile-activity-content {
+  padding: 0;
+}
+
+/* ── Empty state ── */
+.profile-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 56px 20px;
+  text-align: center;
+}
+.profile-empty-icon {
+  margin-bottom: 4px;
+  opacity: 0.6;
+}
+.profile-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+.profile-empty-sub {
+  font-size: 13.5px;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 280px;
+}
+.profile-explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: #881421;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.profile-explore-btn:hover {
+  background: #6d0f18;
+  transform: translateY(-1px);
+}
+
+/* ── Event list rows ── */
+.profile-event-list {
+  display: flex;
+  flex-direction: column;
+}
+.profile-event-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f8fafc;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.profile-event-row:last-child {
+  border-bottom: none;
+}
+.profile-event-row:hover {
+  background: #fafbfc;
+}
+
+/* Thumbnail */
+.profile-event-thumb {
+  width: 68px;
+  height: 52px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.profile-past-badge {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(15,23,42,0.8);
+  color: #f8fafc;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.03em;
+}
+
+.profile-event-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.profile-event-row-category {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #881421;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.profile-event-row-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.profile-event-row-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  align-items: center;
+}
+.profile-event-row-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.profile-event-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.profile-view-link {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.profile-view-link:hover {
+  border-color: #881421;
+  color: #881421;
+  background: #fdf2f2;
 }
 
 /* ── Logout Confirmation Modal ───────────────────────────────────────────── */
@@ -2529,7 +2836,7 @@
 .explore-card-cover {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 210px;
   overflow: hidden;
   background: #1e293b;
 }

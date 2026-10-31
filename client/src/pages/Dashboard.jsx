@@ -20,6 +20,11 @@ import {
   X,
   ArrowRight,
   SlidersHorizontal,
+  Pencil,
+  CalendarDays,
+  BookMarked,
+  Trophy,
+  ExternalLink,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchEvents, getMyRegistrations } from '../utils/api'
@@ -148,6 +153,7 @@ const Dashboard = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [hasSeenUpdates, setHasSeenUpdates] = useState(false)
+  const [profileActivityTab, setProfileActivityTab] = useState('registered')
 
   // Explore Events Filter States
   const [filterSearch, setFilterSearch] = useState('')
@@ -401,15 +407,7 @@ const Dashboard = () => {
             <span className="nav-label">Events</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabChange('registrations')}
-            className={`portal-nav-link ${!selectedEventId && activeTab === 'registrations' ? 'active' : ''}`}
-            title="My Registrations"
-          >
-            <ClipboardList size={20} className="nav-icon" />
-            <span className="nav-label">My Registrations</span>
-          </button>
+
 
           <button
             type="button"
@@ -1311,45 +1309,189 @@ const Dashboard = () => {
           )}
 
           {activeTab === 'profile' && (
-            <section className="portal-full-tab-section">
-              <div className="portal-block-header">
-                <div className="portal-title-with-accent">
-                  <span className="portal-title-accent-bar" />
-                  <h2 className="portal-block-title">Student Profile</h2>
+            <section className="portal-full-tab-section profile-page-section">
+
+              {/* ── Top Hero Block ── */}
+              <div className="profile-hero-card">
+
+                {/* Avatar + pencil */}
+                <div className="profile-avatar-wrap">
+                  <div className="profile-avatar-circle">
+                    {getInitials(user?.firstName, user?.lastName)}
+                  </div>
+                  <button className="profile-avatar-edit-btn" title="Edit profile picture">
+                    <Pencil size={13} strokeWidth={2.5} />
+                  </button>
+                </div>
+
+                {/* Name + role pill */}
+                <div className="profile-hero-identity">
+                  <h2 className="profile-hero-name">
+                    {user?.firstName} {user?.lastName}
+                  </h2>
+                  <span className="profile-hero-role-pill">
+                    {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Student'}
+                  </span>
+                </div>
+
+                {/* Quick stat row */}
+                <div className="profile-stats-row">
+                  <div className="profile-stat-item">
+                    <span className="profile-stat-number">{registrations.length}</span>
+                    <span className="profile-stat-label">Registered</span>
+                  </div>
+                  <div className="profile-stat-divider" />
+                  <div className="profile-stat-item">
+                    <span className="profile-stat-number">
+                      {registrations.filter(r => r.status === 'attended').length}
+                    </span>
+                    <span className="profile-stat-label">Attended</span>
+                  </div>
+                  <div className="profile-stat-divider" />
+                  <div className="profile-stat-item">
+                    <span className="profile-stat-number">
+                      {registrations.filter(r => new Date(r.event?.date) < new Date()).length}
+                    </span>
+                    <span className="profile-stat-label">Completed</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="portal-profile-box">
-                <div className="profile-box-avatar">
-                  {getInitials(user?.firstName, user?.lastName)}
-                </div>
-                <div className="profile-info-grid">
-                  <div className="profile-field">
-                    <span className="field-label">Full Name</span>
-                    <span className="field-value">
-                      {user?.firstName} {user?.lastName}
-                    </span>
+              {/* ── Info Card ── */}
+              <div className="profile-info-card">
+                <h3 className="profile-info-card-title">Account Information</h3>
+                <div className="profile-info-fields-grid">
+                  <div className="profile-info-field">
+                    <span className="profile-info-label">Full Name</span>
+                    <span className="profile-info-value">{user?.firstName} {user?.lastName}</span>
                   </div>
-                  <div className="profile-field">
-                    <span className="field-label">Email Address</span>
-                    <span className="field-value">{user?.email}</span>
+                  <div className="profile-info-field">
+                    <span className="profile-info-label">Email Address</span>
+                    <span className="profile-info-value">{user?.email}</span>
                   </div>
                   {user?.studentId && (
-                    <div className="profile-field">
-                      <span className="field-label">Student ID</span>
-                      <span className="field-value">{user?.studentId}</span>
+                    <div className="profile-info-field">
+                      <span className="profile-info-label">Student ID</span>
+                      <span className="profile-info-value">{user.studentId}</span>
                     </div>
                   )}
-                  <div className="profile-field">
-                    <span className="field-label">Account Role</span>
-                    <span className="field-value capitalize">{user?.role || 'Student'}</span>
+                  <div className="profile-info-field">
+                    <span className="profile-info-label">Account Role</span>
+                    <span className="profile-info-value capitalize">{user?.role || 'Student'}</span>
                   </div>
-                  <div className="profile-field">
-                    <span className="field-label">Affiliation</span>
-                    <span className="field-value">Sunway College Kathmandu</span>
+                  <div className="profile-info-field">
+                    <span className="profile-info-label">Affiliation</span>
+                    <span className="profile-info-value">Sunway College Kathmandu</span>
                   </div>
                 </div>
               </div>
+
+              {/* ── Activity Tabs (Instagram style) ── */}
+              <div className="profile-activity-section">
+                <div className="profile-activity-tabs">
+                  <button
+                    className={`profile-activity-tab ${profileActivityTab === 'registered' ? 'active' : ''}`}
+                    onClick={() => setProfileActivityTab('registered')}
+                  >
+                    <BookMarked size={15} strokeWidth={2.2} />
+                    Registered
+                  </button>
+                  <button
+                    className={`profile-activity-tab ${profileActivityTab === 'attended' ? 'active' : ''}`}
+                    onClick={() => setProfileActivityTab('attended')}
+                  >
+                    <Trophy size={15} strokeWidth={2.2} />
+                    Attended
+                  </button>
+                </div>
+
+                {/* Tab content */}
+                <div className="profile-activity-content">
+                  {(() => {
+                    const now = new Date()
+                    const list = profileActivityTab === 'registered'
+                      ? registrations
+                      : registrations.filter(r => r.status === 'attended' || (r.event?.date && new Date(r.event.date) < now))
+
+                    if (list.length === 0) {
+                      return (
+                        <div className="profile-empty-state">
+                          <div className="profile-empty-icon">
+                            {profileActivityTab === 'registered'
+                              ? <BookMarked size={36} strokeWidth={1.5} color="#cbd5e1" />
+                              : <Trophy size={36} strokeWidth={1.5} color="#cbd5e1" />}
+                          </div>
+                          <p className="profile-empty-title">
+                            {profileActivityTab === 'registered'
+                              ? 'No events registered yet'
+                              : 'No attended events yet'}
+                          </p>
+                          <p className="profile-empty-sub">
+                            {profileActivityTab === 'registered'
+                              ? 'Browse campus events and register to see them here.'
+                              : 'Events you attend will appear here.'}
+                          </p>
+                          <button
+                            type="button"
+                            className="profile-explore-btn"
+                            onClick={() => handleTabChange('events')}
+                          >
+                            <CalendarDays size={16} strokeWidth={2.2} />
+                            Explore Events
+                          </button>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <div className="profile-event-list">
+                        {list.map((reg) => {
+                          const evt = reg.event || {}
+                          const isPast = evt.date && new Date(evt.date) < now
+                          return (
+                            <div key={reg._id} className="profile-event-row" onClick={() => evt._id && handleOpenEvent(evt._id)}>
+                              {/* Cover thumbnail */}
+                              <div
+                                className="profile-event-thumb"
+                                style={{
+                                  backgroundImage: evt.coverImage
+                                    ? `url(${evt.coverImage})`
+                                    : `linear-gradient(135deg, #881421 0%, #3d0a10 100%)`,
+                                }}
+                              >
+                                {isPast && <span className="profile-past-badge">Past</span>}
+                              </div>
+
+                              {/* Info */}
+                              <div className="profile-event-row-info">
+                                <span className="profile-event-row-category">{evt.category || 'Event'}</span>
+                                <h4 className="profile-event-row-title">{evt.title || 'Campus Event'}</h4>
+                                <div className="profile-event-row-meta">
+                                  <span><CalendarDays size={12} /> {formatEventDate(evt.date)}</span>
+                                  <span><MapPin size={12} /> {evt.location || 'Sunway Campus'}</span>
+                                </div>
+                              </div>
+
+                              {/* Status chip + link */}
+                              <div className="profile-event-row-right">
+                                <span className={`reg-status-chip ${STATUS_CONFIG[reg.status]?.cls || ''}`}>
+                                  {STATUS_CONFIG[reg.status]?.label || reg.status || 'Registered'}
+                                </span>
+                                {evt._id && (
+                                  <button className="profile-view-link" title="View event details">
+                                    <ExternalLink size={14} strokeWidth={2} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+
             </section>
           )}
             </>
