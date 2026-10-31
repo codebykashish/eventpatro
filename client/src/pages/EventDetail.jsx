@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
-  Calendar, MapPin, Users, ArrowLeft, CheckCircle2, AlertCircle,
+  Calendar, MapPin, Users, CheckCircle2, AlertCircle,
   Edit, Trash2, Shield, UserCheck, Clock, Send, XCircle, ChevronDown,
   ClipboardList, FileText, Share2, Copy, Check, Coffee, Laptop,
   Award, ExternalLink, Mail, Phone, User as UserIcon, BookOpen,
-  Sparkles, Layers
+  Sparkles, Layers, UserX, Info, CheckSquare, Target, HelpCircle
 } from 'lucide-react'
 import {
   fetchEventById, deleteEvent,
@@ -78,7 +78,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
 
-  // Tab navigation in left overview: 'overview' | 'mentor'
+  // Tab navigation: 'overview' | 'instructor'
   const [activeTab, setActiveTab] = useState('overview')
 
   // Student's current registration for this event (null = not registered)
@@ -228,8 +228,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     ['confirmed', 'pending'].includes(myRegistration?.status) &&
     !deadlinePassed
 
-  const isWorkshopOrSeminar = ['workshop', 'seminar'].includes(event?.category)
-  const hasMentor = isWorkshopOrSeminar && (event?.mentor?.name || event?.mentor?.occupation)
+  const hasMentor = !!(event?.mentor && (event.mentor.name || event.mentor.occupation))
   const remainingDays = getRemainingDays(event?.date)
 
   if (loading) {
@@ -257,9 +256,23 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     )
   }
 
+  // Fallback rich outcomes & requirements if none supplied in DB
+  const displayOutcomes = event.learningOutcomes?.length > 0 ? event.learningOutcomes : [
+    'Gain hands-on practical experience through interactive sessions and live demonstrations.',
+    'Collaborate and connect directly with fellow campus innovators and industry leaders.',
+    'Receive verified Sunway credentials and certificate of completion for your portfolio.',
+    'Direct Q&A session with organizers and industry practitioners.'
+  ]
+
+  const displayRequirements = event.requirements?.length > 0 ? event.requirements : [
+    'Valid Sunway student identity card required for entry verification.',
+    'Punctual arrival 15 minutes before scheduled start time.',
+    'Curiosity, open mindset, and enthusiasm for active campus participation.'
+  ]
+
   return (
     <div className="nextcoach-event-detail-container">
-      {/* ── Breadcrumb Navigation ── */}
+      {/* ── Breadcrumb Navigation: Events > Details ── */}
       <nav className="nc-breadcrumb-bar" aria-label="Breadcrumb">
         <button
           type="button"
@@ -272,7 +285,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
         <span className="nc-breadcrumb-current">Details</span>
       </nav>
 
-      {/* ── Event Title Row (Above Full-Width Image) ── */}
+      {/* ── Event Title Row (Headline, Category Tag & Badge) ── */}
       <div className="nc-header-title-row">
         <div className="nc-title-tag-group">
           <span className="nc-status-badge-pill">
@@ -282,35 +295,38 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           {event.registrationType === 'application' && (
             <span className="nc-badge-app-pill">Application Required</span>
           )}
+          {event.isFree && (
+            <span className="nc-free-tag-pill">Free Admission</span>
+          )}
         </div>
         <h1 className="nc-event-headline">{event.title}</h1>
       </div>
 
-      {/* ── Full-Width Hero Cover Image ── */}
-      <div className="nc-fullwidth-image-wrapper">
-        <img
-          src={event.coverImage || '/connected_events.jpg'}
-          alt={event.title}
-          className="nc-fullwidth-image"
-        />
-        <div className="nc-image-overlay-category">
-          <span className="nc-category-overlay-tag">
-            {event.category || 'Campus Event'}
-          </span>
-          {event.location && (
-            <span className="nc-location-overlay-tag">
-              <MapPin size={13} />
-              {event.location}
-            </span>
-          )}
-        </div>
-      </div>
+      {/* ── Side-by-Side Main Section: Left = Image + Description, Right = Cards ── */}
+      <div className="nc-hero-two-column-layout">
+        {/* LEFT COLUMN: Hero Image + Tabs & Detailed Content */}
+        <div className="nc-left-main-flow">
+          {/* Cover Hero Image */}
+          <div className="nc-fullwidth-image-wrapper">
+            <img
+              src={event.coverImage || '/connected_events.jpg'}
+              alt={event.title}
+              className="nc-fullwidth-image"
+            />
+            <div className="nc-image-overlay-category">
+              <span className="nc-category-overlay-tag">
+                {event.category || 'Campus Event'}
+              </span>
+              {event.location && (
+                <span className="nc-location-overlay-tag">
+                  <MapPin size={13} />
+                  {event.location}
+                </span>
+              )}
+            </div>
+          </div>
 
-      {/* ── Main Two-Column Layout (Left: Tabs & Content, Right: Summary Cards) ── */}
-      <div className="nc-detail-grid">
-        {/* Left Column: Tabs, Description, Mentor, Registration Form */}
-        <div className="nc-detail-left-column">
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs: Overview vs Instructor */}
           <div className="nc-tabs-header">
             <button
               type="button"
@@ -319,107 +335,164 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             >
               Overview
             </button>
-            {hasMentor && (
-              <button
-                type="button"
-                className={`nc-tab-btn ${activeTab === 'mentor' ? 'active' : ''}`}
-                onClick={() => setActiveTab('mentor')}
-              >
-                Instructor / Mentor
-              </button>
-            )}
+            <button
+              type="button"
+              className={`nc-tab-btn ${activeTab === 'instructor' ? 'active' : ''}`}
+              onClick={() => setActiveTab('instructor')}
+            >
+              Instructor
+            </button>
           </div>
 
-          {/* Tab 1: Overview */}
+          {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="nc-tab-content">
-              {/* Description Section */}
+              {/* Section 1: About This Event */}
               <section className="nc-content-block">
-                <h2 className="nc-block-title">Description</h2>
+                <div className="nc-block-header">
+                  <BookOpen size={18} color="#881421" />
+                  <h2 className="nc-block-title">About This Event</h2>
+                </div>
                 <div className="nc-description-text">
                   {event.description}
                 </div>
               </section>
 
-              {/* What You Will Learn / Outcomes */}
-              {event.learningOutcomes && event.learningOutcomes.length > 0 && (
-                <section className="nc-content-block">
-                  <h2 className="nc-block-title">What you'll explore &amp; learn</h2>
-                  <div className="nc-outcomes-list">
-                    {event.learningOutcomes.map((item, i) => (
-                      <div key={i} className="nc-outcome-item">
-                        <CheckCircle2 size={16} color="#881421" className="nc-check-icon" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {/* Requirements & Prerequisites */}
-              {event.requirements && event.requirements.length > 0 && (
-                <section className="nc-content-block">
-                  <h2 className="nc-block-title">Requirements &amp; Prerequisites</h2>
-                  <div className="nc-requirements-list">
-                    {event.requirements.map((req, i) => (
-                      <div key={i} className="nc-requirement-item">
-                        <span className="nc-bullet-dot">•</span>
-                        <span>{req}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
-          )}
-
-          {/* Tab 2: Mentor / Instructor (only for workshop/seminar) */}
-          {activeTab === 'mentor' && hasMentor && (
-            <div className="nc-tab-content">
+              {/* Section 2: What You'll Learn & Explore (Learning Outcomes) */}
               <section className="nc-content-block">
-                <h2 className="nc-block-title">About the Instructor</h2>
-                <div className="nc-mentor-profile-card">
-                  <div className="nc-mentor-avatar-wrap">
-                    {event.mentor.photo ? (
-                      <img
-                        src={event.mentor.photo}
-                        alt={event.mentor.name}
-                        className="nc-mentor-avatar"
-                      />
-                    ) : (
-                      <div className="nc-mentor-avatar-fallback">
-                        <UserIcon size={36} color="#881421" />
+                <div className="nc-block-header">
+                  <Target size={18} color="#881421" />
+                  <h2 className="nc-block-title">What You'll Explore &amp; Outcomes</h2>
+                </div>
+                <div className="nc-outcomes-grid">
+                  {displayOutcomes.map((item, i) => (
+                    <div key={i} className="nc-outcome-card">
+                      <div className="nc-outcome-badge">
+                        <CheckCircle2 size={16} color="#881421" />
                       </div>
-                    )}
+                      <span className="nc-outcome-text">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Section 3: Requirements & Prerequisites */}
+              <section className="nc-content-block">
+                <div className="nc-block-header">
+                  <CheckSquare size={18} color="#881421" />
+                  <h2 className="nc-block-title">Requirements &amp; Prerequisites</h2>
+                </div>
+                <div className="nc-requirements-list">
+                  {displayRequirements.map((req, i) => (
+                    <div key={i} className="nc-requirement-item">
+                      <span className="nc-bullet-dot">•</span>
+                      <span>{req}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* Section 4: Event Format & Highlights */}
+              <section className="nc-content-block">
+                <div className="nc-block-header">
+                  <Info size={18} color="#881421" />
+                  <h2 className="nc-block-title">Event Highlights &amp; Inclusions</h2>
+                </div>
+                <div className="nc-highlights-chips-row">
+                  <div className="nc-highlight-chip">
+                    <Award size={15} color="#881421" />
+                    <span>Certificate of Participation</span>
                   </div>
-                  <div className="nc-mentor-info">
-                    <h3 className="nc-mentor-name">{event.mentor.name}</h3>
-                    {event.mentor.occupation && (
-                      <p className="nc-mentor-occupation">{event.mentor.occupation}</p>
-                    )}
-                    {event.mentor.bio && (
-                      <p className="nc-mentor-bio">{event.mentor.bio}</p>
-                    )}
-                    {event.mentor.linkedin && (
-                      <a
-                        href={event.mentor.linkedin}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="nc-mentor-linkedin-btn"
-                      >
-                        <ExternalLink size={14} />
-                        <span>LinkedIn Profile</span>
-                      </a>
-                    )}
+                  {event.hasBreakfast && (
+                    <div className="nc-highlight-chip">
+                      <Coffee size={15} color="#881421" />
+                      <span>Complimentary Breakfast &amp; Snacks</span>
+                    </div>
+                  )}
+                  {event.laptopRequired ? (
+                    <div className="nc-highlight-chip">
+                      <Laptop size={15} color="#881421" />
+                      <span>Bring Your Own Laptop</span>
+                    </div>
+                  ) : (
+                    <div className="nc-highlight-chip">
+                      <Laptop size={15} color="#881421" />
+                      <span>No Laptop Required</span>
+                    </div>
+                  )}
+                  <div className="nc-highlight-chip">
+                    <Users size={15} color="#881421" />
+                    <span>Interactive Q&amp;A Session</span>
                   </div>
                 </div>
               </section>
             </div>
           )}
 
+          {/* TAB 2: INSTRUCTOR */}
+          {activeTab === 'instructor' && (
+            <div className="nc-tab-content">
+              {hasMentor ? (
+                <section className="nc-content-block">
+                  <div className="nc-block-header">
+                    <UserIcon size={18} color="#881421" />
+                    <h2 className="nc-block-title">About the Instructor</h2>
+                  </div>
+                  <div className="nc-mentor-profile-card">
+                    <div className="nc-mentor-avatar-wrap">
+                      {event.mentor.photo ? (
+                        <img
+                          src={event.mentor.photo}
+                          alt={event.mentor.name}
+                          className="nc-mentor-avatar"
+                        />
+                      ) : (
+                        <div className="nc-mentor-avatar-fallback">
+                          <UserIcon size={44} color="#881421" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="nc-mentor-info">
+                      <h3 className="nc-mentor-name">{event.mentor.name}</h3>
+                      {event.mentor.occupation && (
+                        <p className="nc-mentor-occupation">{event.mentor.occupation}</p>
+                      )}
+                      {event.mentor.bio ? (
+                        <p className="nc-mentor-bio">{event.mentor.bio}</p>
+                      ) : (
+                        <p className="nc-mentor-bio">
+                          Industry specialist leading this session with practical demonstrations and guidance for participants.
+                        </p>
+                      )}
+                      {event.mentor.linkedin && (
+                        <a
+                          href={event.mentor.linkedin}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="nc-mentor-linkedin-btn"
+                        >
+                          <ExternalLink size={14} />
+                          <span>View LinkedIn Profile</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              ) : (
+                <div className="nc-no-instructor-state">
+                  <UserX size={44} color="#9ca3af" />
+                  <h3 className="nc-no-inst-title">No instructor found</h3>
+                  <p className="nc-no-inst-desc">
+                    This event is organized directly by the Sunway Student Representative Committee and campus student leads.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── Student Registration Form / Status ── */}
           {!isAdmin && (
-            <div className="nc-registration-area">
+            <div className="nc-registration-area" id="reg-form">
               {myRegistration === undefined ? (
                 <div className="reg-status-loading">Checking your registration…</div>
               ) : isRegistered ? (
@@ -462,13 +535,13 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                 </div>
               ) : (
                 /* Registration input form */
-                <form className="registration-form" onSubmit={handleSubmitRegistration} id="reg-form">
+                <form className="registration-form" onSubmit={handleSubmitRegistration}>
                   <div className="reg-form-header">
                     <FileText size={18} color="#881421" />
                     <span>
                       {event.registrationType === 'application'
                         ? 'Submit Application for Review'
-                        : 'Register for this Event'}
+                        : 'Enroll for this Event'}
                     </span>
                   </div>
 
@@ -548,7 +621,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                         ? 'Submitting…'
                         : event.registrationType === 'application'
                           ? 'Submit Application'
-                          : 'Confirm & Register Now'}
+                          : 'Enroll Now'}
                     </button>
                   )}
                 </form>
@@ -652,9 +725,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           )}
         </div>
 
-        {/* ── Right Column: Sidebar Details Card ── */}
-        <aside className="nc-detail-sidebar">
-          {/* Admin Controls */}
+        {/* RIGHT COLUMN: Wider Info Cards, Contact & Share (Side-by-side with Left Flow) */}
+        <aside className="nc-right-sidebar-flow">
+          {/* Admin Quick Action Card */}
           {isAdmin && (
             <div className="nc-admin-card">
               <div className="nc-admin-title">
@@ -690,13 +763,13 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             </div>
           )}
 
-          {/* Primary Logistics & Registration Card */}
+          {/* Primary Logistics Card: Wide, Clear, Side-by-Side to Left Content */}
           <div className="nc-summary-card">
-            {/* Rows of event parameters */}
+            {/* Parameters Table */}
             <div className="nc-param-list">
               <div className="nc-param-row">
                 <span className="nc-param-label">
-                  <Calendar size={14} className="nc-param-icon" />
+                  <Calendar size={15} className="nc-param-icon" />
                   Date :
                 </span>
                 <span className="nc-param-val">{formatDate(event.date)}</span>
@@ -705,7 +778,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               {event.location && (
                 <div className="nc-param-row">
                   <span className="nc-param-label">
-                    <MapPin size={14} className="nc-param-icon" />
+                    <MapPin size={15} className="nc-param-icon" />
                     Location :
                   </span>
                   <span className="nc-param-val">{event.location}</span>
@@ -715,7 +788,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               {event.duration && (
                 <div className="nc-param-row">
                   <span className="nc-param-label">
-                    <Clock size={14} className="nc-param-icon" />
+                    <Clock size={15} className="nc-param-icon" />
                     Duration :
                   </span>
                   <span className="nc-param-val">{event.duration}</span>
@@ -724,7 +797,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
               <div className="nc-param-row">
                 <span className="nc-param-label">
-                  <Layers size={14} className="nc-param-icon" />
+                  <Layers size={15} className="nc-param-icon" />
                   Category :
                 </span>
                 <span className="nc-param-val" style={{ textTransform: 'capitalize' }}>
@@ -734,17 +807,17 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
               <div className="nc-param-row">
                 <span className="nc-param-label">
-                  <Users size={14} className="nc-param-icon" />
+                  <Users size={15} className="nc-param-icon" />
                   Seats left :
                 </span>
                 <span className="nc-param-val">
                   {event.capacity !== null ? (
                     event.spotsLeft !== null ? (
                       <span className={event.spotsLeft === 0 ? 'nc-seats-full' : 'nc-seats-avail'}>
-                        {event.spotsLeft} / {event.capacity}
+                        {event.spotsLeft} / {event.capacity} seats
                       </span>
                     ) : (
-                      `${event.capacity}`
+                      `${event.capacity} total seats`
                     )
                   ) : (
                     'Unlimited'
@@ -755,8 +828,8 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               {event.registrationDeadline && (
                 <div className="nc-param-row">
                   <span className="nc-param-label">
-                    <Clock size={14} className="nc-param-icon" />
-                    Deadline :
+                    <Clock size={15} className="nc-param-icon" />
+                    Registration Deadline :
                   </span>
                   <span className={`nc-param-val ${deadlinePassed ? 'nc-deadline-closed' : ''}`}>
                     {formatShortDate(event.registrationDeadline)}
@@ -765,14 +838,14 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               )}
             </div>
 
-            {/* Price & Status */}
+            {/* Price & Countdown Section */}
             <div className="nc-price-section">
               <div className="nc-price-row">
                 <span className="nc-price-tag">
                   {event.fee || (event.isFree ? 'Free Admission' : 'Free')}
                 </span>
                 <span className="nc-fee-sub">
-                  {event.isFree ? 'Complimentary Campus Event' : 'Registration Fee'}
+                  {event.isFree ? 'Complimentary Campus Event' : 'Standard Registration Fee'}
                 </span>
               </div>
 
@@ -784,7 +857,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               )}
             </div>
 
-            {/* Enroll Now / Action Button */}
+            {/* Enroll Now CTA */}
             {!isAdmin && (
               <div className="nc-cta-container">
                 {isRegistered ? (
@@ -808,35 +881,35 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               </div>
             )}
 
-            {/* Event Inclusions / Highlights */}
+            {/* Inclusions summary */}
             <div className="nc-inclusions-section">
               <h4 className="nc-inclusions-title">This event includes:</h4>
               <ul className="nc-inclusions-list">
                 <li className="nc-inclusion-item">
                   <Award size={14} color="#881421" />
-                  <span>Certificate of participation</span>
+                  <span>Verified certificate of attendance</span>
                 </li>
                 {event.hasBreakfast && (
                   <li className="nc-inclusion-item">
                     <Coffee size={14} color="#881421" />
-                    <span>Breakfast &amp; refreshments included</span>
+                    <span>Complimentary breakfast &amp; refreshments</span>
                   </li>
                 )}
                 {event.laptopRequired && (
                   <li className="nc-inclusion-item">
                     <Laptop size={14} color="#881421" />
-                    <span>Bring your own laptop</span>
+                    <span>Laptop required for hands-on activities</span>
                   </li>
                 )}
                 <li className="nc-inclusion-item">
                   <CheckCircle2 size={14} color="#881421" />
-                  <span>Hands-on campus experience &amp; networking</span>
+                  <span>Networking with peers and guest speakers</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          {/* ── Contact Person for Queries Card ── */}
+          {/* Contact Person Card for Queries */}
           <div className="nc-contact-card">
             <h4 className="nc-card-header-small">
               <UserCheck size={16} color="#881421" />
@@ -862,7 +935,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             </div>
           </div>
 
-          {/* ── Share Event / Copy Link Card ── */}
+          {/* Share Event Card */}
           <div className="nc-share-card">
             <h4 className="nc-card-header-small">
               <Share2 size={15} color="#881421" />

@@ -1,11 +1,13 @@
-/* ─── Redesigned Event Detail Page (NextCoach Inspiration) ──────────── */
+/* ─── Redesigned Event Detail Page (Side-by-Side Wide Flow) ─────────── */
 
 .nextcoach-event-detail-container {
-  max-width: 1220px;
-  margin: 0 auto;
-  padding: 16px 24px 80px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 8px 12px 80px 12px;
   color: #111827;
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 /* ── Breadcrumb Navigation: Events > Details ────────────────────────────── */
@@ -14,7 +16,7 @@
   align-items: center;
   gap: 8px;
   font-size: 13.5px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   color: #6b7280;
 }
 
@@ -45,9 +47,9 @@
   font-weight: 500;
 }
 
-/* ── Header Title Row (Above Full Image) ─────────────────────────────────── */
+/* ── Header Title Row ───────────────────────────────────────────────────── */
 .nc-header-title-row {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .nc-title-tag-group {
@@ -83,8 +85,20 @@
   border: 1px solid #fde68a;
 }
 
+.nc-free-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
+}
+
 .nc-event-headline {
-  font-size: clamp(24px, 3.2vw, 34px);
+  font-size: clamp(24px, 2.8vw, 34px);
   font-weight: 800;
   color: #111827;
   line-height: 1.25;
@@ -92,16 +106,32 @@
   letter-spacing: -0.015em;
 }
 
-/* ── Full Width Hero Cover Image ────────────────────────────────────────── */
+/* ── Hero Two-Column Layout (Side-by-side from the very top) ────────────── */
+.nc-hero-two-column-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(360px, 440px);
+  gap: 32px;
+  align-items: start;
+  width: 100%;
+}
+
+/* ── Left Column Flow ───────────────────────────────────────────────────── */
+.nc-left-main-flow {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Cover Image beside the right cards */
 .nc-fullwidth-image-wrapper {
   position: relative;
   width: 100%;
   height: 380px;
   border-radius: 14px;
   overflow: hidden;
-  margin-bottom: 32px;
+  margin-bottom: 26px;
   background-color: #1a0507;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
 }
 
 .nc-fullwidth-image {
@@ -145,30 +175,18 @@
   backdrop-filter: blur(8px);
 }
 
-/* ── Grid Layout (Left Content, Right Sidebar) ──────────────────────────── */
-.nc-detail-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
-  gap: 36px;
-  align-items: start;
-}
-
-/* ── Left Column: Tabs & Sections ───────────────────────────────────────── */
-.nc-detail-left-column {
-  min-width: 0;
-}
-
+/* ── Tabs: Overview vs Instructor ───────────────────────────────────────── */
 .nc-tabs-header {
   display: flex;
   gap: 32px;
   border-bottom: 2px solid #e5e7eb;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .nc-tab-btn {
   background: none;
   border: none;
-  padding: 12px 4px;
+  padding: 12px 6px;
   font-size: 16px;
   font-weight: 600;
   color: #6b7280;
@@ -199,9 +217,10 @@
 .nc-tab-content {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 22px;
 }
 
+/* Content Blocks in Overview */
 .nc-content-block {
   background: #ffffff;
   border: 1px solid #e5e7eb;
@@ -210,40 +229,57 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
+.nc-block-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
 .nc-block-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 16px;
+  margin: 0;
   letter-spacing: -0.01em;
 }
 
 .nc-description-text {
   font-size: 15px;
-  line-height: 1.75;
+  line-height: 1.8;
   color: #374151;
   white-space: pre-wrap;
 }
 
-/* Outcomes List */
-.nc-outcomes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Outcomes Grid in Overview */
+.nc-outcomes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.nc-outcome-item {
+.nc-outcome-card {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 14.5px;
-  color: #374151;
-  line-height: 1.5;
+  gap: 12px;
+  background: #fdf8f8;
+  border: 1px solid #fee2e2;
+  border-radius: 10px;
+  padding: 14px 16px;
 }
 
-.nc-check-icon {
-  margin-top: 3px;
+.nc-outcome-badge {
   flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.nc-outcome-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Requirements list */
@@ -257,8 +293,9 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 14.5px;
+  font-size: 14px;
   color: #4b5563;
+  line-height: 1.5;
 }
 
 .nc-bullet-dot {
@@ -267,19 +304,39 @@
   line-height: 1;
 }
 
-/* Mentor Profile Card in Mentor Tab */
+/* Highlights Chips in Overview */
+.nc-highlights-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.nc-highlight-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Mentor Profile Card */
 .nc-mentor-profile-card {
   display: flex;
-  gap: 20px;
+  gap: 22px;
   align-items: flex-start;
 }
 
 .nc-mentor-avatar-wrap {
-  width: 90px;
-  height: 90px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   overflow: hidden;
-  border: 2px solid #881421;
+  border: 2.5px solid #881421;
   flex-shrink: 0;
   background: #fdf2f2;
 }
@@ -303,24 +360,24 @@
 }
 
 .nc-mentor-name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   color: #111827;
   margin: 0 0 4px;
 }
 
 .nc-mentor-occupation {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   color: #881421;
   margin: 0 0 10px;
 }
 
 .nc-mentor-bio {
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 14.5px;
+  line-height: 1.65;
   color: #4b5563;
-  margin: 0 0 14px;
+  margin: 0 0 16px;
 }
 
 .nc-mentor-linkedin-btn {
@@ -332,7 +389,7 @@
   color: #0077b5;
   text-decoration: none;
   background: #eef7fc;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: 6px;
   transition: background 0.15s;
 }
@@ -341,9 +398,37 @@
   background: #dbeef9;
 }
 
+/* No Instructor Fallback State */
+.nc-no-instructor-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  background: #ffffff;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.nc-no-inst-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #374151;
+  margin: 12px 0 6px;
+}
+
+.nc-no-inst-desc {
+  font-size: 14px;
+  color: #6b7280;
+  max-width: 440px;
+  margin: 0;
+  line-height: 1.55;
+}
+
 /* ── Registration Form Section ──────────────────────────────────────────── */
 .nc-registration-area {
-  margin-top: 28px;
+  margin-top: 26px;
 }
 
 .registration-form {
@@ -392,7 +477,7 @@
 .reg-field-textarea,
 .reg-field-select {
   width: 100%;
-  padding: 10px 14px;
+  padding: 11px 14px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 14px;
@@ -427,27 +512,29 @@
   color: #6b7280;
 }
 
-/* ── Right Column: Sidebar Cards ────────────────────────────────────────── */
-.nc-detail-sidebar {
+/* ── Right Column Flow: Wider Information Cards ─────────────────────────── */
+.nc-right-sidebar-flow {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: sticky;
+  top: 20px;
 }
 
-/* Summary Card */
+/* Wide Primary Logistics Card */
 .nc-summary-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 26px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .nc-param-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-bottom: 20px;
+  gap: 16px;
+  padding-bottom: 22px;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -455,14 +542,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13.5px;
-  gap: 12px;
+  font-size: 14px;
+  gap: 16px;
 }
 
 .nc-param-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   color: #6b7280;
   font-weight: 500;
   flex-shrink: 0;
@@ -470,6 +557,7 @@
 
 .nc-param-icon {
   color: #881421;
+  flex-shrink: 0;
 }
 
 .nc-param-val {
@@ -482,17 +570,17 @@
 .nc-seats-avail {
   color: #15803d;
   background: #dcfce7;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12.5px;
 }
 
 .nc-seats-full {
   color: #b91c1c;
   background: #fee2e2;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12.5px;
 }
 
 .nc-deadline-closed {
@@ -501,7 +589,7 @@
 
 /* Price Section */
 .nc-price-section {
-  padding: 18px 0;
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -514,14 +602,14 @@
 }
 
 .nc-price-tag {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: #111827;
   letter-spacing: -0.01em;
 }
 
 .nc-fee-sub {
-  font-size: 12px;
+  font-size: 12.5px;
   color: #6b7280;
 }
 
@@ -529,14 +617,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #881421;
 }
 
 /* Enroll CTA Button */
 .nc-cta-container {
-  padding: 16px 0 20px;
+  padding: 18px 0 20px;
 }
 
 .nc-enroll-cta-btn {
@@ -545,12 +633,12 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 13px;
+  padding: 14px;
   background: #881421;
   color: #ffffff;
   border: none;
   border-radius: 8px;
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -585,9 +673,9 @@
   font-weight: 600;
 }
 
-/* Inclusions section inside summary card */
+/* Inclusions section */
 .nc-inclusions-section {
-  padding-top: 16px;
+  padding-top: 18px;
 }
 
 .nc-inclusions-title {
@@ -603,25 +691,25 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
 }
 
 .nc-inclusion-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 13.5px;
   color: #4b5563;
 }
 
-/* Contact Card */
+/* Contact Card & Share Card */
 .nc-contact-card,
 .nc-share-card,
 .nc-admin-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 20px;
+  padding: 22px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
 
@@ -632,17 +720,17 @@
   font-size: 14px;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
 }
 
 .nc-contact-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
 }
 
 .nc-contact-name {
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #1f2937;
 }
@@ -651,7 +739,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 13.5px;
   color: #4b5563;
   text-decoration: none;
   transition: color 0.15s;
@@ -671,12 +759,12 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 16px;
+  padding: 10px 18px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
   background: #ffffff;
   color: #374151;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -731,106 +819,15 @@
   cursor: pointer;
 }
 
-/* Admin Registrations Table */
-.admin-attendees-section {
-  margin-top: 28px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 24px;
-}
-
-.attendees-header {
-  margin-bottom: 16px;
-}
-
-.attendees-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #111827;
-}
-
-.admin-reg-table-wrap {
-  overflow-x: auto;
-}
-
-.admin-reg-table {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.admin-reg-header {
-  display: grid;
-  grid-template-columns: 36px 1fr 140px 140px 140px;
-  gap: 12px;
-  padding: 10px 12px;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 12px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-.admin-reg-row {
-  display: grid;
-  grid-template-columns: 36px 1fr 140px 140px 140px;
-  gap: 12px;
-  padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
-  align-items: center;
-  font-size: 13px;
-}
-
-.row-name {
-  font-weight: 600;
-  color: #111827;
-}
-
-.row-email {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.row-code {
-  font-family: monospace;
-  font-weight: 600;
-  color: #4b5563;
-}
-
-.admin-reg-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.btn-select {
-  padding: 4px 10px;
-  background: #15803d;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.btn-reject {
-  padding: 4px 10px;
-  background: #b91c1c;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
 /* Responsive adjustments */
-@media (max-width: 900px) {
-  .nc-detail-grid {
+@media (max-width: 1080px) {
+  .nc-hero-two-column-layout {
     grid-template-columns: 1fr;
   }
-  .nc-fullwidth-image-wrapper {
-    height: 260px;
+  .nc-right-sidebar-flow {
+    position: static;
+  }
+  .nc-outcomes-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -1854,8 +1854,8 @@
 /* In-Portal Event Detail Container */
 .portal-event-detail-wrap {
   width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   animation: portalFadeIn 0.22s ease-out;
 }
 
