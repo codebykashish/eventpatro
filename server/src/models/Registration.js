@@ -66,13 +66,12 @@ const registrationSchema = new mongoose.Schema(
 )
 
 // Generate a unique 6-character code like EP-A3F7K2 before saving
-registrationSchema.pre('save', function (next) {
+registrationSchema.pre('save', async function () {
   if (!this.registrationCode) {
     // 3 random bytes → 6 uppercase hex characters
     const code = crypto.randomBytes(3).toString('hex').toUpperCase()
     this.registrationCode = `EP-${code}`
   }
-  next()
 })
 
 // Prevent a student from having two active registrations for the same event
