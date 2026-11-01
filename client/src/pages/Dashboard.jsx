@@ -118,13 +118,19 @@ const Dashboard = () => {
   const navigate = useNavigate()
   const { id: routeEventId } = useParams()
 
-  // Selected event for in-portal detail view (null = dashboard feeds)
+  // Selected event for in-portal detail view (derived from URL param or state)
   const [selectedEventId, setSelectedEventId] = useState(routeEventId || null)
 
-  // Keep synced whenever the URL parameter changes (e.g. back/forward button or reload)
+  // Keep synced whenever routeEventId changes
   useEffect(() => {
-    setSelectedEventId(routeEventId || null)
+    if (routeEventId) {
+      setSelectedEventId(routeEventId)
+    } else {
+      setSelectedEventId(null)
+    }
   }, [routeEventId])
+
+  const currentEventId = routeEventId || selectedEventId
 
   const handleOpenEvent = (evtId) => {
     setSelectedEventId(evtId)
@@ -735,10 +741,10 @@ const Dashboard = () => {
 
         {/* Scrollable Main Content */}
         <div className="portal-main-content">
-          {selectedEventId ? (
-            <div className="portal-event-detail-wrap">
+          {currentEventId ? (
+            <div className="portal-event-detail-wrap" key={currentEventId}>
               <EventDetailPage
-                eventId={selectedEventId}
+                eventId={currentEventId}
                 onBack={handleBackFromEvent}
               />
             </div>
