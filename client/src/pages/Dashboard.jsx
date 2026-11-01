@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -141,12 +141,14 @@ const Dashboard = () => {
   const handleBackFromEvent = () => {
     setSelectedEventId(null)
     navigate('/dashboard')
+    loadData()
   }
 
   const handleTabChange = (tabName) => {
     setSelectedEventId(null)
     setActiveTab(tabName)
     navigate('/dashboard')
+    loadData()
   }
 
   // Tab & UI state
@@ -242,32 +244,24 @@ const Dashboard = () => {
   const dropdownRef = useRef(null)
 
   // Load events and user registrations
-  useEffect(() => {
-    let isMounted = true
-
-    const loadData = async () => {
-      try {
-        const [eventsRes, regsRes] = await Promise.all([
-          fetchEvents({ limit: 50 }),
-          getMyRegistrations().catch(() => ({ registrations: [] })),
-        ])
-
-        if (isMounted) {
-          setEvents(eventsRes.events || [])
-          setRegistrations(regsRes.registrations || [])
-        }
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err)
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
-
-    loadData()
-    return () => {
-      isMounted = false
+  const loadData = useCallback(async () => {
+    try {
+      const [eventsRes, regsRes] = await Promise.all([
+        fetchEvents({ limit: 50 }),
+        getMyRegistrations().catch(() => ({ registrations: [] })),
+      ])
+      setEvents(eventsRes.events || [])
+      setRegistrations(regsRes.registrations || [])
+    } catch (err) {
+      console.error('Failed to load dashboard data:', err)
+    } finally {
+      setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   // Notification popover state & ref
   const [showNotifications, setShowNotifications] = useState(false)
@@ -749,6 +743,7 @@ const Dashboard = () => {
               <EventDetailPage
                 eventId={currentEventId}
                 onBack={handleBackFromEvent}
+                onRegistrationChange={loadData}
               />
             </div>
           ) : (

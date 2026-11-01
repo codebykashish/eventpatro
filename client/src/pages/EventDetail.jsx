@@ -53,7 +53,7 @@ const getRemainingDays = (iso) => {
   return `${diffDays} days left for the event to start`
 }
 
-const EventDetailPage = ({ eventId: propId, onBack }) => {
+const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
   const params = useParams()
   const id = propId || params.id
   const navigate = useNavigate()
@@ -180,6 +180,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
         await loadMyRegistration()
       }
       await loadEvent()
+      if (onRegistrationChange) onRegistrationChange()
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -214,6 +215,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
         await loadMyRegistration()
       }
       await loadEvent()
+      if (onRegistrationChange) onRegistrationChange()
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -236,6 +238,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
       setMyRegistration(null)
       setShowCancelModal(false)
       await loadEvent()
+      if (onRegistrationChange) onRegistrationChange()
     } catch (err) {
       setActionError(err.message)
     } finally {
@@ -267,6 +270,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
       await updateRegistrationStatus(id, regId, status)
       setRegActionMsg(`Applicant ${status} successfully.`)
       await loadRegistrations()
+      if (onRegistrationChange) onRegistrationChange()
     } catch (err) {
       setRegActionMsg(`Error: ${err.message}`)
     }
