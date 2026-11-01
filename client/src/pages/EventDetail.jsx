@@ -145,6 +145,8 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     setTimeout(() => setCopiedLink(false), 2200)
   }
 
+  const [showCancelModal, setShowCancelModal] = useState(false)
+
   // ── Handle Enroll Now click from right sidebar ─────────────────────────────
   const handleEnrollClick = async () => {
     if (!user) {
@@ -165,7 +167,11 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     try {
       const res = await submitRegistration(id, { answers: [] })
       setActionMsg(res.message || 'Successfully enrolled!')
-      await loadMyRegistration()
+      if (res.registration) {
+        setMyRegistration(res.registration)
+      } else {
+        await loadMyRegistration()
+      }
       await loadEvent()
     } catch (err) {
       setActionError(err.message)
@@ -195,7 +201,11 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
       const res = await submitRegistration(id, { answers: formattedAnswers })
       setActionMsg(res.message || 'Registration submitted!')
       setShowEnrollModal(false)
-      await loadMyRegistration()
+      if (res.registration) {
+        setMyRegistration(res.registration)
+      } else {
+        await loadMyRegistration()
+      }
       await loadEvent()
     } catch (err) {
       setActionError(err.message)
@@ -205,8 +215,11 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
   }
 
   // ── Student cancel registration ────────────────────────────────────────────
-  const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel your enrollment?')) return
+  const handleCancelClick = () => {
+    setShowCancelModal(true)
+  }
+
+  const handleCancelConfirm = async () => {
     setSubmitting(true)
     setActionMsg('')
     setActionError('')
@@ -214,6 +227,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
       const res = await cancelRegistration(id)
       setActionMsg(res.message || 'Enrollment cancelled.')
       setMyRegistration(null)
+      setShowCancelModal(false)
       await loadEvent()
     } catch (err) {
       setActionError(err.message)
@@ -790,12 +804,12 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                     {canCancel && (
                       <button
                         type="button"
-                        onClick={handleCancel}
+                        onClick={handleCancelClick}
                         className="nc-cancel-now-btn"
                         disabled={submitting}
                       >
                         <XCircle size={15} strokeWidth={2.2} />
-                        {submitting ? 'Cancelling…' : 'Cancel Now'}
+                        Cancel Now
                       </button>
                     )}
                   </div>
@@ -993,6 +1007,52 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal for Enrollment Cancellation Confirmation ── */}
+      {showCancelModal && (
+        <div className="nc-modal-backdrop" onClick={() => !submitting && setShowCancelModal(false)}>
+          <div className="nc-modal-box nc-cancel-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="nc-modal-header">
+              <h3 className="nc-modal-title">Cancel Enrollment</h3>
+              <button
+                type="button"
+                className="nc-modal-close-btn"
+                onClick={() => !submitting && setShowCancelModal(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="nc-cancel-modal-body">
+              <div className="nc-cancel-warning-icon">
+                <AlertCircle size={32} color="#b91c1c" />
+              </div>
+              <h4>Are you sure you want to cancel your enrollment?</h4>
+              <p>
+                You are about to cancel your spot for <strong>{event?.title}</strong>. Your reserved seat will be released and made available to other students. You can re-enroll at any time before the registration deadline.
+              </p>
+            </div>
+            <div className="nc-modal-footer">
+              <button
+                type="button"
+                className="nc-modal-cancel-btn"
+                onClick={() => setShowCancelModal(false)}
+                disabled={submitting}
+              >
+                Keep My Spot
+              </button>
+              <button
+                type="button"
+                className="nc-confirm-cancel-btn"
+                onClick={handleCancelConfirm}
+                disabled={submitting}
+              >
+                {submitting ? 'Cancelling…' : 'Yes, Cancel Enrollment'}
+              </button>
+            </div>
           </div>
         </div>
       )}

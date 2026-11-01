@@ -71,18 +71,29 @@ const createRegistration = async (req, res) => {
     // Determine initial status based on event registration type
     const status = event.registrationType === 'open' ? 'confirmed' : 'pending'
 
-    const registration = await Registration.create({
+    // If student had a previous registration (e.g. cancelled), overwrite/reactivate it
+    let registration = await Registration.findOne({
       event: event._id,
       student: req.user._id,
-      status,
-      answers: savedAnswers,
-    })
+    }).sort({ createdAt: -1 })
 
-    // Also add to registeredUsers array so spotsLeft virtual stays accurate
-    // Use validateBeforeSave:false to avoid re-running event-level validators
-    // (description maxlength, required fields, etc.) which could throw unrelated errors
-    event.registeredUsers.push(req.user._id)
-    await event.save({ validateBeforeSave: false })
+    if (registration) {
+      registration.status = status
+      registration.answers = savedAnswers
+      await registration.save()
+    } else {
+      registration = await Registration.create({
+        event: event._id,
+        student: req.user._id,
+        status,
+        answers: savedAnswers,
+      })
+    }
+
+    // Also ensure student is in registeredUsers array so spotsLeft virtual stays accurate
+    await Event.findByIdAndUpdate(event._id, {
+      $addToSet: { registeredUsers: req.user._id },
+    })
 
     res.status(201).json({
       message:
@@ -192,7 +203,7 @@ const getMyRegistrationForEvent = async (req, res) => {
     const registration = await Registration.findOne({
       event: req.params.eventId,
       student: req.user._id,
-    })
+    }).sort({ updatedAt: -1, createdAt: -1 })
 
     res.json({ registration }) // null if not registered
   } catch (err) {
