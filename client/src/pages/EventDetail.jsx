@@ -919,9 +919,10 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
             <form onSubmit={handleModalSubmit} className="nc-modal-form">
               <div className="reg-form-fields">
-                {event.formFields.map((field) => (
+                {event.formFields.map((field, idx) => (
                   <div key={field._id} className="reg-field">
                     <label className="reg-field-label">
+                      <span className="reg-field-num">Q{idx + 1}.</span>
                       {field.label}
                       {field.required && <span className="req-star"> *</span>}
                     </label>
@@ -942,7 +943,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                     {field.type === 'paragraph' && (
                       <textarea
                         className="reg-field-textarea"
-                        rows={3}
+                        rows={4}
                         value={answers[field._id] || ''}
                         onChange={(e) =>
                           setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))

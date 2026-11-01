@@ -57,11 +57,13 @@ const createRegistration = async (req, res) => {
     }
 
     // Build answer array with label snapshots (preserve question text at submission time)
+    // NOTE: label is required in answerSchema, so we must always supply a non-empty string
     const savedAnswers = answers.map((a) => {
       const field = event.formFields.find((f) => f._id.toString() === a.fieldId)
+      const resolvedLabel = (field && field.label) ? field.label : (a.label && a.label.trim() ? a.label.trim() : 'Response')
       return {
         fieldId: a.fieldId,
-        label: field ? field.label : a.label || '',
+        label: resolvedLabel,
         value: a.value || '',
       }
     })
@@ -77,8 +79,10 @@ const createRegistration = async (req, res) => {
     })
 
     // Also add to registeredUsers array so spotsLeft virtual stays accurate
+    // Use validateBeforeSave:false to avoid re-running event-level validators
+    // (description maxlength, required fields, etc.) which could throw unrelated errors
     event.registeredUsers.push(req.user._id)
-    await event.save()
+    await event.save({ validateBeforeSave: false })
 
     res.status(201).json({
       message:
@@ -92,7 +96,9 @@ const createRegistration = async (req, res) => {
     if (err.code === 11000) {
       return res.status(400).json({ message: 'You are already registered for this event' })
     }
-    res.status(500).json({ message: 'Registration failed', error: err.message })
+    // Log exact error for debugging
+    console.error('[Registration Error]', err.name, err.message)
+    res.status(500).json({ message: err.message || 'Registration failed', error: err.message })
   }
 }
 

@@ -867,6 +867,7 @@
   cursor: pointer;
 }
 
+
 /* Responsive adjustments */
 @media (max-width: 1080px) {
   .nc-hero-two-column-layout {
@@ -875,4 +876,98 @@
   .nc-right-sidebar-flow {
     position: static;
   }
+}
+
+/* ── Registration Form Modal Field Styles ──────────────────────────────────── */
+
+.reg-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reg-field-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.reg-field-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  background: #881421;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  padding: 0 5px;
+}
+
+.req-star {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.reg-field-input,
+.reg-field-textarea,
+.reg-field-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  font-family: inherit;
+  outline: none;
+}
+
+.reg-field-input:focus,
+.reg-field-textarea:focus,
+.reg-field-select:focus {
+  border-color: #881421;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(136, 20, 33, 0.1);
+}
+
+.reg-field-textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.reg-field-select-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.reg-field-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.select-chevron {
+  position: absolute;
+  right: 12px;
+  color: #64748b;
+  pointer-events: none;
+  flex-shrink: 0;
 }
