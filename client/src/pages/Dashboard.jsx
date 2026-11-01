@@ -121,29 +121,25 @@ const Dashboard = () => {
   // Selected event for in-portal detail view (null = dashboard feeds)
   const [selectedEventId, setSelectedEventId] = useState(routeEventId || null)
 
-  // Keep synced if URL parameter changes
+  // Keep synced whenever the URL parameter changes (e.g. back/forward button or reload)
   useEffect(() => {
-    if (routeEventId) {
-      setSelectedEventId(routeEventId)
-    }
+    setSelectedEventId(routeEventId || null)
   }, [routeEventId])
 
   const handleOpenEvent = (evtId) => {
     setSelectedEventId(evtId)
-    window.history.pushState(null, '', `/events/${evtId}`)
+    navigate(`/events/${evtId}`)
   }
 
   const handleBackFromEvent = () => {
     setSelectedEventId(null)
-    window.history.pushState(null, '', '/dashboard')
+    navigate('/dashboard')
   }
 
   const handleTabChange = (tabName) => {
     setSelectedEventId(null)
     setActiveTab(tabName)
-    if (window.location.pathname !== '/dashboard') {
-      window.history.pushState(null, '', '/dashboard')
-    }
+    navigate('/dashboard')
   }
 
   // Tab & UI state

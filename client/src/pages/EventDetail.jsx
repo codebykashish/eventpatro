@@ -96,6 +96,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
   // Load event details
   const loadEvent = useCallback(async () => {
+    if (!id) return
+    setLoading(true)
+    setError('')
     try {
       const data = await fetchEventById(id)
       setEvent(data.event)
@@ -108,7 +111,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
   // Load the logged-in student's registration for this event
   const loadMyRegistration = useCallback(async () => {
-    if (!user || isAdmin) { setMyRegistration(null); return }
+    if (!id || !user || isAdmin) { setMyRegistration(null); return }
     try {
       const data = await getMyRegistrationForEvent(id)
       setMyRegistration(data.registration) // null if not registered
@@ -119,7 +122,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
   // Admin: load all registrations
   const loadRegistrations = useCallback(async () => {
-    if (!isAdmin) return
+    if (!id || !isAdmin) return
     setRegLoading(true)
     try {
       const data = await getEventRegistrations(id)

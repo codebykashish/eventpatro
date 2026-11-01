@@ -1033,3 +1033,62 @@
   cursor: not-allowed;
 }
 
+/* ── Event Detail Loading & Error States ──────────────────────────────────── */
+
+.event-detail-loading,
+.event-detail-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  padding: 40px 20px;
+  gap: 16px;
+  color: #475569;
+  font-size: 14.5px;
+  text-align: center;
+}
+
+.event-detail-error {
+  color: #b91c1c;
+}
+
+.event-detail-error p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.event-detail-loading .loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3.5px solid #f1f5f9;
+  border-top-color: #881421;
+  border-radius: 50%;
+  animation: spinnerRotate 0.75s linear infinite;
+}
+
+@keyframes spinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-back-link {
+  background: #ffffff;
+  color: #881421;
+  border: 1.5px solid #881421;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-back-link:hover {
+  background: #881421;
+  color: #ffffff;
+}
+
+
