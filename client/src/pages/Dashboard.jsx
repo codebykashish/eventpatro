@@ -269,14 +269,44 @@ const Dashboard = () => {
   // Notification popover state & ref
   const [showNotifications, setShowNotifications] = useState(false)
   const [hasSeenNotifications, setHasSeenNotifications] = useState(false)
+  const [readNotifications, setReadNotifications] = useState(() => new Set())
   const notificationRef = useRef(null)
+
+  const handleNotificationClick = (rem) => {
+    // Mark this notification as read to remove the red overlay
+    setReadNotifications((prev) => new Set(prev).add(rem.id))
+    if (rem.eventId) {
+      handleOpenEvent(rem.eventId)
+      setShowNotifications(false)
+    }
+  }
 
   // Compute smart notification reminders (newly added programs, upcoming registered events)
   const reminders = (() => {
     const list = []
     const now = new Date()
 
-    // 1. Registered events happening soon
+    // 1. Recently enrolled events (enrolled in last 48 hours)
+    registrations.forEach((reg) => {
+      const evt = reg.event || {}
+      if (reg.createdAt) {
+        const enrolledMs = now - new Date(reg.createdAt)
+        const enrolledHours = enrolledMs / (1000 * 60 * 60)
+        if (enrolledHours <= 48) {
+          list.push({
+            id: `enrolled-${reg._id}`,
+            type: 'enrolled',
+            title: 'Enrolled Successfully',
+            message: `You have been enrolled in ${evt.title || 'the event'}. Check your pass!`,
+            eventId: evt._id,
+            time: 'Enrolled',
+            tag: 'Enrolled',
+          })
+        }
+      }
+    })
+
+    // 2. Registered events happening soon
     registrations.forEach((reg) => {
       const evt = reg.event || {}
       if (evt.date) {
@@ -605,37 +635,34 @@ const Dashboard = () => {
                   </div>
 
                   <div className="notification-popover-body">
-                    {reminders.map((rem) => (
-                      <div
-                        key={rem.id}
-                        className="notification-item"
-                        onClick={() => {
-                          if (rem.eventId) {
-                            handleOpenEvent(rem.eventId)
-                            setShowNotifications(false)
-                          }
-                        }}
-                        role={rem.eventId ? 'button' : 'article'}
-                        tabIndex={rem.eventId ? 0 : undefined}
-                      >
-                        <div className="notification-item-icon-wrap">
-                          {rem.type === 'reminder' ? (
-                            <Clock size={14} color="#881421" strokeWidth={2.4} />
-                          ) : rem.type === 'new_program' ? (
-                            <Sparkles size={14} color="#881421" strokeWidth={2.4} />
-                          ) : (
-                            <Bell size={14} color="#64748b" strokeWidth={2.4} />
-                          )}
-                        </div>
-                        <div className="notification-item-content">
-                          <div className="notification-item-top">
-                            <span className="notification-item-title">{rem.title}</span>
-                            <span className="notification-item-time">{rem.time}</span>
+                    {reminders.map((rem) => {
+                      const isUnread = !readNotifications.has(rem.id)
+                      return (
+                        <div
+                          key={rem.id}
+                          className={`notification-item ${isUnread ? 'notification-unread' : ''}`}
+                          onClick={() => handleNotificationClick(rem)}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          <div className="notification-item-icon-wrap">
+                            {rem.type === 'reminder' ? (
+                              <Clock size={14} color="#881421" strokeWidth={2.4} />
+                            ) : (
+                              <Bell size={14} color="#881421" strokeWidth={2.4} />
+                            )}
                           </div>
-                          <p className="notification-item-msg">{rem.message}</p>
+                          <div className="notification-item-content">
+                            <div className="notification-item-top">
+                              <span className="notification-item-title">{rem.title}</span>
+                              <span className="notification-item-time">{rem.time}</span>
+                            </div>
+                            <p className="notification-item-msg">{rem.message}</p>
+                          </div>
+                          {isUnread && <span className="notification-unread-dot" />}
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -1255,6 +1282,15 @@ const Dashboard = () => {
                                       {isRegistered && (
                                         <span className="explore-registered-badge">
                                           <Check size={11} strokeWidth={2.6} /> Registered
+                                          {(() => {
+                                            const myReg = registrations.find(
+                                              (r) =>
+                                                (typeof r.event === 'object' ? r.event?._id : r.event) === evt._id
+                                            )
+                                            return myReg?.createdAt
+                                              ? ` • ${new Date(myReg.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
+                                              : ''
+                                          })()}
                                         </span>
                                       )}
                                     </div>
@@ -1683,9 +1719,6 @@ const Dashboard = () => {
             role="dialog"
             aria-modal="true"
           >
-            <div className="modal-icon-circle">
-              <AlertTriangle size={24} color="#881421" />
-            </div>
             <h3 className="modal-title">Sign Out of SSRC Events?</h3>
             <p className="modal-subtitle">
               You will need to sign in again to register for campus workshops and access your event passes.

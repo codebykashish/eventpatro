@@ -970,14 +970,30 @@
   padding: 10px 12px;
   border-radius: 10px;
   background: #ffffff;
-  transition: background 0.12s ease;
+  transition: all 0.15s ease;
   cursor: pointer;
+  position: relative;
 }
 .notification-item:hover {
-  background: #fafbfc;
+  background: #f8fafc;
 }
-.notification-item:last-child {
-  border-bottom: none;
+
+/* Red transparent overlay on unread notification */
+.notification-item.notification-unread {
+  background-color: rgba(136, 20, 33, 0.06);
+  border: 1px solid rgba(136, 20, 33, 0.15);
+}
+.notification-item.notification-unread:hover {
+  background-color: rgba(136, 20, 33, 0.09);
+}
+
+.notification-unread-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #881421;
+  flex-shrink: 0;
+  margin-top: 6px;
 }
 
 .notification-item-icon-wrap {

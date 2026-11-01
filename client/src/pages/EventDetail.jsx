@@ -775,13 +775,29 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               )}
             </div>
 
-            {/* Sole Primary Enroll Now CTA Button */}
+            {/* Sole Primary Enroll Now / Cancel CTA Button */}
             {!isAdmin && (
               <div className="nc-cta-container">
                 {isRegistered ? (
-                  <div className="nc-registered-notice">
-                    <Check size={16} strokeWidth={2.6} />
-                    <span>You are enrolled for this event</span>
+                  <div className="nc-registered-cta-wrap">
+                    <div className="nc-registered-notice">
+                      <Check size={15} strokeWidth={2.6} />
+                      <span>
+                        Enrolled
+                        {myRegistration?.createdAt && ` on ${formatShortDate(myRegistration.createdAt)}`}
+                      </span>
+                    </div>
+                    {canCancel && (
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        className="nc-cancel-now-btn"
+                        disabled={submitting}
+                      >
+                        <XCircle size={15} strokeWidth={2.2} />
+                        {submitting ? 'Cancelling…' : 'Cancel Now'}
+                      </button>
+                    )}
                   </div>
                 ) : isPastEvent ? (
                   <button type="button" className="nc-enroll-cta-btn disabled" disabled>

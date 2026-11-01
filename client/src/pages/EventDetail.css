@@ -592,18 +592,51 @@
   transform: none;
 }
 
+.nc-registered-cta-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
 .nc-registered-notice {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px;
+  padding: 12px;
   background: #f0fdf4;
   color: #166534;
   border: 1px solid #bbf7d0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.nc-cancel-now-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 11px 16px;
+  background: #ffffff;
+  color: #b91c1c;
+  border: 1.5px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.nc-cancel-now-btn:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #b91c1c;
+  color: #991b1b;
+}
+.nc-cancel-now-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Inclusions section */
