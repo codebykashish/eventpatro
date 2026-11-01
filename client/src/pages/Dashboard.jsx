@@ -1716,7 +1716,7 @@ const Dashboard = () => {
                                     {capacityCount ? `${enrolledCount} / ${capacityCount} spots` : 'Campus event'}
                                   </span>
                                   <span className="profile-post-view-btn">
-                                    View Details <ArrowRight size={12} strokeWidth={2.4} />
+                                    View Details
                                   </span>
                                 </div>
                               </div>
