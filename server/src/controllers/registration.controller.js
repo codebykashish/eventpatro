@@ -19,7 +19,7 @@ const createRegistration = async (req, res) => {
     // Count active registrations to enforce capacity
     const activeCount = await Registration.countDocuments({
       event: event._id,
-      status: { $in: ['confirmed', 'pending', 'selected'] },
+      status: { $in: ['confirmed', 'pending', 'selected', 'attended'] },
     })
 
     if (event.capacity !== null && activeCount >= event.capacity) {
@@ -30,7 +30,7 @@ const createRegistration = async (req, res) => {
     const existing = await Registration.findOne({
       event: event._id,
       student: req.user._id,
-      status: { $in: ['confirmed', 'pending', 'selected'] },
+      status: { $in: ['confirmed', 'pending', 'selected', 'attended'] },
     })
 
     if (existing) {
@@ -161,9 +161,9 @@ const updateRegistrationStatus = async (req, res) => {
   try {
     const { status } = req.body
 
-    // Admin can only set selected or rejected
-    if (!['selected', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Status must be "selected" or "rejected"' })
+    // Admin can set selected, rejected, or attended (attendance marking)
+    if (!['selected', 'rejected', 'attended', 'confirmed'].includes(status)) {
+      return res.status(400).json({ message: 'Status must be "selected", "rejected", "attended", or "confirmed"' })
     }
 
     const registration = await Registration.findOneAndUpdate(
@@ -187,7 +187,7 @@ const updateRegistrationStatus = async (req, res) => {
 const getMyRegistrations = async (req, res) => {
   try {
     const registrations = await Registration.find({ student: req.user._id })
-      .populate('event', 'title date location category registrationType')
+      .populate('event', 'title date location category registrationType coverImage capacity registeredUsers description')
       .sort({ createdAt: -1 })
 
     res.json({ registrations })

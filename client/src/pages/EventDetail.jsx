@@ -17,6 +17,7 @@ import './EventDetail.css'
 // Status badge config
 const STATUS_CONFIG = {
   confirmed: { label: 'Registered ✓', cls: 'status-confirmed' },
+  attended:  { label: 'Attended ✓', cls: 'status-attended' },
   pending:   { label: 'Application Pending', cls: 'status-pending' },
   selected:  { label: 'Selected 🎉', cls: 'status-selected' },
   rejected:  { label: 'Not Selected', cls: 'status-rejected' },
@@ -79,6 +80,9 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
 
   // Modal state for custom application / question forms
   const [showEnrollModal, setShowEnrollModal] = useState(false)
+
+  // Modal state for viewing submitted answers + passcode
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false)
 
   // Tab navigation: 'overview' | 'instructor'
   const [activeTab, setActiveTab] = useState('overview')
@@ -514,40 +518,27 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
             </div>
           )}
 
-          {/* Registration status confirmation (only shown when student has enrolled) */}
+          {/* Inline enrollment action bar — compact, no card */}
           {!isAdmin && isRegistered && (
-            <div className="nc-enrolled-status-box">
-              <div className="my-reg-header">
-                <ClipboardList size={18} color="#881421" />
-                <span>Your Enrollment Status</span>
-              </div>
-              <div className="my-reg-body">
-                <span className={`reg-status-badge ${STATUS_CONFIG[myRegistration.status]?.cls}`}>
-                  {STATUS_CONFIG[myRegistration.status]?.label || myRegistration.status}
-                </span>
-                <div className="my-reg-code">
-                  <span className="reg-code-label">Passcode</span>
-                  <span className="reg-code-value">{myRegistration.registrationCode}</span>
-                </div>
-                {myRegistration.answers?.length > 0 && (
-                  <div className="my-reg-answers">
-                    <p className="reg-answers-title">Your submitted details:</p>
-                    {myRegistration.answers.map((a, i) => (
-                      <div key={i} className="reg-answer-row">
-                        <span className="reg-q-label">{a.label}</span>
-                        <span className="reg-q-value">{a.value || '—'}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            <div className="nc-enrollment-action-bar">
+              <span className={`reg-status-badge ${STATUS_CONFIG[myRegistration.status]?.cls}`}>
+                {STATUS_CONFIG[myRegistration.status]?.label || myRegistration.status}
+              </span>
+              <div className="nc-enrollment-bar-actions">
+                <button
+                  type="button"
+                  className="nc-see-submission-btn"
+                  onClick={() => setShowSubmissionModal(true)}
+                >
+                  See Submission
+                </button>
                 {canCancel && (
                   <button
                     type="button"
-                    className="btn-cancel-registration"
-                    onClick={handleCancel}
+                    className="nc-cancel-enrollment-bar-btn"
+                    onClick={handleCancelClick}
                     disabled={submitting}
                   >
-                    <XCircle size={14} />
                     {submitting ? 'Cancelling…' : 'Cancel Enrollment'}
                   </button>
                 )}
@@ -586,7 +577,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                       <span>Student</span>
                       <span>Code</span>
                       <span>Status</span>
-                      {event.registrationType === 'application' && <span>Actions</span>}
+                      <span>Actions</span>
                     </div>
                     {registrations.map((reg, idx) => (
                       <div key={reg._id} className="admin-reg-row">
@@ -611,37 +602,57 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                         <span className={`reg-status-badge ${STATUS_CONFIG[reg.status]?.cls}`}>
                           {STATUS_CONFIG[reg.status]?.label || reg.status}
                         </span>
-                        {event.registrationType === 'application' && (
-                          <div className="admin-reg-actions">
-                            {reg.status === 'pending' && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="btn-select"
-                                  onClick={() => handleStatusChange(reg._id, 'selected')}
-                                >
-                                  Select
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn-reject"
-                                  onClick={() => handleStatusChange(reg._id, 'rejected')}
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                            {reg.status === 'selected' && (
+                        <div className="admin-reg-actions">
+                          {/* Attendance marking for confirmed or selected students */}
+                          {['confirmed', 'selected'].includes(reg.status) && (
+                            <button
+                              type="button"
+                              className="btn-mark-attended"
+                              onClick={() => handleStatusChange(reg._id, 'attended')}
+                            >
+                              Mark Attended
+                            </button>
+                          )}
+                          {reg.status === 'attended' && (
+                            <button
+                              type="button"
+                              className="btn-revoke-attended"
+                              onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                              title="Click to revert to Confirmed"
+                            >
+                              Attended ✓
+                            </button>
+                          )}
+
+                          {/* Application event decision buttons */}
+                          {event.registrationType === 'application' && reg.status === 'pending' && (
+                            <>
+                              <button
+                                type="button"
+                                className="btn-select"
+                                onClick={() => handleStatusChange(reg._id, 'selected')}
+                              >
+                                Select
+                              </button>
                               <button
                                 type="button"
                                 className="btn-reject"
                                 onClick={() => handleStatusChange(reg._id, 'rejected')}
                               >
-                                Revoke
+                                Reject
                               </button>
-                            )}
-                          </div>
-                        )}
+                            </>
+                          )}
+                          {event.registrationType === 'application' && reg.status === 'selected' && (
+                            <button
+                              type="button"
+                              className="btn-reject"
+                              onClick={() => handleStatusChange(reg._id, 'rejected')}
+                            >
+                              Revoke
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -784,12 +795,17 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                 </span>
               </div>
 
-              {remainingDays && (
+              {isRegistered ? (
+                <div className="nc-countdown-row nc-countdown-registered">
+                  <Check size={14} color="#15803d" strokeWidth={2.4} />
+                  <span style={{ color: '#15803d', fontWeight: 700 }}>Registered</span>
+                </div>
+              ) : remainingDays ? (
                 <div className="nc-countdown-row">
                   <Clock size={14} color="#881421" />
                   <span>{remainingDays}</span>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Sole Primary Enroll Now / Cancel CTA Button */}
@@ -811,8 +827,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
                         className="nc-cancel-now-btn"
                         disabled={submitting}
                       >
-                        <XCircle size={15} strokeWidth={2.2} />
-                        Cancel Now
+                        {submitting ? 'Cancelling…' : 'Cancel Registration'}
                       </button>
                     )}
                   </div>
@@ -916,6 +931,76 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
           </div>
         </aside>
       </div>
+
+      {/* ── Submission Detail Popup Modal ── */}
+      {showSubmissionModal && myRegistration && (
+        <div className="nc-modal-backdrop" onClick={() => setShowSubmissionModal(false)}>
+          <div className="nc-submission-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="nc-submission-modal-header">
+              <div className="nc-submission-modal-title-group">
+                <span className="nc-submission-modal-label">Your Enrollment</span>
+                <h3 className="nc-submission-modal-event-name">{event.title}</h3>
+              </div>
+              <button
+                type="button"
+                className="nc-modal-close-btn"
+                onClick={() => setShowSubmissionModal(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="nc-submission-modal-body">
+              {/* Status + Passcode row */}
+              <div className="nc-submission-status-row">
+                <div className="nc-submission-status-col">
+                  <span className="nc-submission-field-label">Status</span>
+                  <span className={`reg-status-badge ${STATUS_CONFIG[myRegistration.status]?.cls}`}>
+                    {STATUS_CONFIG[myRegistration.status]?.label || myRegistration.status}
+                  </span>
+                </div>
+                <div className="nc-submission-passcode-col">
+                  <span className="nc-submission-field-label">Your Passcode</span>
+                  <div className="nc-submission-passcode-box">
+                    {myRegistration.registrationCode}
+                  </div>
+                </div>
+              </div>
+
+              {/* Submitted answers */}
+              {myRegistration.answers?.length > 0 ? (
+                <div className="nc-submission-answers-block">
+                  <p className="nc-submission-answers-title">Submitted Responses</p>
+                  <div className="nc-submission-answers-list">
+                    {myRegistration.answers.map((a, i) => (
+                      <div key={i} className="nc-submission-answer-item">
+                        <span className="nc-submission-q-num">Q{i + 1}</span>
+                        <div className="nc-submission-qa-body">
+                          <p className="nc-submission-q-text">{a.label}</p>
+                          <p className="nc-submission-a-text">{a.value || '—'}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="nc-submission-no-answers">No additional responses submitted.</p>
+              )}
+            </div>
+
+            <div className="nc-submission-modal-footer">
+              <button
+                type="button"
+                className="nc-submission-close-btn"
+                onClick={() => setShowSubmissionModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal for Questionnaire / Application Questions (if any) ── */}
       {showEnrollModal && (
@@ -1030,18 +1115,15 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
               </button>
             </div>
             <div className="nc-cancel-modal-body">
-              <div className="nc-cancel-warning-icon">
-                <AlertCircle size={32} color="#b91c1c" />
-              </div>
               <h4>Are you sure you want to cancel your enrollment?</h4>
               <p>
                 You are about to cancel your spot for <strong>{event?.title}</strong>. Your reserved seat will be released and made available to other students. You can re-enroll at any time before the registration deadline.
               </p>
             </div>
-            <div className="nc-modal-footer">
+            <div className="nc-cancel-modal-footer">
               <button
                 type="button"
-                className="nc-modal-cancel-btn"
+                className="nc-cancel-modal-back-btn"
                 onClick={() => setShowCancelModal(false)}
                 disabled={submitting}
               >

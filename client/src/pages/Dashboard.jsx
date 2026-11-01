@@ -59,6 +59,7 @@ const CATEGORY_COLORS = {
 // Status configuration for registration tags
 const STATUS_CONFIG = {
   confirmed: { label: 'Registered', cls: 'status-confirmed' },
+  attended: { label: 'Attended', cls: 'status-attended' },
   pending: { label: 'Pending Review', cls: 'status-pending' },
   selected: { label: 'Selected', cls: 'status-selected' },
   rejected: { label: 'Not Selected', cls: 'status-rejected' },
@@ -308,31 +309,33 @@ const Dashboard = () => {
       }
     })
 
-    // 2. Registered events happening soon
-    registrations.forEach((reg) => {
-      const evt = reg.event || {}
-      if (evt.date) {
-        const evtDate = new Date(evt.date)
-        const diffMs = evtDate - now
-        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-        if (diffDays >= 0 && diffDays <= 7) {
-          list.push({
-            id: `reg-${reg._id}`,
-            type: 'reminder',
-            title: evt.title || 'Upcoming Event',
-            message:
-              diffDays === 0
-                ? 'Happening today! Make sure to attend on time.'
-                : diffDays === 1
-                ? 'Starting tomorrow! Be ready.'
-                : `Coming up in ${diffDays} days (${formatEventDate(evt.date)}).`,
-            eventId: evt._id,
-            time: diffDays === 0 ? 'Today' : `${diffDays}d left`,
-            tag: 'Reminder',
-          })
+    // 2. Registered events happening soon (active registrations only)
+    registrations
+      .filter((r) => ['confirmed', 'selected', 'pending'].includes(r.status))
+      .forEach((reg) => {
+        const evt = reg.event || {}
+        if (evt.date) {
+          const evtDate = new Date(evt.date)
+          const diffMs = evtDate - now
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+          if (diffDays >= 0 && diffDays <= 7) {
+            list.push({
+              id: `reg-${reg._id}`,
+              type: 'reminder',
+              title: `${diffDays === 0 ? 'Today' : diffDays === 1 ? '1 day left' : `${diffDays} days left`}: ${evt.title || 'Upcoming Event'}`,
+              message:
+                diffDays === 0
+                  ? `Happening today! Make sure to attend ${evt.title} on time.`
+                  : diffDays === 1
+                  ? `1 day left for ${evt.title}! Event starts tomorrow at ${formatEventTime(evt.date)}.`
+                  : `${diffDays} days left for ${evt.title} (${formatEventDate(evt.date)}).`,
+              eventId: evt._id,
+              time: diffDays === 0 ? 'Today' : `${diffDays}d left`,
+              tag: diffDays <= 1 ? 'Urgent' : 'Reminder',
+            })
+          }
         }
-      }
-    })
+      })
 
     // 2. Newly added campus events (within last 7 days)
     events
@@ -387,7 +390,7 @@ const Dashboard = () => {
   // Set of registered event IDs
   const registeredEventIds = new Set(
     registrations
-      .filter((r) => ['confirmed', 'pending', 'selected'].includes(r.status))
+      .filter((r) => ['confirmed', 'pending', 'selected', 'attended'].includes(r.status))
       .map((r) => (typeof r.event === 'object' ? r.event?._id : r.event))
   )
 
@@ -866,7 +869,12 @@ const Dashboard = () => {
                                   {evt.category ? (
                                     <span className="portal-event-category-tag">{evt.category}</span>
                                   ) : <span />}
-                                  {new Date(evt.date) < now ? (
+                                  {isRegistered ? (
+                                    <span className="portal-event-countdown-pill registered">
+                                      <Check size={12} className="meta-svg" />
+                                      <span>Registered</span>
+                                    </span>
+                                  ) : new Date(evt.date) < now ? (
                                     <span className="portal-event-countdown-pill past">
                                       <Clock size={12} className="meta-svg" />
                                       <span>Completed</span>
@@ -1348,6 +1356,14 @@ const Dashboard = () => {
                                     )
                                   })()}
                                   {(() => {
+                                    if (isRegistered) {
+                                      return (
+                                        <span className="explore-days-left registered">
+                                          <Check size={13} color="#15803d" strokeWidth={2.4} />
+                                          Registered
+                                        </span>
+                                      )
+                                    }
                                     const isPast = evt.date && new Date(evt.date) < now
                                     if (isPast) {
                                       return (
@@ -1608,8 +1624,8 @@ const Dashboard = () => {
                   {(() => {
                     const now = new Date()
                     const list = profileActivityTab === 'registered'
-                      ? registrations
-                      : registrations.filter(r => r.status === 'attended' || (r.event?.date && new Date(r.event.date) < now))
+                      ? registrations.filter(r => ['confirmed', 'selected', 'pending', 'attended'].includes(r.status))
+                      : registrations.filter(r => r.status === 'attended')
 
                     if (list.length === 0) {
                       return (

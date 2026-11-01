@@ -511,6 +511,7 @@
 }
 
 .status-confirmed { background: #dcfce7; color: #15803d; }
+.status-attended  { background: #d1fae5; color: #065f46; font-weight: 700; }
 .status-pending   { background: #fef3c7; color: #92400e; }
 .status-selected  { background: #ede9fe; color: #6d28d9; }
 .status-rejected  { background: #fee2e2; color: #b91c1c; }

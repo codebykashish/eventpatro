@@ -617,26 +617,304 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
   width: 100%;
-  padding: 11px 16px;
-  background: #ffffff;
-  color: #b91c1c;
-  border: 1.5px solid #fecaca;
-  border-radius: 8px;
+  padding: 11px 18px;
+  background: #fff1f2;
+  color: #9f1239;
+  border: 1px solid #fecdd3;
+  border-radius: 9px;
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .nc-cancel-now-btn:hover:not(:disabled) {
-  background: #fef2f2;
-  border-color: #b91c1c;
-  color: #991b1b;
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #881337;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.12);
+}
+.nc-cancel-now-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .nc-cancel-now-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ── Inline Enrollment Action Bar (Below Header / In Main Flow) ── */
+.nc-enrollment-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px;
+  background: #fdf2f4;
+  border: 1px solid #f8d7dc;
+  border-left: 4px solid #881421;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(136, 20, 33, 0.05);
+}
+
+.reg-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.status-confirmed { background: #dcfce7; color: #15803d; }
+.status-attended  { background: #d1fae5; color: #065f46; font-weight: 700; }
+.status-pending   { background: #fef3c7; color: #92400e; }
+.status-selected  { background: #ede9fe; color: #6d28d9; }
+.status-rejected  { background: #fee2e2; color: #b91c1c; }
+.status-cancelled { background: #f3f4f6; color: #9ca3af; }
+
+.nc-enrollment-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nc-see-submission-btn {
+  background: #ffffff;
+  color: #881421;
+  border: 1.5px solid #881421;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.nc-see-submission-btn:hover {
+  background: #881421;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(136, 20, 33, 0.15);
+}
+
+.nc-cancel-enrollment-bar-btn {
+  background: #ffffff;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.nc-cancel-enrollment-bar-btn:hover:not(:disabled) {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  color: #9f1239;
+}
+
+.nc-cancel-enrollment-bar-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Submission Modal Styles ── */
+.nc-submission-modal-box {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 540px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.22);
+  animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nc-submission-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.nc-submission-modal-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nc-submission-modal-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #881421;
+}
+
+.nc-submission-modal-event-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.nc-submission-modal-body {
+  padding: 22px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.nc-submission-status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.nc-submission-status-col,
+.nc-submission-passcode-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nc-submission-field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.nc-submission-passcode-box {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #ffffff;
+  border: 1.5px dashed #881421;
+  color: #881421;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(136, 20, 33, 0.08);
+}
+
+.nc-submission-answers-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nc-submission-answers-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #334155;
+  margin: 0;
+}
+
+.nc-submission-answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nc-submission-answer-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.nc-submission-q-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: #881421;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.nc-submission-qa-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nc-submission-q-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.nc-submission-a-text {
+  font-size: 13.5px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.nc-submission-no-answers {
+  color: #94a3b8;
+  font-size: 13.5px;
+  font-style: italic;
+  margin: 0;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.nc-submission-modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid #f1f5f9;
+  background: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.nc-submission-close-btn {
+  background: #881421;
+  color: #ffffff;
+  border: none;
+  padding: 8px 22px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.nc-submission-close-btn:hover {
+  background: #6e101b;
 }
 
 /* Inclusions section */
@@ -974,58 +1252,123 @@
 
 /* ── Cancel Confirmation Modal ─────────────────────────────────────────────── */
 
+/* ── Cancel Confirmation Modal ─────────────────────────────────────────────── */
+
 .nc-cancel-modal-box {
-  max-width: 460px;
+  max-width: 480px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.22);
 }
 
 .nc-cancel-modal-body {
-  padding: 24px 22px 14px;
+  padding: 28px 28px 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.nc-cancel-warning-icon {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: #fef2f2;
-  border: 1px solid #fee2e2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .nc-cancel-modal-body h4 {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 10px;
+  line-height: 1.35;
 }
 
 .nc-cancel-modal-body p {
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #475569;
   margin: 0;
 }
 
-.nc-confirm-cancel-btn {
-  background: #b91c1c;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-size: 14px;
-  font-weight: 700;
+.nc-cancel-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 28px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+}
+
+.nc-cancel-modal-back-btn {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #334155;
+  padding: 10px 20px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.18s ease;
+}
+
+.nc-cancel-modal-back-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.nc-confirm-cancel-btn {
+  background: #dc2626;
+  color: #ffffff;
+  border: 1px solid #b91c1c;
+  border-radius: 9px;
+  padding: 10px 22px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
 }
 
 .nc-confirm-cancel-btn:hover:not(:disabled) {
-  background: #991b1b;
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  transform: translateY(-1px);
+}
+
+.nc-confirm-cancel-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Admin attendee row buttons */
+.btn-mark-attended {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-mark-attended:hover {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+
+.btn-revoke-attended {
+  background: #15803d;
+  color: #ffffff;
+  border: 1px solid #166534;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-revoke-attended:hover {
+  background: #b91c1c;
+  border-color: #991b1b;
 }
 
 .nc-confirm-cancel-btn:disabled {

@@ -44,7 +44,7 @@ const registrationSchema = new mongoose.Schema(
     //  application event → 'pending' until admin reviews
     status: {
       type: String,
-      enum: ['confirmed', 'pending', 'selected', 'rejected', 'cancelled'],
+      enum: ['confirmed', 'pending', 'selected', 'attended', 'rejected', 'cancelled'],
       default: 'pending',
     },
 
@@ -80,7 +80,7 @@ registrationSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      status: { $in: ['confirmed', 'pending', 'selected'] },
+      status: { $in: ['confirmed', 'pending', 'selected', 'attended'] },
     },
   }
 )
