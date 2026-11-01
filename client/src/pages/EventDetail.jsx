@@ -163,7 +163,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     setActionMsg('')
     setActionError('')
     try {
-      const res = await submitRegistration(id, [])
+      const res = await submitRegistration(id, { answers: [] })
       setActionMsg(res.message || 'Successfully enrolled!')
       await loadMyRegistration()
       await loadEvent()
@@ -192,7 +192,7 @@ const EventDetailPage = ({ eventId: propId, onBack }) => {
     }))
 
     try {
-      const res = await submitRegistration(id, formattedAnswers)
+      const res = await submitRegistration(id, { answers: formattedAnswers })
       setActionMsg(res.message || 'Registration submitted!')
       setShowEnrollModal(false)
       await loadMyRegistration()

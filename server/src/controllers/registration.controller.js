@@ -38,7 +38,8 @@ const createRegistration = async (req, res) => {
     }
 
     // Validate required form fields
-    const { answers = [] } = req.body
+    const rawAnswers = Array.isArray(req.body) ? req.body : (req.body?.answers || [])
+    const answers = Array.isArray(rawAnswers) ? rawAnswers : []
     const missingRequired = []
 
     for (const field of event.formFields) {

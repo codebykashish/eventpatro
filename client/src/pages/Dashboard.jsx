@@ -348,7 +348,7 @@ const Dashboard = () => {
           title: `New: ${evt.title}`,
           message: `A new program has been added for ${formatEventDate(evt.date)}. Seats are filling!`,
           eventId: evt._id,
-          time: 'New',
+          time: '',
           tag: 'Program Added',
         })
       })
@@ -360,7 +360,7 @@ const Dashboard = () => {
         type: 'info',
         title: 'Welcome to SSRC Events',
         message: 'You have no urgent event reminders right now. Check back soon!',
-        time: 'Just now',
+        time: '',
         tag: 'Notice',
       })
     }
@@ -408,16 +408,22 @@ const Dashboard = () => {
       new Date(r.event.date) < now
   ).length
 
-  // Filtered upcoming events list according to search query
-  const filteredEvents = events.filter((e) => {
-    if (!searchQuery.trim()) return true
-    const q = searchQuery.toLowerCase()
-    return (
-      e.title?.toLowerCase().includes(q) ||
-      e.location?.toLowerCase().includes(q) ||
-      e.category?.toLowerCase().includes(q)
-    )
-  })
+  // Filtered upcoming events list according to search query:
+  // On the dashboard tab, completed/past events are excluded, and capped to at most 10 events
+  const filteredEvents = events
+    .filter((e) => {
+      // Exclude past/completed events from dashboard feed
+      if (new Date(e.date) < now) return false
+      if (!searchQuery.trim()) return true
+      const q = searchQuery.toLowerCase()
+      return (
+        e.title?.toLowerCase().includes(q) ||
+        e.location?.toLowerCase().includes(q) ||
+        e.category?.toLowerCase().includes(q)
+      )
+    })
+    .sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0))
+    .slice(0, 10)
 
   // Filtered and sorted events for Explore Campus Events tab
   const exploreFilteredEvents = events
@@ -477,6 +483,13 @@ const Dashboard = () => {
       return true
     })
     .sort((a, b) => {
+      // Always put upcoming events before past events in the Explore tab
+      const isPastA = new Date(a.date || 0) < now
+      const isPastB = new Date(b.date || 0) < now
+      if (isPastA !== isPastB) {
+        return isPastA ? 1 : -1
+      }
+
       if (sortBy === 'upcoming') {
         return new Date(a.date || 0) - new Date(b.date || 0)
       } else if (sortBy === 'newest') {
