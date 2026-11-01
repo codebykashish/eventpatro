@@ -266,11 +266,86 @@ const Dashboard = () => {
     }
   }, [])
 
-  // Close user dropdown when clicking outside
+  // Notification popover state & ref
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [hasSeenNotifications, setHasSeenNotifications] = useState(false)
+  const notificationRef = useRef(null)
+
+  // Compute smart notification reminders (newly added programs, upcoming registered events)
+  const reminders = (() => {
+    const list = []
+    const now = new Date()
+
+    // 1. Registered events happening soon
+    registrations.forEach((reg) => {
+      const evt = reg.event || {}
+      if (evt.date) {
+        const evtDate = new Date(evt.date)
+        const diffMs = evtDate - now
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+        if (diffDays >= 0 && diffDays <= 7) {
+          list.push({
+            id: `reg-${reg._id}`,
+            type: 'reminder',
+            title: evt.title || 'Upcoming Event',
+            message:
+              diffDays === 0
+                ? 'Happening today! Make sure to attend on time.'
+                : diffDays === 1
+                ? 'Starting tomorrow! Be ready.'
+                : `Coming up in ${diffDays} days (${formatEventDate(evt.date)}).`,
+            eventId: evt._id,
+            time: diffDays === 0 ? 'Today' : `${diffDays}d left`,
+            tag: 'Reminder',
+          })
+        }
+      }
+    })
+
+    // 2. Newly added campus events (within last 7 days)
+    events
+      .filter((e) => {
+        if (!e.createdAt) return false
+        const createdMs = now - new Date(e.createdAt)
+        const createdDays = createdMs / (1000 * 60 * 60 * 24)
+        return createdDays <= 7 && new Date(e.date) > now
+      })
+      .slice(0, 3)
+      .forEach((evt) => {
+        list.push({
+          id: `new-${evt._id}`,
+          type: 'new_program',
+          title: `New: ${evt.title}`,
+          message: `A new program has been added for ${formatEventDate(evt.date)}. Seats are filling!`,
+          eventId: evt._id,
+          time: 'New',
+          tag: 'Program Added',
+        })
+      })
+
+    // Default welcome notice if no active reminders
+    if (list.length === 0) {
+      list.push({
+        id: 'welcome',
+        type: 'info',
+        title: 'Welcome to SSRC Events',
+        message: 'You have no urgent event reminders right now. Check back soon!',
+        time: 'Just now',
+        tag: 'Notice',
+      })
+    }
+
+    return list
+  })()
+
+  // Close user dropdown & notification popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setShowUserDropdown(false)
+      }
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        setShowNotifications(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -445,22 +520,6 @@ const Dashboard = () => {
             <span className="nav-label">Events</span>
           </button>
 
-
-
-          <button
-            type="button"
-            onClick={() => { handleTabChange('updates'); setHasSeenUpdates(true) }}
-            className={`portal-nav-link ${!selectedEventId && activeTab === 'updates' ? 'active' : ''}`}
-            title="Updates"
-          >
-            <div className="nav-icon-badge-wrap">
-              <Bell size={20} className="nav-icon" />
-              {!isHovered && !hasSeenUpdates && <span className="nav-dot-badge" />}
-            </div>
-            <span className="nav-label">Updates</span>
-            {!hasSeenUpdates && <span className="nav-count-badge">2</span>}
-          </button>
-
           <button
             type="button"
             onClick={() => handleTabChange('profile')}
@@ -506,22 +565,101 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* User profile dropdown trigger */}
-          <div className="portal-user-menu-container" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setShowUserDropdown(!showUserDropdown)}
-              className="portal-avatar-button"
-              aria-expanded={showUserDropdown}
-            >
-              <div className="portal-avatar-circle">
-                {getInitials(user?.firstName, user?.lastName)}
-              </div>
-              <ChevronDown
-                size={14}
-                className={`portal-chevron-icon ${showUserDropdown ? 'rotated' : ''}`}
-              />
-            </button>
+          {/* Topbar Right Actions (Notifications + User profile) */}
+          <div className="portal-topbar-right">
+            {/* Notification Bell Button & Compact Popover */}
+            <div className="portal-notification-container" ref={notificationRef}>
+              <button
+                type="button"
+                className={`portal-topbar-bell-btn ${showNotifications ? 'active' : ''}`}
+                onClick={() => {
+                  setShowNotifications(!showNotifications)
+                  setShowUserDropdown(false)
+                  setHasSeenNotifications(true)
+                }}
+                title="Notifications & Reminders"
+                aria-expanded={showNotifications}
+              >
+                <Bell size={18} strokeWidth={2.2} />
+                {!hasSeenNotifications && reminders.length > 0 && (
+                  <span className="portal-topbar-bell-dot" />
+                )}
+              </button>
+
+              {/* Compact Notification Popover */}
+              {showNotifications && (
+                <div className="portal-notification-popover">
+                  <div className="notification-popover-header">
+                    <div className="notification-header-left">
+                      <span className="notification-header-title">Notifications</span>
+                      <span className="notification-header-count">{reminders.length}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="notification-popover-close"
+                      onClick={() => setShowNotifications(false)}
+                      title="Close"
+                    >
+                      <X size={14} strokeWidth={2.4} />
+                    </button>
+                  </div>
+
+                  <div className="notification-popover-body">
+                    {reminders.map((rem) => (
+                      <div
+                        key={rem.id}
+                        className="notification-item"
+                        onClick={() => {
+                          if (rem.eventId) {
+                            handleOpenEvent(rem.eventId)
+                            setShowNotifications(false)
+                          }
+                        }}
+                        role={rem.eventId ? 'button' : 'article'}
+                        tabIndex={rem.eventId ? 0 : undefined}
+                      >
+                        <div className="notification-item-icon-wrap">
+                          {rem.type === 'reminder' ? (
+                            <Clock size={14} color="#881421" strokeWidth={2.4} />
+                          ) : rem.type === 'new_program' ? (
+                            <Sparkles size={14} color="#881421" strokeWidth={2.4} />
+                          ) : (
+                            <Bell size={14} color="#64748b" strokeWidth={2.4} />
+                          )}
+                        </div>
+                        <div className="notification-item-content">
+                          <div className="notification-item-top">
+                            <span className="notification-item-title">{rem.title}</span>
+                            <span className="notification-item-time">{rem.time}</span>
+                          </div>
+                          <p className="notification-item-msg">{rem.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* User profile dropdown trigger */}
+            <div className="portal-user-menu-container" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUserDropdown(!showUserDropdown)
+                  setShowNotifications(false)
+                }}
+                className="portal-avatar-button"
+                aria-expanded={showUserDropdown}
+              >
+                <div className="portal-avatar-circle">
+                  {getInitials(user?.firstName, user?.lastName)}
+                </div>
+                <ChevronDown
+                  size={14}
+                  className={`portal-chevron-icon ${showUserDropdown ? 'rotated' : ''}`}
+                />
+              </button>
 
             {/* User Dropdown Card */}
             {showUserDropdown && (
@@ -556,7 +694,8 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </header>
+        </div>
+      </header>
 
         {/* Scrollable Main Content */}
         <div className="portal-main-content">
@@ -1307,44 +1446,7 @@ const Dashboard = () => {
             </section>
           )}
 
-          {activeTab === 'updates' && (
-            <section className="portal-full-tab-section">
-              <div className="portal-block-header">
-                <div className="portal-title-with-accent">
-                  <span className="portal-title-accent-bar" />
-                  <h2 className="portal-block-title">Campus Updates & Announcements</h2>
-                </div>
-              </div>
 
-              <div className="portal-updates-list">
-                <div className="portal-update-card">
-                  <div className="update-icon-circle">
-                    <Sparkles size={18} color="#881421" />
-                  </div>
-                  <div className="update-body">
-                    <h4>Sunway Tech Hackathon 2026 teams confirmed</h4>
-                    <p>
-                      Mentorship schedules and venue allocations have been finalized. Check your registered pass details.
-                    </p>
-                    <span className="update-time">2 hours ago</span>
-                  </div>
-                </div>
-
-                <div className="portal-update-card">
-                  <div className="update-icon-circle">
-                    <Sparkles size={18} color="#881421" />
-                  </div>
-                  <div className="update-body">
-                    <h4>Welcome to the SSRC Events Student Portal</h4>
-                    <p>
-                      Easily browse upcoming workshops, track your attendance, and manage event passes from your dashboard.
-                    </p>
-                    <span className="update-time">1 day ago</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
 
           {activeTab === 'profile' && (
             <section className="portal-full-tab-section profile-page-section">

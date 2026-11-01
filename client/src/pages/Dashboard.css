@@ -851,6 +851,179 @@
   color: #94a3b8;
 }
 
+/* ── Topbar Right Actions (Notifications + User profile) ─────────────────── */
+.portal-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Notification Container & Bell */
+.portal-notification-container {
+  position: relative;
+}
+
+.portal-topbar-bell-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.portal-topbar-bell-btn:hover,
+.portal-topbar-bell-btn.active {
+  background: #fdf2f2;
+  border-color: rgba(136, 20, 33, 0.2);
+  color: #881421;
+}
+
+.portal-topbar-bell-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #881421;
+  border: 1.5px solid #ffffff;
+}
+
+/* Compact Notification Popover */
+.portal-notification-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 330px;
+  max-width: 90vw;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+  border-radius: 16px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.1), 0 2px 6px rgba(0, 0, 0, 0.03);
+  z-index: 60;
+  overflow: hidden;
+  animation: scaleUp 0.15s ease-out;
+}
+
+.notification-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.notification-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notification-header-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.notification-header-count {
+  font-size: 11px;
+  font-weight: 700;
+  background: #fdf2f2;
+  color: #881421;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(136, 20, 33, 0.15);
+}
+.notification-popover-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.notification-popover-close:hover {
+  color: #1e293b;
+  background: #f1f5f9;
+}
+
+.notification-popover-body {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  transition: background 0.12s ease;
+  cursor: pointer;
+}
+.notification-item:hover {
+  background: #fafbfc;
+}
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #fdf2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notification-item-content {
+  flex: 1;
+  min-width: 0;
+}
+.notification-item-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.notification-item-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.notification-item-time {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #881421;
+  flex-shrink: 0;
+}
+.notification-item-msg {
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}
+
 /* Topbar User Profile Menu */
 .portal-user-menu-container {
   position: relative;
