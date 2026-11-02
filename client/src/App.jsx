@@ -32,6 +32,15 @@ function EventsRouteRedirect() {
   return <Navigate to="/dashboard" replace />
 }
 
+// Role-aware event detail renderer
+function EventDetailRoute() {
+  const { user } = useAuth()
+  if (user?.role === 'admin') {
+    return <AdminDashboard />
+  }
+  return <Dashboard />
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -61,7 +70,7 @@ function App() {
               path="/events/:id"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <EventDetailRoute />
                 </ProtectedRoute>
               }
             />

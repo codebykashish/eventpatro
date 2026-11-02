@@ -64,7 +64,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     if (onBack) {
       onBack()
     } else {
-      navigate('/dashboard')
+      navigate(isAdmin ? '/admin' : '/dashboard')
     }
   }
 

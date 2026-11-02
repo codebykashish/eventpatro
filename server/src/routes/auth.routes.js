@@ -7,8 +7,9 @@ const {
   login,
   getMe,
   updateProfile,
+  getAllUsers,
 } = require('../controllers/auth.controller')
-const { protect } = require('../middleware/auth')
+const { protect, restrictTo } = require('../middleware/auth')
 const validate = require('../middleware/validate')
 const { signupSchema, loginSchema } = require('../validations/auth.validation')
 
@@ -35,5 +36,8 @@ router.post('/resend-otp', resendOtp)
 // Protected user routes
 router.get('/me', protect, getMe)
 router.put('/profile', protect, updateProfile)
+
+// Admin-only user management route
+router.get('/users', protect, restrictTo('admin'), getAllUsers)
 
 module.exports = router

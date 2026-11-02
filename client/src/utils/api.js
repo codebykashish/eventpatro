@@ -84,3 +84,9 @@ export const updateRegistrationStatus = (eventId, regId, status) =>
     body: JSON.stringify({ status }),
   })
 
+/** Admin: fetch all registered users */
+export const fetchUsers = () => request('/auth/users')
+
+/** Admin: fetch all registrations across events */
+export const fetchAllRegistrations = () => request('/registrations/all')
+

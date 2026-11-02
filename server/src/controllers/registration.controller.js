@@ -211,6 +211,26 @@ const getMyRegistrationForEvent = async (req, res) => {
   }
 }
 
+// ─── GET /api/registrations/all ──────────────────────────────────────────────
+// Admin only: get all registrations with student and event details
+const getAllRegistrations = async (req, res) => {
+  try {
+    const registrations = await Registration.find({ status: { $ne: 'cancelled' } })
+      .populate('student', 'firstName lastName email studentId')
+      .populate('event', 'title date location category capacity coverImage')
+      .sort({ createdAt: -1 })
+      .limit(100)
+
+    res.json({
+      success: true,
+      registrations,
+      total: registrations.length,
+    })
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch registrations', error: err.message })
+  }
+}
+
 module.exports = {
   createRegistration,
   cancelRegistration,
@@ -218,4 +238,5 @@ module.exports = {
   updateRegistrationStatus,
   getMyRegistrations,
   getMyRegistrationForEvent,
+  getAllRegistrations,
 }

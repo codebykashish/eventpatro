@@ -326,6 +326,51 @@ const updateProfile = async (req, res, next) => {
   }
 }
 
+// @desc    Admin: Get all users with registration count
+// @route   GET /api/auth/users
+// @access  Private/Admin
+const getAllUsers = async (req, res, next) => {
+  try {
+    const users = await User.find({})
+      .select('firstName lastName email studentId role isVerified createdAt profilePicture')
+      .sort({ createdAt: -1 })
+
+    // Count registrations for each user
+    const Registration = require('../models/Registration')
+    const regCounts = await Registration.aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $group: { _id: '$student', count: { $sum: 1 } } },
+    ])
+
+    const countMap = {}
+    regCounts.forEach((rc) => {
+      countMap[rc._id.toString()] = rc.count
+    })
+
+    const formattedUsers = users.map((u) => ({
+      id: u._id,
+      _id: u._id,
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      studentId: u.studentId,
+      role: u.role,
+      isVerified: u.isVerified,
+      profilePicture: u.profilePicture,
+      createdAt: u.createdAt,
+      registrationsCount: countMap[u._id.toString()] || 0,
+    }))
+
+    res.status(200).json({
+      success: true,
+      users: formattedUsers,
+      total: formattedUsers.length,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   signup,
   verifyOtp,
@@ -333,4 +378,5 @@ module.exports = {
   login,
   getMe,
   updateProfile,
+  getAllUsers,
 }
