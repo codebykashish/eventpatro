@@ -8,12 +8,21 @@ const formatDate = (iso) => {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function AdminUsersPage({ users = [], allRegistrations = [], onUserDeleted }) {
+export default function AdminUsersPage({ users = [], allRegistrations = [], events = [], onUserDeleted }) {
   const [search, setSearch] = useState('')
   const [userList, setUserList] = useState(users)
   const [userToDelete, setUserToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+
+  // Map events by ID for quick lookup when reg.event is just an ID
+  const eventsMap = useMemo(() => {
+    const map = {}
+    events.forEach(ev => {
+      if (ev?._id) map[String(ev._id)] = ev
+    })
+    return map
+  }, [events])
 
   // Sync userList whenever parent users prop changes
   useEffect(() => {
@@ -194,11 +203,33 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
                     </thead>
                     <tbody>
                       {popupEvents.map(reg => {
-                        const ev = reg.event || {}
+                        const rawEv = reg.event
+                        const eventObj = (typeof rawEv === 'object' && rawEv !== null)
+                          ? rawEv
+                          : (eventsMap[String(rawEv)] || {})
+                        const title = eventObj.title || 'Event'
+                        const cover = eventObj.coverImage || '/campus_hero_bg.jpg'
+                        const date = eventObj.date || reg.createdAt
+
                         return (
                           <tr key={reg._id}>
-                            <td className="aup-ev-name">{ev.title || '—'}</td>
-                            <td className="aup-ev-date">{formatDate(ev.date)}</td>
+                            <td>
+                              <div className="aup-ev-cell">
+                                <img
+                                  src={cover}
+                                  alt={title}
+                                  className="aup-ev-thumb"
+                                  onError={(e) => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
+                                />
+                                <div>
+                                  <div className="aup-ev-title-text" title={title}>{title}</div>
+                                  {eventObj.category && (
+                                    <span className="aup-ev-cat-pill">{eventObj.category}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="aup-ev-date">{formatDate(date)}</td>
                             <td>
                               <span className={`aup-status aup-status-${reg.status}`}>{reg.status}</span>
                             </td>

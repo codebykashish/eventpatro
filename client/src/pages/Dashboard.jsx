@@ -1484,7 +1484,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
 
           {/* ══ ADMIN Users Tab ══ */}
           {isAdmin && activeTab === 'adminUsers' && (
-            <AdminUsersPage users={adminUsers} allRegistrations={adminAllRegistrations} />
+            <AdminUsersPage users={adminUsers} allRegistrations={adminAllRegistrations} events={events} />
           )}
 
           {/* ══ ADMIN Create Event Tab ══ */}

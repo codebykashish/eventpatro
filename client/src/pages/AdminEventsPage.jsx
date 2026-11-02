@@ -238,11 +238,40 @@ export default function AdminEventsPage() {
           <div className="aep-popup aep-popup--xl" onClick={e => e.stopPropagation()}>
             <div className="aep-popup-header">
               <div>
-                <h3>Registrations — {regPopupEvent.title}</h3>
-                <span className="aep-popup-sub">Total: {regList.length}</span>
+                <h3>Registrations &amp; Attendance — {regPopupEvent.title}</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '4px', flexWrap: 'wrap' }}>
+                  <span className="aep-popup-sub">Total Registered: {regList.length}</span>
+                  <span className="aep-popup-sub" style={{ color: '#15803d', fontWeight: 700 }}>
+                    Total Present: {regList.filter(r => r.status === 'attended').length}
+                  </span>
+                  <span className="aep-popup-sub" style={{ color: '#dc2626', fontWeight: 700 }}>
+                    Total Absent: {regList.filter(r => r.status === 'confirmed').length}
+                  </span>
+                </div>
               </div>
               <button className="aep-popup-close" onClick={() => setRegPopupEvent(null)}><X size={17}/></button>
             </div>
+
+            {/* Attendance & Registration Summary Strip */}
+            <div className="aep-attendance-bar">
+              <div className="aep-attendance-stat aep-attendance-total">
+                <span className="aep-att-num">{regList.length}</span>
+                <span className="aep-att-label">Registrations</span>
+              </div>
+              <div className="aep-attendance-stat aep-attendance-confirmed">
+                <span className="aep-att-num">{regList.filter(r => ['confirmed', 'selected', 'attended'].includes(r.status)).length}</span>
+                <span className="aep-att-label">Confirmed Users</span>
+              </div>
+              <div className="aep-attendance-stat aep-attendance-present">
+                <span className="aep-att-num">{regList.filter(r => r.status === 'attended').length}</span>
+                <span className="aep-att-label">Total Present</span>
+              </div>
+              <div className="aep-attendance-stat aep-attendance-absent">
+                <span className="aep-att-num">{regList.filter(r => r.status === 'confirmed').length}</span>
+                <span className="aep-att-label">Total Absent</span>
+              </div>
+            </div>
+
             <div className="aep-popup-body aep-popup-scroll-x">
               {regLoading ? (
                 <p className="aep-popup-empty">Loading…</p>
@@ -258,11 +287,14 @@ export default function AdminEventsPage() {
                       <th>Registered On</th>
                       {(regList[0]?.answers?.length > 0) && <th>Responses</th>}
                       {(Boolean(regPopupEvent.capacity && regPopupEvent.capacity > 0) || regPopupEvent.registrationType === 'application') && <th>Review Action</th>}
+                      <th>Attendance</th>
                     </tr>
                   </thead>
                   <tbody>
                     {regList.map(reg => {
                       const showReviewActions = Boolean(regPopupEvent.capacity && regPopupEvent.capacity > 0) || regPopupEvent.registrationType === 'application'
+                      const isConfirmedOrAttended = ['confirmed', 'attended'].includes(reg.status)
+
                       return (
                         <tr key={reg._id}>
                           <td className="aep-reg-name">{reg.student?.firstName} {reg.student?.lastName}</td>
@@ -305,6 +337,30 @@ export default function AdminEventsPage() {
                               </div>
                             </td>
                           )}
+                          <td>
+                            {isConfirmedOrAttended ? (
+                              <div style={{ display: 'flex', gap: '6px' }}>
+                                <button
+                                  type="button"
+                                  className={`aep-att-btn aep-att-present ${reg.status === 'attended' ? 'active' : ''}`}
+                                  title="Mark Present"
+                                  onClick={() => handleStatusChange(reg._id, 'attended')}
+                                >
+                                  <Check size={12} /> Present
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`aep-att-btn aep-att-absent ${reg.status === 'confirmed' ? 'active' : ''}`}
+                                  title="Mark Absent"
+                                  onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                >
+                                  <X size={12} /> Absent
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: '11.5px', color: '#94a3b8' }}>Confirm first</span>
+                            )}
+                          </td>
                         </tr>
                       )
                     })}
