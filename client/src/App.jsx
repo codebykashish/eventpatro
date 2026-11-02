@@ -8,7 +8,6 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import VerifyOtp from './pages/VerifyOtp'
 import Dashboard from './pages/Dashboard'
-import AdminDashboard from './pages/AdminDashboard'
 import EventDetailPage from './pages/EventDetail'
 import CreateEventPage from './pages/CreateEvent'
 import EditEventPage from './pages/EditEvent'
@@ -32,12 +31,8 @@ function EventsRouteRedirect() {
   return <Navigate to="/dashboard" replace />
 }
 
-// Role-aware event detail renderer
+// Role-aware event detail renderer (always renders inside Dashboard shell)
 function EventDetailRoute() {
-  const { user } = useAuth()
-  if (user?.role === 'admin') {
-    return <AdminDashboard />
-  }
   return <Dashboard />
 }
 
@@ -85,12 +80,12 @@ function App() {
               }
             />
 
-            {/* Protected admin-only dashboard */}
+            {/* Protected admin-only dashboard (merged into Dashboard with admin UI) */}
             <Route
               path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminDashboard />
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />

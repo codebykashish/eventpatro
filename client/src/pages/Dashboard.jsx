@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -25,11 +25,21 @@ import {
   BookMarked,
   Trophy,
   ExternalLink,
+  Eye,
+  Edit,
+  Trash2,
+  Plus,
+  Megaphone,
+  CheckCircle2,
+  AlertCircle,
+  UserPlus,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { fetchEvents, getMyRegistrations } from '../utils/api'
+import { fetchEvents, getMyRegistrations, fetchUsers, fetchAllRegistrations, deleteEvent, getEventRegistrations, deleteUser } from '../utils/api'
 import CampusIllustration from '../components/CampusIllustration'
 import EventDetailPage from './EventDetail'
+import AdminEventsPage from './AdminEventsPage'
+import AdminUsersPage from './AdminUsersPage'
 import './Dashboard.css'
 
 // Categories for the filter sidebar matching the mockup
@@ -116,6 +126,7 @@ const getRemainingDays = (iso) => {
 
 const Dashboard = () => {
   const { user, logout, updateProfile } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const navigate = useNavigate()
   const { id: routeEventId } = useParams()
 
@@ -140,14 +151,14 @@ const Dashboard = () => {
 
   const handleBackFromEvent = () => {
     setSelectedEventId(null)
-    navigate('/dashboard')
+    navigate(isAdmin ? '/admin' : '/dashboard')
     loadData()
   }
 
   const handleTabChange = (tabName) => {
     setSelectedEventId(null)
     setActiveTab(tabName)
-    navigate('/dashboard')
+    navigate(isAdmin ? '/admin' : '/dashboard')
     loadData()
   }
 
@@ -241,27 +252,103 @@ const Dashboard = () => {
   const [registrations, setRegistrations] = useState([])
   const [loading, setLoading] = useState(true)
 
+  // ── Admin-only state ───────────────────────────────────────────────────────
+  const [adminUsers, setAdminUsers] = useState([])
+  const [adminAllRegistrations, setAdminAllRegistrations] = useState([])
+  const [adminDeleteItem, setAdminDeleteItem] = useState(null)
+  const [adminDeleting, setAdminDeleting] = useState(false)
+  const [adminSuccess, setAdminSuccess] = useState('')
+  const [adminError, setAdminError] = useState('')
+  const [adminViewAllEventsModal, setAdminViewAllEventsModal] = useState(false)
+  const [adminViewAllUsersModal, setAdminViewAllUsersModal] = useState(false)
+  const [adminSelectedEventForRegs, setAdminSelectedEventForRegs] = useState(null)
+  const [adminEventRegsList, setAdminEventRegsList] = useState([])
+  const [adminLoadingEventRegs, setAdminLoadingEventRegs] = useState(false)
+
   const dropdownRef = useRef(null)
 
-  // Load events and user registrations
+  // Load events and user registrations (+ admin data when admin)
   const loadData = useCallback(async () => {
     try {
-      const [eventsRes, regsRes] = await Promise.all([
-        fetchEvents({ limit: 50 }),
-        getMyRegistrations().catch(() => ({ registrations: [] })),
-      ])
-      setEvents(eventsRes.events || [])
-      setRegistrations(regsRes.registrations || [])
+      if (isAdmin) {
+        const [eventsRes, usersRes, regsRes] = await Promise.allSettled([
+          fetchEvents({ limit: 100 }),
+          fetchUsers(),
+          fetchAllRegistrations(),
+        ])
+        if (eventsRes.status === 'fulfilled') setEvents(eventsRes.value?.events || [])
+        if (usersRes.status === 'fulfilled') setAdminUsers(usersRes.value?.users || [])
+        if (regsRes.status === 'fulfilled') setAdminAllRegistrations(regsRes.value?.registrations || [])
+      } else {
+        const [eventsRes, regsRes] = await Promise.all([
+          fetchEvents({ limit: 50 }),
+          getMyRegistrations().catch(() => ({ registrations: [] })),
+        ])
+        setEvents(eventsRes.events || [])
+        setRegistrations(regsRes.registrations || [])
+      }
     } catch (err) {
       console.error('Failed to load dashboard data:', err)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [isAdmin])
 
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Admin: open event registrations popup
+  const handleAdminOpenEventRegs = async (ev) => {
+    setAdminSelectedEventForRegs(ev)
+    setAdminLoadingEventRegs(true)
+    try {
+      const data = await getEventRegistrations(ev._id)
+      setAdminEventRegsList(data.registrations || [])
+    } catch {
+      setAdminEventRegsList([])
+    } finally {
+      setAdminLoadingEventRegs(false)
+    }
+  }
+
+  // Admin: delete event
+  const handleAdminDeleteEvent = async () => {
+    if (!adminDeleteItem?._id) return
+    setAdminDeleting(true)
+    try {
+      await deleteEvent(adminDeleteItem._id)
+      setAdminSuccess(`"${adminDeleteItem.title}" deleted.`)
+      setEvents((prev) => prev.filter((ev) => ev._id !== adminDeleteItem._id))
+      setAdminDeleteItem(null)
+      setTimeout(() => setAdminSuccess(''), 3500)
+    } catch (err) {
+      setAdminError(err.message || 'Failed to delete event')
+    } finally {
+      setAdminDeleting(false)
+    }
+  }
+
+  // Admin: delete user state & handler
+  const [adminDeleteUserItem, setAdminDeleteUserItem] = useState(null)
+  const [adminDeletingUser, setAdminDeletingUser] = useState(false)
+
+  const handleAdminDeleteUser = async () => {
+    if (!adminDeleteUserItem) return
+    const uid = adminDeleteUserItem._id || adminDeleteUserItem.id
+    setAdminDeletingUser(true)
+    try {
+      await deleteUser(uid)
+      setAdminSuccess(`User "${adminDeleteUserItem.firstName} ${adminDeleteUserItem.lastName}" deleted.`)
+      setAdminUsers((prev) => prev.filter((u) => (u._id || u.id) !== uid))
+      setAdminDeleteUserItem(null)
+      setTimeout(() => setAdminSuccess(''), 3500)
+    } catch (err) {
+      setAdminError(err.message || 'Failed to delete user')
+    } finally {
+      setAdminDeletingUser(false)
+    }
+  }
 
   // Notification popover state & ref
   const [showNotifications, setShowNotifications] = useState(false)
@@ -278,11 +365,72 @@ const Dashboard = () => {
     }
   }
 
-  // Compute smart notification reminders (newly added programs, upcoming registered events)
+  // Compute smart notification reminders — different for admin vs student
   const reminders = (() => {
     const list = []
     const now = new Date()
 
+    if (isAdmin) {
+      // 1. New users joined in last 7 days
+      const newUsers = adminUsers.filter(u => {
+        if (!u.createdAt) return false
+        return (now - new Date(u.createdAt)) / 86400000 <= 7
+      })
+      if (newUsers.length > 0) {
+        list.push({
+          id: 'admin-new-users',
+          type: 'admin_users',
+          title: `${newUsers.length} new user${newUsers.length > 1 ? 's' : ''} joined`,
+          message: `${newUsers.map(u => u.firstName).join(', ')} joined SSRC Events recently.`,
+          time: 'New',
+          tag: 'Users',
+        })
+      }
+
+      // 2. New events created in last 7 days
+      const newEvents = events.filter(e => {
+        if (!e.createdAt) return false
+        return (now - new Date(e.createdAt)) / 86400000 <= 7
+      })
+      if (newEvents.length > 0) {
+        list.push({
+          id: 'admin-new-events',
+          type: 'admin_events',
+          title: `${newEvents.length} new event${newEvents.length > 1 ? 's' : ''} created`,
+          message: `Recent: ${newEvents.slice(0,3).map(e => e.title).join(', ')}.`,
+          time: 'New',
+          tag: 'Events',
+        })
+      }
+
+      // 3. High-registration events (>= 10)
+      const hotEvents = events.filter(e => (e.registeredUsers?.length || 0) >= 10).slice(0, 2)
+      hotEvents.forEach(e => {
+        list.push({
+          id: `admin-hot-${e._id}`,
+          type: 'admin_hot',
+          title: `High interest: ${e.title}`,
+          message: `${e.registeredUsers?.length} students registered. Consider increasing capacity.`,
+          eventId: e._id,
+          time: '',
+          tag: 'Trending',
+        })
+      })
+
+      if (list.length === 0) {
+        list.push({
+          id: 'admin-all-clear',
+          type: 'info',
+          title: 'All systems good',
+          message: 'No new users or events to review right now.',
+          time: '',
+          tag: 'Notice',
+        })
+      }
+      return list
+    }
+
+    // --- STUDENT notifications ---
     // 1. Recently enrolled events (enrolled in last 48 hours)
     registrations.forEach((reg) => {
       const evt = reg.event || {}
@@ -518,15 +666,28 @@ const Dashboard = () => {
     logout()
   }
 
+  // ── Admin derived values ────────────────────────────────────────────────
+  const adminTotalRegistrations = useMemo(
+    () => events.reduce((s, ev) => s + (ev.registeredUsers?.length || 0), 0),
+    [events]
+  )
+  const adminDashboardEvents = useMemo(() => events.slice(0, 8), [events])
+  const adminDashboardUsers = useMemo(() => adminUsers.slice(0, 8), [adminUsers])
+
+  const formatAdminDate = (iso) => {
+    if (!iso) return ''
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
   return (
     <div className="portal-layout">
-      {/* ── Hover-Expandable Left Sidebar (Always Shows Logo) ───────────── */}
+      {/* ── Hover-Expandable Left Sidebar ─────────────────────────────────── */}
       <aside
         className={`portal-sidebar ${isHovered ? 'expanded' : ''}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Sidebar Brand Header with always visible logo */}
+        {/* Brand Header */}
         <div
           className="portal-sidebar-header"
           onClick={() => handleTabChange('dashboard')}
@@ -540,7 +701,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Sidebar Navigation */}
+        {/* Navigation Links */}
         <nav className="portal-nav-menu">
           <button
             type="button"
@@ -554,40 +715,107 @@ const Dashboard = () => {
 
           <button
             type="button"
-            onClick={() => handleTabChange('events')}
-            className={`portal-nav-link ${!selectedEventId && activeTab === 'events' ? 'active' : ''}`}
+            onClick={() => handleTabChange(isAdmin ? 'adminEvents' : 'events')}
+            className={`portal-nav-link ${!selectedEventId && (activeTab === 'events' || activeTab === 'adminEvents') ? 'active' : ''}`}
             title="Events"
           >
             <Calendar size={20} className="nav-icon" />
             <span className="nav-label">Events</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabChange('profile')}
-            className={`portal-nav-link ${!selectedEventId && activeTab === 'profile' ? 'active' : ''}`}
-            title="Profile"
-          >
-            <User size={20} className="nav-icon" />
-            <span className="nav-label">Profile</span>
-          </button>
+          {isAdmin ? (
+            <>
+              <Link
+                to="/admin/events/new"
+                className="portal-nav-link"
+                title="Create Event"
+              >
+                <Plus size={20} className="nav-icon" />
+                <span className="nav-label">Create Event</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => handleTabChange('adminUsers')}
+                className={`portal-nav-link ${activeTab === 'adminUsers' ? 'active' : ''}`}
+                title="Users"
+              >
+                <Users size={20} className="nav-icon" />
+                <span className="nav-label">Users</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleTabChange('dashboard')
+                  setTimeout(() => {
+                    const el = document.getElementById('admin-registrations-section')
+                    if (el) el.scrollIntoView({ behavior: 'smooth' })
+                  }, 100)
+                }}
+                className="portal-nav-link"
+                title="Attendance"
+              >
+                <CheckCircle2 size={20} className="nav-icon" />
+                <span className="nav-label">Attendance</span>
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => handleTabChange('profile')}
+              className={`portal-nav-link ${!selectedEventId && activeTab === 'profile' ? 'active' : ''}`}
+              title="Profile"
+            >
+              <User size={20} className="nav-icon" />
+              <span className="nav-label">Profile</span>
+            </button>
+          )}
         </nav>
 
-        {/* Sidebar Footer with campus architecture watermark & logout */}
+        {/* Sidebar Footer */}
         <div className="portal-sidebar-footer">
-          <div className="portal-sidebar-watermark" aria-hidden="true">
-            <CampusIllustration />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowLogoutModal(true)}
-            className="portal-sidebar-logout"
-            title="Logout"
-          >
-            <LogOut size={18} className="nav-icon" />
-            <span>Logout</span>
-          </button>
+          {isAdmin ? (
+            /* Admin: profile badge card + dedicated logout */
+            <>
+              <div className="admin-sidebar-profile-card">
+                <div className="admin-sidebar-avatar">
+                  {getInitials(user?.firstName, user?.lastName)}
+                </div>
+                <div className="admin-sidebar-info">
+                  <span className="admin-sidebar-name">
+                    {user?.firstName} {user?.lastName}
+                  </span>
+                  <span className="admin-sidebar-email">{user?.email}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="admin-sidebar-logout-btn"
+                title="Logout"
+              >
+                <LogOut size={17} className="nav-icon" />
+                <span>Logout</span>
+              </button>
+            </>
+          ) : (
+            /* Student: campus watermark + logout */
+            <>
+              <div className="portal-sidebar-watermark" aria-hidden="true">
+                <CampusIllustration />
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(true)}
+                className="portal-sidebar-logout"
+                title="Logout"
+              >
+                <LogOut size={18} className="nav-icon" />
+                <span>Logout</span>
+              </button>
+            </>
+          )}
         </div>
       </aside>
 
@@ -748,7 +976,307 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              {activeTab === 'dashboard' && (
+              {/* ══════════════ ADMIN DASHBOARD TAB ══════════════ */}
+              {isAdmin && activeTab === 'dashboard' && (
+                <div className="admin-content-container">
+                  {/* Feedback */}
+                  {adminError && (
+                    <div style={{ background:'#fef2f2', border:'1px solid #fecaca', color:'#991b1b', padding:'12px 18px', borderRadius:'12px', display:'flex', alignItems:'center', gap:'10px', fontSize:'13px' }}>
+                      <AlertCircle size={16} /><span>{adminError}</span>
+                    </div>
+                  )}
+                  {adminSuccess && (
+                    <div style={{ background:'#f0fdf4', border:'1px solid #bbf7d0', color:'#166534', padding:'12px 18px', borderRadius:'12px', display:'flex', alignItems:'center', gap:'10px', fontSize:'13px' }}>
+                      <CheckCircle2 size={16} /><span>{adminSuccess}</span>
+                    </div>
+                  )}
+
+                  {/* Hero */}
+                  <section className="admin-hero-section">
+                    <h1>Welcome back, {user?.firstName}!</h1>
+                    <p>Here's an overview of your SSRC Events system.</p>
+                  </section>
+
+                  {/* 3 Metrics */}
+                  <section className="admin-metrics-row">
+                    <div className="admin-metric-card">
+                      <div className="admin-metric-left">
+                        <div className="admin-metric-icon-circle"><Calendar size={22} /></div>
+                        <div className="admin-metric-values">
+                          <span className="admin-metric-num">{events.length}</span>
+                          <span className="admin-metric-label">Total Events</span>
+                        </div>
+                      </div>
+                      <button type="button" className="admin-metric-arrow-btn" onClick={() => setAdminViewAllEventsModal(true)}><ArrowRight size={16} /></button>
+                    </div>
+                    <div className="admin-metric-card">
+                      <div className="admin-metric-left">
+                        <div className="admin-metric-icon-circle"><Users size={22} /></div>
+                        <div className="admin-metric-values">
+                          <span className="admin-metric-num">{adminUsers.length}</span>
+                          <span className="admin-metric-label">Total Users</span>
+                        </div>
+                      </div>
+                      <button type="button" className="admin-metric-arrow-btn" onClick={() => setAdminViewAllUsersModal(true)}><ArrowRight size={16} /></button>
+                    </div>
+                    <div className="admin-metric-card">
+                      <div className="admin-metric-left">
+                        <div className="admin-metric-icon-circle"><CheckCircle2 size={22} /></div>
+                        <div className="admin-metric-values">
+                          <span className="admin-metric-num">{adminTotalRegistrations}</span>
+                          <span className="admin-metric-label">Registrations So Far</span>
+                        </div>
+                      </div>
+                      <button type="button" className="admin-metric-arrow-btn" onClick={() => handleTabChange('adminEvents')} title="View Events"><ArrowRight size={16} /></button>
+                    </div>
+                  </section>
+
+                  {/* 2-Column: Events + Users */}
+                  <div className="admin-split-grid">
+                    {/* Event Management */}
+                    <div className="admin-panel-card">
+                      <div className="admin-panel-header">
+                        <div className="admin-panel-title-wrap">
+                          <Calendar size={18} className="admin-panel-title-icon" />
+                          <h2>Event Management</h2>
+                        </div>
+                        <button type="button" className="admin-view-all-btn" onClick={() => setAdminViewAllEventsModal(true)}>
+                          <span>View All</span><ArrowRight size={14} />
+                        </button>
+                      </div>
+                      {loading ? (
+                        <div style={{ padding:'36px', textAlign:'center', color:'#64748b' }}>Loading events...</div>
+                      ) : adminDashboardEvents.length === 0 ? (
+                        <div style={{ padding:'36px', textAlign:'center', color:'#64748b' }}>No events found.</div>
+                      ) : (
+                        <div className="admin-events-list">
+                          {adminDashboardEvents.map((ev) => (
+                            <div key={ev._id} className="admin-event-row">
+                              <img src={ev.coverImage || '/campus_hero_bg.jpg'} alt={ev.title} className="admin-event-thumb"
+                                onError={(e) => { e.currentTarget.src = '/campus_hero_bg.jpg' }} />
+                              <div className="admin-event-details">
+                                <span className="admin-event-title" title={ev.title}>{ev.title}</span>
+                                <div className="admin-event-meta-row">
+                                  <span className="admin-event-meta-item"><Calendar size={13} className="admin-event-meta-icon" />{formatAdminDate(ev.date)}</span>
+                                  <span className="admin-event-meta-item"><MapPin size={13} className="admin-event-meta-icon" />{ev.location || 'Campus'}</span>
+                                </div>
+                              </div>
+                              <div className="admin-event-actions">
+                                <span className="admin-reg-badge-pill">{ev.registeredUsers?.length || 0} registered</span>
+                                <Link to={`/events/${ev._id}`} className="admin-action-icon-btn" title="View Details"><Eye size={15} /></Link>
+                                <Link to={`/admin/events/${ev._id}/edit`} className="admin-action-icon-btn" title="Edit"><Edit size={15} /></Link>
+                                <button type="button" className="admin-action-icon-btn admin-action-delete-btn" title="Delete" onClick={() => setAdminDeleteItem(ev)}><Trash2 size={15} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="admin-card-footer-info">Showing {adminDashboardEvents.length} of {events.length} events</div>
+                    </div>
+
+                    {/* Users Table */}
+                    <div className="admin-panel-card">
+                      <div className="admin-panel-header">
+                        <div className="admin-panel-title-wrap">
+                          <Users size={18} className="admin-panel-title-icon" />
+                          <h2>Users</h2>
+                        </div>
+                        <button type="button" className="admin-view-all-btn" onClick={() => setAdminViewAllUsersModal(true)}>
+                          <span>View All</span><ArrowRight size={14} />
+                        </button>
+                      </div>
+                      {loading ? (
+                        <div style={{ padding:'36px', textAlign:'center', color:'#64748b' }}>Loading users...</div>
+                      ) : adminDashboardUsers.length === 0 ? (
+                        <div style={{ padding:'36px', textAlign:'center', color:'#64748b' }}>No users yet.</div>
+                      ) : (
+                        <div className="admin-users-table-wrap">
+                          <table className="admin-users-table">
+                            <thead>
+                              <tr><th>Name</th><th>Email</th><th>Joined</th><th>Regs</th><th>Action</th></tr>
+                            </thead>
+                            <tbody>
+                              {adminDashboardUsers.map((u) => (
+                                <tr key={u._id || u.id}>
+                                  <td className="admin-user-cell-name">{u.firstName} {u.lastName}</td>
+                                  <td className="admin-user-cell-email">{u.email}</td>
+                                  <td className="admin-user-cell-joined">{formatAdminDate(u.createdAt)}</td>
+                                  <td className="admin-user-reg-count">{u.registrationsCount ?? 0}</td>
+                                  <td>
+                                    <button
+                                      type="button"
+                                      className="admin-action-icon-btn admin-action-delete-btn"
+                                      title="Delete User"
+                                      onClick={() => setAdminDeleteUserItem(u)}
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                      <div className="admin-card-footer-info">Showing {adminDashboardUsers.length} of {adminUsers.length} users</div>
+                    </div>
+                  </div>
+
+
+                  {/* Quick Actions Banner */}
+                  <section className="admin-quick-actions-banner">
+                    <div className="admin-quick-actions-left">
+                      <div className="admin-quick-actions-icon"><Megaphone size={22} /></div>
+                      <div className="admin-quick-actions-text">
+                        <h3>Quick Actions</h3>
+                        <p>Create a new event, manage registrations or view attendance records.</p>
+                      </div>
+                    </div>
+                    <Link to="/admin/events/new" className="admin-create-event-btn">
+                      <Plus size={18} /><span>Create Event</span>
+                    </Link>
+                  </section>
+
+                  {/* ── Admin Modals ── */}
+                  {/* View All Events */}
+                  {adminViewAllEventsModal && (
+                    <div className="admin-modal-overlay" onClick={() => setAdminViewAllEventsModal(false)}>
+                      <div className="admin-modal-box admin-modal-box-large" onClick={(e) => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                          <h3>All Events ({events.length})</h3>
+                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminViewAllEventsModal(false)}><X size={18} /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                          <div className="admin-events-list">
+                            {events.map((ev) => (
+                              <div key={ev._id} className="admin-event-row">
+                                <img src={ev.coverImage || '/campus_hero_bg.jpg'} alt={ev.title} className="admin-event-thumb" />
+                                <div className="admin-event-details">
+                                  <span className="admin-event-title">{ev.title}</span>
+                                  <div className="admin-event-meta-row"><span>{formatAdminDate(ev.date)}</span><span>•</span><span>{ev.location}</span></div>
+                                </div>
+                                <div className="admin-event-actions">
+                                  <span className="admin-reg-badge-pill">{ev.registeredUsers?.length || 0} reg</span>
+                                  <Link to={`/events/${ev._id}`} className="admin-action-icon-btn" onClick={() => setAdminViewAllEventsModal(false)}><Eye size={15} /></Link>
+                                  <Link to={`/admin/events/${ev._id}/edit`} className="admin-action-icon-btn" onClick={() => setAdminViewAllEventsModal(false)}><Edit size={15} /></Link>
+                                  <button type="button" className="admin-action-icon-btn admin-action-delete-btn" onClick={() => { setAdminViewAllEventsModal(false); setAdminDeleteItem(ev) }}><Trash2 size={15} /></button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* View All Users */}
+                  {adminViewAllUsersModal && (
+                    <div className="admin-modal-overlay" onClick={() => setAdminViewAllUsersModal(false)}>
+                      <div className="admin-modal-box admin-modal-box-large" onClick={(e) => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                          <h3>All Users ({adminUsers.length})</h3>
+                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminViewAllUsersModal(false)}><X size={18} /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                          <div className="admin-users-table-wrap">
+                            <table className="admin-users-table">
+                              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Regs</th></tr></thead>
+                              <tbody>
+                                {adminUsers.map((u) => (
+                                  <tr key={u._id || u.id}>
+                                    <td className="admin-user-cell-name">{u.firstName} {u.lastName}</td>
+                                    <td className="admin-user-cell-email">{u.email}</td>
+                                    <td style={{ textTransform:'capitalize', color:'#64748b' }}>{u.role}</td>
+                                    <td className="admin-user-cell-joined">{formatAdminDate(u.createdAt)}</td>
+                                    <td className="admin-user-reg-count">{u.registrationsCount ?? 0}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Event Registrations popup */}
+                  {adminSelectedEventForRegs && (
+                    <div className="admin-modal-overlay" onClick={() => setAdminSelectedEventForRegs(null)}>
+                      <div className="admin-modal-box admin-modal-box-large" onClick={(e) => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                          <div>
+                            <h3>Registrations: {adminSelectedEventForRegs.title}</h3>
+                            <span style={{ fontSize:'12px', color:'#64748b' }}>Total: {adminEventRegsList.length}</span>
+                          </div>
+                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminSelectedEventForRegs(null)}><X size={18} /></button>
+                        </div>
+                        <div className="admin-modal-body">
+                          {adminLoadingEventRegs ? (
+                            <p style={{ textAlign:'center', padding:'24px', color:'#64748b' }}>Loading...</p>
+                          ) : adminEventRegsList.length === 0 ? (
+                            <p style={{ textAlign:'center', padding:'24px', color:'#64748b' }}>No registrations yet.</p>
+                          ) : (
+                            <table className="admin-users-table">
+                              <thead><tr><th>Student</th><th>Email</th><th>Status</th><th>Applied</th></tr></thead>
+                              <tbody>
+                                {adminEventRegsList.map((reg) => (
+                                  <tr key={reg._id}>
+                                    <td className="admin-user-cell-name">{reg.student?.firstName} {reg.student?.lastName}</td>
+                                    <td className="admin-user-cell-email">{reg.student?.email}</td>
+                                    <td><span style={{ padding:'3px 8px', borderRadius:'999px', fontSize:'11px', fontWeight:'700', background: reg.status==='confirmed'?'#dcfce7': reg.status==='attended'?'#e0e7ff':'#f3f4f6', color: reg.status==='confirmed'?'#15803d': reg.status==='attended'?'#3730a3':'#374151', textTransform:'capitalize' }}>{reg.status}</span></td>
+                                    <td className="admin-user-cell-joined">{formatAdminDate(reg.createdAt)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delete Event Confirm */}
+                  {adminDeleteItem && (
+                    <div className="admin-modal-overlay" onClick={() => !adminDeleting && setAdminDeleteItem(null)}>
+                      <div className="admin-modal-box" onClick={(e) => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                          <h3>Delete Event</h3>
+                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminDeleteItem(null)} disabled={adminDeleting}><X size={18} /></button>
+                        </div>
+                        <p style={{ fontSize:'14px', color:'#475569', margin:'4px 0 16px' }}>Delete <strong>"{adminDeleteItem.title}"</strong>? This cannot be undone.</p>
+                        <div className="admin-modal-actions">
+                          <button type="button" className="admin-btn-cancel" onClick={() => setAdminDeleteItem(null)} disabled={adminDeleting}>Cancel</button>
+                          <button type="button" className="admin-btn-confirm-delete" onClick={handleAdminDeleteEvent} disabled={adminDeleting}>{adminDeleting ? 'Deleting...' : 'Yes, Delete'}</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Delete User Confirm */}
+                  {adminDeleteUserItem && (
+                    <div className="admin-modal-overlay" onClick={() => !adminDeletingUser && setAdminDeleteUserItem(null)}>
+                      <div className="admin-modal-box" onClick={(e) => e.stopPropagation()}>
+                        <div className="admin-modal-header">
+                          <h3>Delete User</h3>
+                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminDeleteUserItem(null)} disabled={adminDeletingUser}><X size={18} /></button>
+                        </div>
+                        <p style={{ fontSize:'14px', color:'#475569', margin:'4px 0 16px' }}>
+                          Are you sure you want to delete user <strong>"{adminDeleteUserItem.firstName} {adminDeleteUserItem.lastName}"</strong> ({adminDeleteUserItem.email})? This will also remove their event registrations.
+                        </p>
+                        <div className="admin-modal-actions">
+                          <button type="button" className="admin-btn-cancel" onClick={() => setAdminDeleteUserItem(null)} disabled={adminDeletingUser}>Cancel</button>
+                          <button type="button" className="admin-btn-confirm-delete" onClick={handleAdminDeleteUser} disabled={adminDeletingUser}>
+                            {adminDeletingUser ? 'Deleting...' : 'Yes, Delete User'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ══════════════ STUDENT DASHBOARD TAB ══════════════ */}
+              {!isAdmin && activeTab === 'dashboard' && (
             <div className="portal-dashboard-body">
               {/* Left Column: Greeting, Metrics, Events */}
               <div className="portal-dashboard-left">
@@ -937,7 +1465,18 @@ const Dashboard = () => {
             </div>
           )}
 
-          {activeTab === 'events' && (
+          {/* ══ ADMIN Events Tab ══ */}
+          {isAdmin && activeTab === 'adminEvents' && (
+            <AdminEventsPage />
+          )}
+
+          {/* ══ ADMIN Users Tab ══ */}
+          {isAdmin && activeTab === 'adminUsers' && (
+            <AdminUsersPage users={adminUsers} allRegistrations={adminAllRegistrations} />
+          )}
+
+          {/* ══ STUDENT Events (Explore) Tab ══ */}
+          {!isAdmin && activeTab === 'events' && (
             <section className="explore-events-section">
               {/* Top Header Row matching mockup */}
               <div className="explore-events-header">

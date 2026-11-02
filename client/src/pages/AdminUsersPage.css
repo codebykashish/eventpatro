@@ -1,0 +1,325 @@
+/* ── Admin Users Page ────────────────────────────────────────────────────── */
+.aup-root {
+  padding: 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  background: #f8fafc;
+  min-height: 100%;
+}
+
+.aup-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.aup-page-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0 0 3px;
+}
+
+.aup-page-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.aup-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.aup-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.aup-search-input {
+  padding: 9px 32px 9px 30px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13.5px;
+  background: #fff;
+  color: #1e293b;
+  outline: none;
+  width: 240px;
+  transition: border-color 0.15s;
+}
+.aup-search-input:focus { border-color: #881421; }
+
+.aup-search-clear {
+  position: absolute;
+  right: 9px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  padding: 2px;
+}
+
+/* Table card */
+.aup-table-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.aup-table-scroll {
+  overflow-x: auto;
+}
+
+.aup-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 640px;
+}
+
+.aup-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 11px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+.aup-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f8fafc;
+  vertical-align: middle;
+}
+.aup-table tbody tr:last-child td { border-bottom: none; }
+.aup-table tbody tr:hover td { background: #fafbff; }
+
+.aup-idx {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+  width: 36px;
+}
+
+.aup-name {
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.aup-email {
+  color: #475569;
+  font-size: 13px;
+}
+
+.aup-joined {
+  color: #94a3b8;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.aup-count-btn {
+  min-width: 40px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #1e293b;
+  background: transparent;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.aup-count-btn:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.aup-count-btn--attended {
+  border-color: #881421;
+  color: #881421;
+}
+.aup-count-btn--attended:hover {
+  background: #881421;
+  color: #fff;
+}
+
+.aup-delete-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #fee2e2;
+  background: #fef2f2;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.aup-delete-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  transform: scale(1.05);
+}
+
+.aup-empty {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 13.5px;
+}
+
+.aup-table-footer {
+  padding: 10px 16px;
+  font-size: 12px;
+  color: #94a3b8;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+}
+
+/* Popup overlay */
+.aup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15,23,42,0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 24px;
+}
+
+.aup-popup {
+  background: #fff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 680px;
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+  max-height: 82vh;
+  overflow-y: auto;
+}
+
+.aup-popup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.aup-popup-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 3px;
+}
+
+.aup-popup-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.aup-popup-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.aup-popup-close:hover { background: #fee2e2; color: #dc2626; }
+
+.aup-popup-body { flex: 1; overflow-y: auto; }
+
+.aup-popup-empty {
+  text-align: center;
+  padding: 28px;
+  color: #94a3b8;
+  font-size: 13.5px;
+}
+
+.aup-popup-scroll-x { overflow-x: auto; }
+
+.aup-event-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 480px;
+}
+
+.aup-event-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 8px 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #f1f5f9;
+  white-space: nowrap;
+}
+
+.aup-event-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f8fafc;
+  vertical-align: middle;
+}
+.aup-event-table tr:last-child td { border-bottom: none; }
+.aup-event-table tbody tr:hover td { background: #fafbff; }
+
+.aup-ev-name { font-weight: 700; color: #1e293b; }
+.aup-ev-date { color: #94a3b8; font-size: 12px; white-space: nowrap; }
+
+.aup-status {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.aup-status-confirmed { background: #dcfce7; color: #15803d; }
+.aup-status-attended  { background: #e0e7ff; color: #3730a3; }
+.aup-status-pending   { background: #fef9c3; color: #92400e; }
+.aup-status-selected  { background: #dbeafe; color: #1d4ed8; }
+.aup-status-rejected  { background: #fee2e2; color: #991b1b; }
+
+@media (max-width: 640px) {
+  .aup-root { padding: 16px; }
+  .aup-search-input { width: 100%; }
+  .aup-page-header { flex-direction: column; align-items: flex-start; }
+}

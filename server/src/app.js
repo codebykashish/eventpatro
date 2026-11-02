@@ -53,6 +53,13 @@ app.use('/api/events', eventRoutes);
 const registrationRoutes = require('./routes/registration.routes');
 app.use('/api/registrations', registrationRoutes);
 
+// Serve uploaded files statically
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Upload routes (file upload via multer)
+const uploadRoutes = require('./routes/upload.routes');
+app.use('/api/upload', uploadRoutes);
 
 // --- 404 handler ---
 // If a request reaches this point, no route above matched it.

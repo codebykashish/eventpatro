@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { createEvent } from '../utils/api'
-import { AlertCircle, CheckCircle2, Settings } from 'lucide-react'
+import { createEvent, uploadImage } from '../utils/api'
+import { AlertCircle, CheckCircle2, Settings, Upload, Image as ImageIcon, Trash2 } from 'lucide-react'
 import FormBuilder from '../components/FormBuilder'
 import './EventForm.css'
 
@@ -49,6 +49,22 @@ const CreateEventPage = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    setUploadingImage(true)
+    try {
+      const data = await uploadImage(file)
+      setForm((prev) => ({ ...prev, coverImage: data.url }))
+    } catch (err) {
+      setError(err.message || 'Failed to upload image')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -220,17 +236,79 @@ const CreateEventPage = () => {
             </div>
           </div>
 
-          {/* Cover image URL */}
+          {/* Event Cover Image Upload */}
           <div className="form-field">
-            <label htmlFor="ef-coverImage">Cover Image URL (optional)</label>
-            <input
-              id="ef-coverImage"
-              name="coverImage"
-              type="url"
-              value={form.coverImage}
-              onChange={handleChange}
-              placeholder="https://..."
-            />
+            <label>Cover Image (Upload from Device or paste URL)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {/* File upload button */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <label
+                  htmlFor="ef-fileUpload"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    background: '#881421',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: uploadingImage ? 'not-allowed' : 'pointer',
+                    opacity: uploadingImage ? 0.7 : 1,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  <Upload size={16} />
+                  <span>{uploadingImage ? 'Uploading image...' : 'Upload from Device'}</span>
+                </label>
+                <input
+                  id="ef-fileUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  disabled={uploadingImage}
+                  style={{ display: 'none' }}
+                />
+
+                <span style={{ fontSize: '13px', color: '#64748b' }}>or paste an online URL:</span>
+                <input
+                  id="ef-coverImage"
+                  name="coverImage"
+                  type="text"
+                  value={form.coverImage}
+                  onChange={handleChange}
+                  placeholder="https://... or /uploads/..."
+                  style={{ flex: 1, minWidth: '200px' }}
+                />
+              </div>
+
+              {/* Image preview */}
+              {form.coverImage && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', padding: '10px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <img
+                    src={form.coverImage}
+                    alt="Cover preview"
+                    style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '6px' }}
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {form.coverImage}
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#16a34a' }}>Image selected</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, coverImage: '' }))}
+                    style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px' }}
+                    title="Remove image"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* ── Logistics & Perks ── */}

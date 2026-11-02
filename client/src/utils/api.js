@@ -90,3 +90,27 @@ export const fetchUsers = () => request('/auth/users')
 /** Admin: fetch all registrations across events */
 export const fetchAllRegistrations = () => request('/registrations/all')
 
+/** Admin: delete user by ID */
+export const deleteUser = (userId) => request(`/auth/users/${userId}`, { method: 'DELETE' })
+
+/** Upload image file to server */
+export const uploadImage = async (file) => {
+  const token = localStorage.getItem('token')
+  const formData = new FormData()
+  formData.append('image', file)
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  })
+
+  const data = await res.json()
+  if (!res.ok) {
+    throw new Error(data.message || 'Image upload failed')
+  }
+  return data
+}
+

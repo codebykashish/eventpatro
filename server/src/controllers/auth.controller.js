@@ -371,6 +371,49 @@ const getAllUsers = async (req, res, next) => {
   }
 }
 
+// @desc    Admin: Delete a user by ID
+// @route   DELETE /api/auth/users/:id
+// @access  Private (Admin only)
+const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    // Prevent deleting oneself
+    if (req.user._id.toString() === id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own admin account.',
+      })
+    }
+
+    const user = await User.findById(id)
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      })
+    }
+
+    // Delete user's registrations as well to maintain DB consistency
+    await Registration.deleteMany({ student: id })
+
+    // Also remove from events' registeredUsers arrays
+    await require('../models/Event').updateMany(
+      { registeredUsers: id },
+      { $pull: { registeredUsers: id } }
+    )
+
+    await User.findByIdAndDelete(id)
+
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully.',
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   signup,
   verifyOtp,
@@ -379,4 +422,5 @@ module.exports = {
   getMe,
   updateProfile,
   getAllUsers,
+  deleteUser,
 }

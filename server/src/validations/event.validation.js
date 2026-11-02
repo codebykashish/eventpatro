@@ -49,7 +49,11 @@ const createEventSchema = z.object({
     .optional()
     .default(null),
 
-  coverImage: z.string().url('Cover image must be a valid URL').nullable().optional().default(null),
+  coverImage: z.union([
+    z.string().url('Cover image must be a valid URL'),
+    z.string().regex(/^\/uploads\/.+/, 'Cover image path must be valid'),
+    z.string().max(500),
+  ]).nullable().optional().default(null),
 
   // --- Phase 3 fields ---
   registrationType: z.enum(['open', 'application']).default('open'),
