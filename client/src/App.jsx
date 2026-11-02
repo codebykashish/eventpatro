@@ -90,12 +90,12 @@ function App() {
               }
             />
 
-            {/* Protected admin-only: create event */}
+            {/* Protected admin-only: create event (rendered inside Dashboard shell) */}
             <Route
               path="/admin/events/new"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
-                  <CreateEventPage />
+                  <Dashboard defaultTab="adminCreateEvent" />
                 </ProtectedRoute>
               }
             />

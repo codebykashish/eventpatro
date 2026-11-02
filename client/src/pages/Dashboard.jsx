@@ -40,6 +40,7 @@ import CampusIllustration from '../components/CampusIllustration'
 import EventDetailPage from './EventDetail'
 import AdminEventsPage from './AdminEventsPage'
 import AdminUsersPage from './AdminUsersPage'
+import CreateEventPage from './CreateEvent'
 import './Dashboard.css'
 
 // Categories for the filter sidebar matching the mockup
@@ -124,7 +125,7 @@ const getRemainingDays = (iso) => {
   return `${diffDays} days left`
 }
 
-const Dashboard = () => {
+const Dashboard = ({ defaultTab = 'dashboard' }) => {
   const { user, logout, updateProfile } = useAuth()
   const isAdmin = user?.role === 'admin'
   const navigate = useNavigate()
@@ -163,7 +164,13 @@ const Dashboard = () => {
   }
 
   // Tab & UI state
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState(defaultTab)
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab)
+    }
+  }, [defaultTab])
   const [searchQuery, setSearchQuery] = useState('')
   const [isHovered, setIsHovered] = useState(false)
   const [showUserDropdown, setShowUserDropdown] = useState(false)
@@ -725,14 +732,15 @@ const Dashboard = () => {
 
           {isAdmin ? (
             <>
-              <Link
-                to="/admin/events/new"
-                className="portal-nav-link"
+              <button
+                type="button"
+                onClick={() => handleTabChange('adminCreateEvent')}
+                className={`portal-nav-link ${activeTab === 'adminCreateEvent' ? 'active' : ''}`}
                 title="Create Event"
               >
                 <Plus size={20} className="nav-icon" />
                 <span className="nav-label">Create Event</span>
-              </Link>
+              </button>
 
               <button
                 type="button"
@@ -1132,9 +1140,13 @@ const Dashboard = () => {
                         <p>Create a new event, manage registrations or view attendance records.</p>
                       </div>
                     </div>
-                    <Link to="/admin/events/new" className="admin-create-event-btn">
+                    <button
+                      type="button"
+                      className="admin-create-event-btn"
+                      onClick={() => handleTabChange('adminCreateEvent')}
+                    >
                       <Plus size={18} /><span>Create Event</span>
-                    </Link>
+                    </button>
                   </section>
 
                   {/* ── Admin Modals ── */}
@@ -1473,6 +1485,13 @@ const Dashboard = () => {
           {/* ══ ADMIN Users Tab ══ */}
           {isAdmin && activeTab === 'adminUsers' && (
             <AdminUsersPage users={adminUsers} allRegistrations={adminAllRegistrations} />
+          )}
+
+          {/* ══ ADMIN Create Event Tab ══ */}
+          {isAdmin && activeTab === 'adminCreateEvent' && (
+            <div style={{ padding: '8px 12px' }}>
+              <CreateEventPage />
+            </div>
           )}
 
           {/* ══ STUDENT Events (Explore) Tab ══ */}

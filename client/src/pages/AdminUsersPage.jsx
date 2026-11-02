@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Search, Trash2 } from 'lucide-react'
 import { deleteUser } from '../utils/api'
 import './AdminUsersPage.css'
@@ -15,8 +15,8 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
 
-  // Sync userList if parent users changes
-  useState(() => {
+  // Sync userList whenever parent users prop changes
+  useEffect(() => {
     setUserList(users)
   }, [users])
 
@@ -26,12 +26,12 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
 
   const handleDelete = async () => {
     if (!userToDelete) return
-    const uid = userToDelete._id || userToDelete.id
+    const uid = String(userToDelete._id || userToDelete.id)
     setDeleting(true)
     setDeleteError('')
     try {
       await deleteUser(uid)
-      setUserList(prev => prev.filter(u => (u._id || u.id) !== uid))
+      setUserList(prev => prev.filter(u => String(u._id || u.id) !== uid))
       if (onUserDeleted) onUserDeleted(uid)
       setUserToDelete(null)
     } catch (err) {
@@ -54,8 +54,10 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
   const userStats = useMemo(() => {
     const map = {}
     allRegistrations.forEach(reg => {
-      const uid = typeof reg.student === 'object' ? reg.student?._id : reg.student
-      if (!uid) return
+      if (!reg || reg.status === 'cancelled') return
+      const rawId = typeof reg.student === 'object' ? (reg.student?._id || reg.student?.id) : reg.student
+      if (!rawId) return
+      const uid = String(rawId)
       if (!map[uid]) map[uid] = { registered: [], attended: [] }
       map[uid].registered.push(reg)
       if (reg.status === 'attended') {
@@ -66,7 +68,7 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
   }, [allRegistrations])
 
   const openPopup = (u, type) => {
-    const uid = u._id || u.id
+    const uid = String(u._id || u.id)
     const regs = userStats[uid] || { registered: [], attended: [] }
     const list = type === 'attended' ? regs.attended : regs.registered
     setPopupEvents(list)
@@ -115,8 +117,9 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
                   <td colSpan={7} className="aup-empty">No users found.</td>
                 </tr>
               ) : filteredUsers.map((u, idx) => {
-                const uid = u._id || u.id
+                const uid = String(u._id || u.id)
                 const stats = userStats[uid] || { registered: [], attended: [] }
+                const regCount = stats.registered.length || u.registrationsCount || 0
                 return (
                   <tr key={uid}>
                     <td className="aup-idx">{idx + 1}</td>
@@ -128,7 +131,7 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], onUs
                         onClick={() => openPopup(u, 'registered')}
                         title="View registered events"
                       >
-                        {stats.registered.length}
+                        {regCount}
                       </button>
                     </td>
                     <td>

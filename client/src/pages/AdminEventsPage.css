@@ -64,8 +64,8 @@
 /* Body layout */
 .aep-body {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 24px;
+  grid-template-columns: 270px 1fr;
+  gap: 28px;
   align-items: start;
 }
 
@@ -73,37 +73,36 @@
 .aep-filter-panel {
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px 18px;
+  border-radius: 18px;
+  padding: 24px 22px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   position: sticky;
   top: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
 .aep-filter-heading {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
-  color: #1e293b;
+  color: #0f172a;
   margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: -0.01em;
 }
 
 .aep-filter-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .aep-filter-group label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  color: #64748b;
+  color: #334155;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
 }
 
 .aep-search-wrap {
@@ -114,33 +113,36 @@
 
 .aep-search-icon {
   position: absolute;
-  left: 9px;
-  color: #94a3b8;
+  left: 11px;
+  color: #64748b;
   pointer-events: none;
 }
 
 .aep-search-input {
   width: 100%;
-  padding: 8px 30px 8px 28px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 9px;
-  font-size: 13px;
-  background: #f8fafc;
-  color: #1e293b;
+  padding: 10px 32px 10px 34px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13.5px;
+  background: #ffffff;
+  color: #0f172a;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
-.aep-search-input:focus { border-color: #881421; background: #fff; }
+.aep-search-input:focus {
+  border-color: #881421;
+  box-shadow: 0 0 0 3px rgba(136, 20, 33, 0.08);
+}
 
 .aep-search-clear {
   position: absolute;
-  right: 8px;
+  right: 10px;
   background: none;
   border: none;
   cursor: pointer;
-  color: #94a3b8;
-  padding: 2px;
+  color: #64748b;
+  padding: 3px;
   display: flex;
 }
 
@@ -152,55 +154,64 @@
 
 .aep-select {
   width: 100%;
-  padding: 8px 28px 8px 10px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 9px;
-  font-size: 13px;
-  background: #f8fafc;
-  color: #1e293b;
+  padding: 10px 32px 10px 12px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13.5px;
+  background: #ffffff;
+  color: #0f172a;
   outline: none;
   appearance: none;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
-.aep-select:focus { border-color: #881421; background: #fff; }
+.aep-select:focus {
+  border-color: #881421;
+  box-shadow: 0 0 0 3px rgba(136, 20, 33, 0.08);
+}
 
 .aep-select-arrow {
   position: absolute;
-  right: 9px;
-  color: #94a3b8;
+  right: 11px;
+  color: #64748b;
   pointer-events: none;
 }
 
 .aep-timeline-btns {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 7px;
 }
 
 .aep-timeline-btn {
-  padding: 7px 10px;
+  padding: 10px 14px;
   border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f8fafc;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: #1e293b;
   cursor: pointer;
   text-align: left;
   transition: all 0.15s;
 }
+.aep-timeline-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
 .aep-timeline-btn.active {
   background: #881421;
   border-color: #881421;
-  color: #fff;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(136, 20, 33, 0.2);
 }
 
 .aep-filter-results-count {
-  font-size: 12px;
-  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
   text-align: center;
-  padding-top: 4px;
+  padding-top: 6px;
   border-top: 1px solid #f1f5f9;
 }
 
