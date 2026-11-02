@@ -16,10 +16,10 @@ import './EventDetail.css'
 
 // Status badge config
 const STATUS_CONFIG = {
-  confirmed: { label: 'Registered ✓', cls: 'status-confirmed' },
-  attended:  { label: 'Attended ✓', cls: 'status-attended' },
+  confirmed: { label: 'Registered', cls: 'status-confirmed' },
+  attended:  { label: 'Attended', cls: 'status-attended' },
   pending:   { label: 'Application Pending', cls: 'status-pending' },
-  selected:  { label: 'Selected 🎉', cls: 'status-selected' },
+  selected:  { label: 'Selected', cls: 'status-selected' },
   rejected:  { label: 'Not Selected', cls: 'status-rejected' },
   cancelled: { label: 'Cancelled', cls: 'status-cancelled' },
 }
@@ -624,7 +624,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                               onClick={() => handleStatusChange(reg._id, 'confirmed')}
                               title="Click to revert to Confirmed"
                             >
-                              Attended ✓
+                              Attended
                             </button>
                           )}
 
@@ -801,8 +801,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
 
               {isRegistered ? (
                 <div className="nc-countdown-row nc-countdown-registered">
-                  <Check size={14} color="#15803d" strokeWidth={2.4} />
-                  <span style={{ color: '#15803d', fontWeight: 700 }}>Registered</span>
+                  <span style={{ color: '#166534', fontWeight: 700 }}>Registered</span>
                 </div>
               ) : remainingDays ? (
                 <div className="nc-countdown-row">
@@ -818,7 +817,6 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                 {isRegistered ? (
                   <div className="nc-registered-cta-wrap">
                     <div className="nc-registered-notice">
-                      <Check size={15} strokeWidth={2.6} />
                       <span>
                         Enrolled
                         {myRegistration?.createdAt && ` on ${formatShortDate(myRegistration.createdAt)}`}

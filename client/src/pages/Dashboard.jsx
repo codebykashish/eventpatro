@@ -852,12 +852,6 @@ const Dashboard = () => {
                                     Past Event
                                   </span>
                                 )}
-                                {isRegistered && (
-                                  <span className="portal-registered-pill card-pill-overlay">
-                                    <Check size={11} strokeWidth={2.5} />
-                                    <span>Registered</span>
-                                  </span>
-                                )}
                               </div>
                               <div className="portal-event-card-body">
                                 <div className="portal-event-card-top-row">
@@ -866,7 +860,6 @@ const Dashboard = () => {
                                   ) : <span />}
                                   {isRegistered ? (
                                     <span className="portal-event-countdown-pill registered">
-                                      <Check size={12} className="meta-svg" />
                                       <span>Registered</span>
                                     </span>
                                   ) : new Date(evt.date) < now ? (
@@ -1297,20 +1290,6 @@ const Dashboard = () => {
                                           No Seats Available
                                         </span>
                                       )}
-                                      {isRegistered && (
-                                        <span className="explore-registered-badge">
-                                          <Check size={11} strokeWidth={2.6} /> Registered
-                                          {(() => {
-                                            const myReg = registrations.find(
-                                              (r) =>
-                                                (typeof r.event === 'object' ? r.event?._id : r.event) === evt._id
-                                            )
-                                            return myReg?.createdAt
-                                              ? ` • ${new Date(myReg.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`
-                                              : ''
-                                          })()}
-                                        </span>
-                                      )}
                                     </div>
                                   )
                                 })()}
@@ -1354,7 +1333,6 @@ const Dashboard = () => {
                                     if (isRegistered) {
                                       return (
                                         <span className="explore-days-left registered">
-                                          <Check size={13} color="#15803d" strokeWidth={2.4} />
                                           Registered
                                         </span>
                                       )
