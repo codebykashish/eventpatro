@@ -90,6 +90,9 @@ export const fetchUsers = () => request('/auth/users')
 /** Admin: fetch all registrations across events */
 export const fetchAllRegistrations = () => request('/registrations/all')
 
+/** Admin: fetch registrations for a specific user */
+export const fetchUserRegistrations = (userId) => request(`/registrations/user/${userId}`)
+
 /** Admin: delete user by ID */
 export const deleteUser = (userId) => request(`/auth/users/${userId}`, { method: 'DELETE' })
 

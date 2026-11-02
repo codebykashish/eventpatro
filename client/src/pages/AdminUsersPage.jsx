@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { X, Search, Trash2 } from 'lucide-react'
-import { deleteUser } from '../utils/api'
+import { deleteUser, fetchUserRegistrations } from '../utils/api'
 import './AdminUsersPage.css'
 
 const formatDate = (iso) => {
@@ -32,6 +32,7 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
   // Popup state
   const [popup, setPopup] = useState(null) // { user, type: 'registered' | 'attended' }
   const [popupEvents, setPopupEvents] = useState([]) // list of events for the popup
+  const [popupLoading, setPopupLoading] = useState(false)
 
   const handleDelete = async () => {
     if (!userToDelete) return
@@ -76,12 +77,27 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
     return map
   }, [allRegistrations])
 
-  const openPopup = (u, type) => {
+  const openPopup = async (u, type) => {
     const uid = String(u._id || u.id)
-    const regs = userStats[uid] || { registered: [], attended: [] }
-    const list = type === 'attended' ? regs.attended : regs.registered
-    setPopupEvents(list)
+    const localRegs = userStats[uid] || { registered: [], attended: [] }
+    const initialList = type === 'attended' ? localRegs.attended : localRegs.registered
     setPopup({ user: u, type })
+    setPopupEvents(initialList)
+    setPopupLoading(true)
+
+    try {
+      const res = await fetchUserRegistrations(uid)
+      if (res && res.registrations) {
+        const fetchedList = type === 'attended'
+          ? res.registrations.filter(r => r.status === 'attended')
+          : res.registrations.filter(r => r.status !== 'cancelled')
+        setPopupEvents(fetchedList)
+      }
+    } catch (err) {
+      console.warn('Could not fetch user registrations dynamically, using preloaded data', err)
+    } finally {
+      setPopupLoading(false)
+    }
   }
 
   return (
@@ -188,8 +204,10 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
               <button className="aup-popup-close" onClick={() => setPopup(null)}><X size={16}/></button>
             </div>
             <div className="aup-popup-body">
-              {popupEvents.length === 0 ? (
-                <p className="aup-popup-empty">No {popup.type} events.</p>
+              {popupLoading && popupEvents.length === 0 ? (
+                <p className="aup-popup-empty">Loading registered events…</p>
+              ) : popupEvents.length === 0 ? (
+                <p className="aup-popup-empty">No {popup.type} events found.</p>
               ) : (
                 <div className="aup-popup-scroll-x">
                   <table className="aup-event-table">

@@ -752,21 +752,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                 <span className="nav-label">Users</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  handleTabChange('dashboard')
-                  setTimeout(() => {
-                    const el = document.getElementById('admin-registrations-section')
-                    if (el) el.scrollIntoView({ behavior: 'smooth' })
-                  }, 100)
-                }}
-                className="portal-nav-link"
-                title="Attendance"
-              >
-                <CheckCircle2 size={20} className="nav-icon" />
-                <span className="nav-label">Attendance</span>
-              </button>
+
             </>
           ) : (
             <button

@@ -289,9 +289,9 @@
 }
 
 .btn-tbl-edit:hover {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #2563eb;
+  background: #fdf2f2;
+  border-color: rgba(136, 20, 33, 0.3);
+  color: #881421;
 }
 
 .btn-tbl-delete:hover {

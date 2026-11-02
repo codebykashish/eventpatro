@@ -14,8 +14,11 @@ router.use(protect)
 router.get('/me', getMyRegistrations)
 
 // GET /api/registrations/all — admin view of all registrations
-const { getAllRegistrations } = require('../controllers/registration.controller')
+const { getAllRegistrations, getUserRegistrations } = require('../controllers/registration.controller')
 router.get('/all', restrictTo('admin'), getAllRegistrations)
+
+// GET /api/registrations/user/:userId — admin view of registrations for a specific user
+router.get('/user/:userId', restrictTo('admin'), getUserRegistrations)
 
 // GET /api/registrations/me/:eventId — check registration for one event
 router.get('/me/:eventId', getMyRegistrationForEvent)
