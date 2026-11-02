@@ -78,23 +78,30 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
   }, [allRegistrations])
 
   const openPopup = async (u, type) => {
-    const uid = String(u._id || u.id)
-    const localRegs = userStats[uid] || { registered: [], attended: [] }
-    const initialList = type === 'attended' ? localRegs.attended : localRegs.registered
     setPopup({ user: u, type })
-    setPopupEvents(initialList)
+    setPopupEvents([])
     setPopupLoading(true)
 
     try {
+      const uid = String(u._id || u.id)
       const res = await fetchUserRegistrations(uid)
-      if (res && res.registrations) {
+      if (res && Array.isArray(res.registrations)) {
         const fetchedList = type === 'attended'
           ? res.registrations.filter(r => r.status === 'attended')
           : res.registrations.filter(r => r.status !== 'cancelled')
         setPopupEvents(fetchedList)
+      } else {
+        // Fallback: use preloaded allRegistrations data
+        const uid2 = String(u._id || u.id)
+        const localRegs = userStats[uid2] || { registered: [], attended: [] }
+        setPopupEvents(type === 'attended' ? localRegs.attended : localRegs.registered)
       }
     } catch (err) {
       console.warn('Could not fetch user registrations dynamically, using preloaded data', err)
+      // Fallback: use preloaded allRegistrations data
+      const uid2 = String(u._id || u.id)
+      const localRegs = userStats[uid2] || { registered: [], attended: [] }
+      setPopupEvents(type === 'attended' ? localRegs.attended : localRegs.registered)
     } finally {
       setPopupLoading(false)
     }

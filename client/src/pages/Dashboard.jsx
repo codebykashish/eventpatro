@@ -1470,7 +1470,12 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
 
           {/* ══ ADMIN Users Tab ══ */}
           {isAdmin && activeTab === 'adminUsers' && (
-            <AdminUsersPage users={adminUsers} allRegistrations={adminAllRegistrations} events={events} />
+            <AdminUsersPage
+              users={adminUsers}
+              allRegistrations={adminAllRegistrations}
+              events={events}
+              onUserDeleted={(uid) => setAdminUsers(prev => prev.filter(u => (u._id || u.id) !== uid))}
+            />
           )}
 
           {/* ══ ADMIN Create Event Tab ══ */}

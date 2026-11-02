@@ -219,7 +219,6 @@ const getAllRegistrations = async (req, res) => {
       .populate('student', 'firstName lastName email studentId')
       .populate('event', 'title date location category capacity coverImage')
       .sort({ createdAt: -1 })
-      .limit(100)
 
     res.json({
       success: true,
