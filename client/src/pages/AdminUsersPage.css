@@ -112,9 +112,9 @@
 .aup-table tbody tr:hover td { background: #fafbff; }
 
 .aup-idx {
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 700;
+  color: #881421;
+  font-size: 12.5px;
+  font-weight: 800;
   width: 36px;
 }
 
@@ -139,47 +139,50 @@
   min-width: 40px;
   padding: 5px 12px;
   border-radius: 8px;
-  border: 1.5px solid #1e293b;
-  background: transparent;
-  color: #1e293b;
-  font-size: 14px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #881421;
+  font-size: 13.5px;
   font-weight: 800;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.15s ease;
 }
 .aup-count-btn:hover {
-  background: #1e293b;
-  color: #fff;
+  background: #881421;
+  border-color: #881421;
+  color: #ffffff;
 }
 
 .aup-count-btn--attended {
-  border-color: #881421;
+  border-color: rgba(136, 20, 33, 0.22);
+  background: #fdf2f2;
   color: #881421;
 }
 .aup-count-btn--attended:hover {
   background: #881421;
-  color: #fff;
+  border-color: #881421;
+  color: #ffffff;
 }
 
 .aup-delete-btn {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
-  border: 1px solid #fee2e2;
-  background: #fef2f2;
-  color: #dc2626;
+  border: 1.5px solid #edf2f7;
+  background: #ffffff;
+  color: #334155;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.18s;
+  transition: all 0.15s ease;
 }
 
 .aup-delete-btn:hover {
-  background: #dc2626;
-  color: #ffffff;
-  border-color: #dc2626;
-  transform: scale(1.05);
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  transform: translateY(-1px);
 }
 
 .aup-empty {
@@ -313,9 +316,9 @@
   white-space: nowrap;
 }
 .aup-status-confirmed { background: #dcfce7; color: #15803d; }
-.aup-status-attended  { background: #e0e7ff; color: #3730a3; }
+.aup-status-attended  { background: #fdf2f2; color: #881421; }
 .aup-status-pending   { background: #fef9c3; color: #92400e; }
-.aup-status-selected  { background: #dbeafe; color: #1d4ed8; }
+.aup-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
 .aup-status-rejected  { background: #fee2e2; color: #991b1b; }
 
 @media (max-width: 640px) {

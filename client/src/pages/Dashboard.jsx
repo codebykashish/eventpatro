@@ -1049,7 +1049,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                           <h2>Event Management</h2>
                         </div>
                         <button type="button" className="admin-view-all-btn" onClick={() => setAdminViewAllEventsModal(true)}>
-                          <span>View All</span><ArrowRight size={14} />
+                          <span>View All</span>
                         </button>
                       </div>
                       {loading ? (
@@ -1090,7 +1090,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                           <h2>Users</h2>
                         </div>
                         <button type="button" className="admin-view-all-btn" onClick={() => setAdminViewAllUsersModal(true)}>
-                          <span>View All</span><ArrowRight size={14} />
+                          <span>View All</span>
                         </button>
                       </div>
                       {loading ? (

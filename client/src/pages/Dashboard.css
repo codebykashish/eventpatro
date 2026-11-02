@@ -3579,12 +3579,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 12px;
   background: rgba(136, 20, 33, 0.08);
   margin-bottom: 8px;
   overflow: hidden;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-sidebar-avatar {
@@ -3606,11 +3608,18 @@
   flex-direction: column;
   min-width: 0;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.22s ease, max-width 0.22s ease;
 }
 
+.portal-sidebar:hover .admin-sidebar-info,
 .portal-sidebar.expanded .admin-sidebar-info {
   opacity: 1;
+  max-width: 170px;
+  pointer-events: auto;
 }
 
 .admin-sidebar-name {
@@ -3633,18 +3642,43 @@
 .admin-sidebar-logout-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 16px;
+  padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid #fee2e2;
   background: #fff5f5;
   color: #dc2626;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.18s, color 0.18s;
   width: 100%;
   text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.admin-sidebar-logout-btn .nav-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.admin-sidebar-logout-btn span {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transform: translateX(-6px);
+  transition: opacity 0.22s ease, transform 0.22s ease, max-width 0.22s ease;
+}
+
+.portal-sidebar:hover .admin-sidebar-logout-btn span,
+.portal-sidebar.expanded .admin-sidebar-logout-btn span {
+  opacity: 1;
+  max-width: 120px;
+  transform: translateX(0);
 }
 
 .admin-sidebar-logout-btn:hover {
@@ -3882,7 +3916,7 @@
 }
 
 .admin-event-row:hover {
-  background: #fdfafb;
+  background: #f8fafc;
 }
 
 .admin-event-thumb {
@@ -4017,7 +4051,7 @@
 }
 
 .admin-users-table tbody tr:hover td {
-  background: #fdfafb;
+  background: #f8fafc;
 }
 
 .admin-user-cell-name {

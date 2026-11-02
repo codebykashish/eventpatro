@@ -389,8 +389,8 @@
   font-weight: 700;
   white-space: nowrap;
 }
-.aep-days-upcoming { background: #dbeafe; color: #1d4ed8; }
-.aep-days-urgent   { background: #fee2e2; color: #dc2626; }
+.aep-days-upcoming { background: #fdf2f2; color: #881421; border: 1px solid rgba(136, 20, 33, 0.15); }
+.aep-days-urgent   { background: #fee2e2; color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.2); }
 .aep-days-past     { background: #f1f5f9; color: #64748b; }
 
 /* Location */
@@ -570,7 +570,7 @@
 .aep-status-confirmed { background: #dcfce7; color: #15803d; }
 .aep-status-attended  { background: #e0e7ff; color: #3730a3; }
 .aep-status-pending   { background: #fef9c3; color: #92400e; }
-.aep-status-selected  { background: #dbeafe; color: #1d4ed8; }
+.aep-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
 .aep-status-rejected  { background: #fee2e2; color: #991b1b; }
 
 .aep-reg-answers { min-width: 220px; }
