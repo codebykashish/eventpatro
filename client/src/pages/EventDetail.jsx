@@ -341,6 +341,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
   const totalEnrolled = registrations.length
   const attendedCount = registrations.filter(r => r.status === 'attended').length
   const confirmedCount = registrations.filter(r => r.status === 'confirmed').length
+  const cancelledCount = registrations.filter(r => r.status === 'cancelled').length
   const pendingCount = registrations.filter(r => r.status === 'pending').length
   const selectedCount = registrations.filter(r => r.status === 'selected').length
   const rejectedCount = registrations.filter(r => r.status === 'rejected').length
@@ -352,6 +353,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     if (attendeeFilter === 'pending' && reg.status !== 'pending') return false
     if (attendeeFilter === 'selected' && reg.status !== 'selected') return false
     if (attendeeFilter === 'rejected' && reg.status !== 'rejected') return false
+    if (attendeeFilter === 'cancelled' && reg.status !== 'cancelled') return false
 
     // Filter by search query
     if (!attendeeSearch.trim()) return true
@@ -634,6 +636,12 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                     <span className="ed-stat-label">Unattended / Pending</span>
                   </div>
                 )}
+                {cancelledCount > 0 && (
+                  <div className="ed-stat-box ed-stat-box--cancelled">
+                    <span className="ed-stat-num">{cancelledCount}</span>
+                    <span className="ed-stat-label">Cancelled</span>
+                  </div>
+                )}
               </div>
 
               {/* Action feedback message banner */}
@@ -716,6 +724,15 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                       </button>
                     </>
                   )}
+                  {cancelledCount > 0 && (
+                    <button
+                      type="button"
+                      className={`ed-filter-pill ${attendeeFilter === 'cancelled' ? 'active' : ''}`}
+                      onClick={() => setAttendeeFilter('cancelled')}
+                    >
+                      Cancelled ({cancelledCount})
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -748,133 +765,140 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                     Clear Filter
                   </button>
                 </div>
-              ) : (
-                <div className="ed-reg-table-container">
-                  <table className="ed-reg-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: '40px' }}>#</th>
-                        <th>Student</th>
-                        <th>Reg Code</th>
-                        {event?.formFields?.length > 0 && <th>Responses</th>}
-                        <th>Status</th>
-                        <th style={{ textAlign: 'right' }}>Attendance &amp; Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredRegistrations.map((reg, idx) => {
-                        const student = reg.student || {}
-                        const first = student.firstName || ''
-                        const last = student.lastName || ''
-                        const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'S'
-                        const hasAnswers = reg.answers && reg.answers.length > 0
+              ) : (() => {
+                const hasQuestions = Boolean(event.formFields && event.formFields.length > 0)
+                const hasReview = Boolean((event.capacity && event.capacity > 0) || event.registrationType === 'application')
 
-                        return (
-                          <tr key={reg._id}>
-                            <td className="ed-reg-td-idx">{idx + 1}</td>
-                            <td>
-                              <div className="ed-student-cell">
-                                <div className="ed-student-avatar">
-                                  {initials}
-                                </div>
-                                <div className="ed-student-info">
-                                  <div className="ed-student-name">
-                                    {first} {last}
-                                    {student.studentId && (
-                                      <span className="ed-student-id-badge">{student.studentId}</span>
-                                    )}
-                                  </div>
-                                  <div className="ed-student-email">{student.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <div className="ed-code-cell">
-                                <span className="ed-code-badge">{reg.registrationCode}</span>
-                              </div>
-                            </td>
-                            {event?.formFields?.length > 0 && (
+                return (
+                  <div className="ed-reg-table-container">
+                    <table className="ed-reg-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '40px' }}>#</th>
+                          <th>Student Name</th>
+                          <th>Email</th>
+                          <th>Registered On</th>
+                          <th>Status</th>
+                          {hasQuestions && <th>Responses</th>}
+                          {hasReview && <th>Review</th>}
+                          <th style={{ textAlign: 'right' }}>Attendance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredRegistrations.map((reg, idx) => {
+                          const student = reg.student || {}
+                          const first = student.firstName || ''
+                          const last = student.lastName || ''
+                          const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'S'
+                          const isCancelled = reg.status === 'cancelled'
+                          const isRejected = reg.status === 'rejected'
+                          const isConfirmedOrAttended = ['confirmed', 'attended', 'selected'].includes(reg.status)
+                          const hasAnswers = reg.answers && reg.answers.length > 0
+
+                          return (
+                            <tr key={reg._id} className={isCancelled ? 'ed-row-cancelled' : ''}>
+                              <td className="ed-reg-td-idx">{idx + 1}</td>
                               <td>
-                                {hasAnswers ? (
-                                  <button
-                                    type="button"
-                                    className="ed-answers-btn"
-                                    onClick={() => setSelectedAnswersReg(reg)}
-                                    title="View student's questionnaire responses"
-                                  >
-                                    <FileText size={13} />
-                                    <span>View ({reg.answers.length})</span>
-                                  </button>
-                                ) : (
-                                  <span className="ed-no-answers">—</span>
+                                <div className="ed-student-cell">
+                                  <div className="ed-student-avatar">
+                                    {initials}
+                                  </div>
+                                  <div className="ed-student-info">
+                                    <div className="ed-student-name">
+                                      {first} {last}
+                                      {student.studentId && (
+                                        <span className="ed-student-id-badge">{student.studentId}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="ed-student-email-cell">{student.email || '—'}</td>
+                              <td className="ed-reg-date-cell">{formatDate(reg.createdAt)}</td>
+                              <td>
+                                <span className={`ed-status-badge ed-status-${reg.status}`}>
+                                  {STATUS_CONFIG[reg.status]?.label || reg.status}
+                                </span>
+                              </td>
+
+                              {/* Responses column */}
+                              {hasQuestions && (
+                                <td>
+                                  {isCancelled ? null : hasAnswers ? (
+                                    <button
+                                      type="button"
+                                      className="ed-answers-btn"
+                                      onClick={() => setSelectedAnswersReg(reg)}
+                                      title="View student's questionnaire responses"
+                                    >
+                                      <FileText size={13} />
+                                      <span>View ({reg.answers.length})</span>
+                                    </button>
+                                  ) : (
+                                    <span className="ed-no-answers">—</span>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Review column */}
+                              {hasReview && (
+                                <td>
+                                  {isCancelled ? null : (
+                                    <div style={{ display: 'flex', gap: '6px' }}>
+                                      <button
+                                        type="button"
+                                        className={`ed-btn-confirm-review ${isConfirmedOrAttended ? 'active' : ''}`}
+                                        title="Confirm registration"
+                                        onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                        disabled={['confirmed', 'attended'].includes(reg.status)}
+                                      >
+                                        <Check size={12} /> Confirm
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className={`ed-btn-reject-review ${isRejected ? 'active' : ''}`}
+                                        title="Reject registration"
+                                        onClick={() => handleStatusChange(reg._id, 'rejected')}
+                                        disabled={isRejected}
+                                      >
+                                        <X size={12} /> Reject
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Attendance column */}
+                              <td style={{ textAlign: 'right' }}>
+                                {isCancelled || isRejected || reg.status === 'pending' ? null : (
+                                  <div className="ed-reg-actions-row" style={{ justifyContent: 'flex-end' }}>
+                                    <button
+                                      type="button"
+                                      className={`ed-att-btn ed-att-present ${reg.status === 'attended' ? 'active' : ''}`}
+                                      onClick={() => handleStatusChange(reg._id, 'attended')}
+                                      title="Mark student as present"
+                                    >
+                                      <Check size={12} /> Present
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={`ed-att-btn ed-att-absent ${reg.status === 'confirmed' ? 'active' : ''}`}
+                                      onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                      title="Mark student as absent"
+                                    >
+                                      <X size={12} /> Absent
+                                    </button>
+                                  </div>
                                 )}
                               </td>
-                            )}
-                            <td>
-                              <span className={`ed-status-badge ed-status-${reg.status}`}>
-                                {STATUS_CONFIG[reg.status]?.label || reg.status}
-                              </span>
-                            </td>
-                            <td style={{ textAlign: 'right' }}>
-                              <div className="ed-reg-actions-row">
-                                {['confirmed', 'selected'].includes(reg.status) && (
-                                  <button
-                                    type="button"
-                                    className="ed-btn-mark-present"
-                                    onClick={() => handleStatusChange(reg._id, 'attended')}
-                                    title="Mark student as attended"
-                                  >
-                                    <Check size={13} /> Mark Present
-                                  </button>
-                                )}
-                                {reg.status === 'attended' && (
-                                  <button
-                                    type="button"
-                                    className="ed-btn-present-active"
-                                    onClick={() => handleStatusChange(reg._id, 'confirmed')}
-                                    title="Attended — Click to revert to Confirmed"
-                                  >
-                                    <CheckCircle2 size={13} /> Present
-                                  </button>
-                                )}
-
-                                {/* Application event decision buttons */}
-                                {event.registrationType === 'application' && reg.status === 'pending' && (
-                                  <>
-                                    <button
-                                      type="button"
-                                      className="ed-btn-select"
-                                      onClick={() => handleStatusChange(reg._id, 'selected')}
-                                    >
-                                      Select
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="ed-btn-reject"
-                                      onClick={() => handleStatusChange(reg._id, 'rejected')}
-                                    >
-                                      Reject
-                                    </button>
-                                  </>
-                                )}
-                                {event.registrationType === 'application' && reg.status === 'selected' && (
-                                  <button
-                                    type="button"
-                                    className="ed-btn-reject"
-                                    onClick={() => handleStatusChange(reg._id, 'rejected')}
-                                  >
-                                    Revoke
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )
+              })()}
             </div>
           )}
         </div>

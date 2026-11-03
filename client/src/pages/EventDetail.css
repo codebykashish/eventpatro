@@ -1876,6 +1876,123 @@
 .ed-status-pending   { background: #fef9c3; color: #92400e; }
 .ed-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
 .ed-status-rejected  { background: #fee2e2; color: #991b1b; }
+.ed-status-cancelled { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+
+.ed-row-cancelled td {
+  background: #fafafa;
+  color: #94a3b8;
+}
+
+.ed-student-email-cell {
+  color: #475569;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ed-reg-date-cell {
+  color: #94a3b8;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.ed-stat-box--cancelled .ed-stat-num {
+  color: #64748b;
+}
+
+/* Review buttons */
+.ed-btn-confirm-review {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ed-btn-confirm-review:hover:not(:disabled) {
+  background: #15803d;
+  color: #fff;
+  border-color: #15803d;
+}
+.ed-btn-confirm-review:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ed-btn-confirm-review.active {
+  background: #15803d;
+  color: #fff;
+}
+
+.ed-btn-reject-review {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ed-btn-reject-review:hover:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+.ed-btn-reject-review:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ed-btn-reject-review.active {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* Attendance Buttons */
+.ed-att-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1.5px solid transparent;
+}
+
+.ed-att-present {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #15803d;
+}
+.ed-att-present:hover,
+.ed-att-present.active {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+
+.ed-att-absent {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #dc2626;
+}
+.ed-att-absent:hover,
+.ed-att-absent.active {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
 
 /* Actions cell */
 .ed-reg-actions-row {

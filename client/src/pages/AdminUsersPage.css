@@ -219,7 +219,7 @@
   background: #fff;
   border-radius: 18px;
   width: 100%;
-  max-width: 680px;
+  max-width: 760px;
   padding: 24px 26px;
   display: flex;
   flex-direction: column;
@@ -354,8 +354,160 @@
 .aup-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
 .aup-status-rejected  { background: #fee2e2; color: #991b1b; }
 
+/* Popup cards grid */
+.aup-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 4px 2px;
+}
+
+.aup-event-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.aup-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-color: #cbd5e1;
+}
+
+.aup-card-thumb-wrap {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.aup-card-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.aup-event-card:hover .aup-card-thumb {
+  transform: scale(1.03);
+}
+
+.aup-card-status-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.aup-card-status--attended {
+  background: #881421;
+  color: #ffffff;
+}
+
+.aup-card-status--confirmed,
+.aup-card-status--selected {
+  background: #15803d;
+  color: #ffffff;
+}
+
+.aup-card-status--pending {
+  background: #b45309;
+  color: #ffffff;
+}
+
+.aup-card-content {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+}
+
+.aup-card-cat {
+  font-size: 11px;
+  font-weight: 700;
+  color: #881421;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.aup-card-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.aup-card-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.aup-card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.aup-card-icon {
+  color: #881421;
+  flex-shrink: 0;
+}
+
+.aup-card-footer {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.aup-card-reg-date {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.aup-card-view-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: #881421;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.aup-card-view-link:hover {
+  color: #5c0d16;
+  text-decoration: underline;
+}
+
 @media (max-width: 640px) {
   .aup-root { padding: 16px; }
   .aup-search-input { width: 100%; }
   .aup-page-header { flex-direction: column; align-items: flex-start; }
+  .aup-cards-grid { grid-template-columns: 1fr; }
 }

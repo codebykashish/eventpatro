@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Search, Eye, Edit, Trash2, X, Calendar, MapPin, Users, Clock,
-  ChevronDown, ArrowRight, CheckCircle2, Check,
+  ChevronDown, ArrowRight, CheckCircle2, Check, UserCheck, FileText, UserX
 } from 'lucide-react'
 import { fetchEvents, getEventRegistrations, deleteEvent, updateRegistrationStatus } from '../utils/api'
 import EditEventPage from './EditEvent'
@@ -34,6 +34,9 @@ export default function AdminEventsPage() {
   const [regPopupEvent, setRegPopupEvent] = useState(null)
   const [regList, setRegList] = useState([])
   const [regLoading, setRegLoading] = useState(false)
+  const [attendeeSearch, setAttendeeSearch] = useState('')
+  const [attendeeFilter, setAttendeeFilter] = useState('all')
+  const [selectedAnswersReg, setSelectedAnswersReg] = useState(null)
 
   // Delete confirm
   const [deleteItem, setDeleteItem] = useState(null)
@@ -81,6 +84,9 @@ export default function AdminEventsPage() {
     setRegPopupEvent(ev)
     setRegLoading(true)
     setRegList([])
+    setAttendeeSearch('')
+    setAttendeeFilter('all')
+    setSelectedAnswersReg(null)
     try {
       const d = await getEventRegistrations(ev._id)
       setRegList(d.registrations || [])
@@ -239,140 +245,374 @@ export default function AdminEventsPage() {
       </div>
 
       {/* ── Registrations Popup ── */}
-      {regPopupEvent && (
-        <div className="aep-overlay" onClick={() => setRegPopupEvent(null)}>
-          <div className="aep-popup aep-popup--xl" onClick={e => e.stopPropagation()}>
-            <div className="aep-popup-header">
-              <div>
-                <h3>Registrations &amp; Attendance — {regPopupEvent.title}</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '4px', flexWrap: 'wrap' }}>
-                  <span className="aep-popup-sub">Total Registered: {regList.length}</span>
-                  <span className="aep-popup-sub" style={{ color: '#15803d', fontWeight: 700 }}>
-                    Total Present: {regList.filter(r => r.status === 'attended').length}
-                  </span>
-                  <span className="aep-popup-sub" style={{ color: '#dc2626', fontWeight: 700 }}>
-                    Total Absent: {regList.filter(r => r.status === 'confirmed').length}
-                  </span>
+      {regPopupEvent && (() => {
+        const hasQuestions = Boolean(regPopupEvent.formFields && regPopupEvent.formFields.length > 0)
+        const hasReview = Boolean((regPopupEvent.capacity && regPopupEvent.capacity > 0) || regPopupEvent.registrationType === 'application')
+
+        const totalEnrolled = regList.length
+        const totalActive = regList.filter(r => ['confirmed', 'selected', 'attended'].includes(r.status)).length
+        const attendedCount = regList.filter(r => r.status === 'attended').length
+        const unattendedCount = regList.filter(r => r.status === 'confirmed').length
+        const cancelledCount = regList.filter(r => r.status === 'cancelled').length
+        const rejectedCount = regList.filter(r => r.status === 'rejected').length
+        const pendingCount = regList.filter(r => r.status === 'pending').length
+
+        const filteredRegs = regList.filter(r => {
+          if (attendeeSearch.trim()) {
+            const q = attendeeSearch.toLowerCase()
+            const fullName = `${r.student?.firstName || ''} ${r.student?.lastName || ''}`.toLowerCase()
+            const email = (r.student?.email || '').toLowerCase()
+            const code = (r.registrationCode || '').toLowerCase()
+            if (!fullName.includes(q) && !email.includes(q) && !code.includes(q)) return false
+          }
+          if (attendeeFilter !== 'all') {
+            if (attendeeFilter === 'confirmed') {
+              if (!['confirmed', 'selected'].includes(r.status)) return false
+            } else if (r.status !== attendeeFilter) {
+              return false
+            }
+          }
+          return true
+        })
+
+        return (
+          <div className="aep-overlay" onClick={() => setRegPopupEvent(null)}>
+            <div className="aep-popup aep-popup--xl" onClick={e => e.stopPropagation()}>
+              {/* Header */}
+              <div className="aep-reg-card-header">
+                <div className="aep-reg-title-group">
+                  <div className="aep-reg-icon-box">
+                    <UserCheck size={22} />
+                  </div>
+                  <div>
+                    <h3 className="aep-reg-main-title">
+                      {regPopupEvent.registrationType === 'application' ? 'Applications & Candidate Review' : 'Enrollments & Attendance'}
+                    </h3>
+                    <p className="aep-reg-main-sub">
+                      {regPopupEvent.title} · Manage registered participants, questionnaire responses, and attendance.
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="aep-reg-count-pill">
+                    <span>{totalActive} Active Enrolled</span>
+                  </div>
+                  <button className="aep-popup-close" onClick={() => setRegPopupEvent(null)}><X size={17}/></button>
                 </div>
               </div>
-              <button className="aep-popup-close" onClick={() => setRegPopupEvent(null)}><X size={17}/></button>
-            </div>
 
-            {/* Attendance & Registration Summary Strip */}
-            <div className="aep-attendance-bar">
-              <div className="aep-attendance-stat aep-attendance-total">
-                <span className="aep-att-num">{regList.length}</span>
-                <span className="aep-att-label">Registrations</span>
+              {/* Stats Strip */}
+              <div className="aep-attendance-bar">
+                <div className="aep-attendance-stat aep-attendance-total">
+                  <span className="aep-att-num">{totalEnrolled}</span>
+                  <span className="aep-att-label">Total Enrolled</span>
+                </div>
+                <div className="aep-attendance-stat aep-attendance-present">
+                  <span className="aep-att-num">{attendedCount}</span>
+                  <span className="aep-att-label">Present / Attended</span>
+                </div>
+                <div className="aep-attendance-stat aep-attendance-absent">
+                  <span className="aep-att-num">{unattendedCount}</span>
+                  <span className="aep-att-label">Unattended / Absent</span>
+                </div>
+                {cancelledCount > 0 && (
+                  <div className="aep-attendance-stat aep-attendance-cancelled">
+                    <span className="aep-att-num">{cancelledCount}</span>
+                    <span className="aep-att-label">Cancelled</span>
+                  </div>
+                )}
+                {regPopupEvent.registrationType === 'application' && (
+                  <>
+                    <div className="aep-attendance-stat aep-attendance-pending">
+                      <span className="aep-att-num">{pendingCount}</span>
+                      <span className="aep-att-label">Pending Review</span>
+                    </div>
+                    <div className="aep-attendance-stat aep-attendance-rejected">
+                      <span className="aep-att-num">{rejectedCount}</span>
+                      <span className="aep-att-label">Rejected</span>
+                    </div>
+                  </>
+                )}
               </div>
-              <div className="aep-attendance-stat aep-attendance-confirmed">
-                <span className="aep-att-num">{regList.filter(r => ['confirmed', 'selected', 'attended'].includes(r.status)).length}</span>
-                <span className="aep-att-label">Confirmed Users</span>
-              </div>
-              <div className="aep-attendance-stat aep-attendance-present">
-                <span className="aep-att-num">{regList.filter(r => r.status === 'attended').length}</span>
-                <span className="aep-att-label">Total Present</span>
-              </div>
-              <div className="aep-attendance-stat aep-attendance-absent">
-                <span className="aep-att-num">{regList.filter(r => r.status === 'confirmed').length}</span>
-                <span className="aep-att-label">Total Absent</span>
-              </div>
-            </div>
 
-            <div className="aep-popup-body aep-popup-scroll-x">
-              {regLoading ? (
-                <p className="aep-popup-empty">Loading…</p>
-              ) : regList.length === 0 ? (
-                <p className="aep-popup-empty">No registrations yet.</p>
-              ) : (
-                <table className="aep-reg-table">
-                  <thead>
-                    <tr>
-                      <th>Student Name</th>
-                      <th>Email</th>
-                      <th>Status</th>
-                      <th>Registered On</th>
-                      {(regList[0]?.answers?.length > 0) && <th>Responses</th>}
-                      {(Boolean(regPopupEvent.capacity && regPopupEvent.capacity > 0) || regPopupEvent.registrationType === 'application') && <th>Review Action</th>}
-                      <th>Attendance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {regList.map(reg => {
-                      const showReviewActions = Boolean(regPopupEvent.capacity && regPopupEvent.capacity > 0) || regPopupEvent.registrationType === 'application'
-                      const isConfirmedOrAttended = ['confirmed', 'attended'].includes(reg.status)
+              {/* Toolbar: Search + Filter Pills */}
+              <div className="aep-reg-toolbar">
+                <div className="aep-reg-search-box">
+                  <Search size={14} className="aep-reg-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search enrolled students by name, email, or code…"
+                    value={attendeeSearch}
+                    onChange={e => setAttendeeSearch(e.target.value)}
+                    className="aep-reg-search-input"
+                  />
+                  {attendeeSearch && (
+                    <button
+                      type="button"
+                      className="aep-search-clear"
+                      onClick={() => setAttendeeSearch('')}
+                      style={{ right: '8px' }}
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
 
-                      return (
-                        <tr key={reg._id}>
-                          <td className="aep-reg-name">{reg.student?.firstName} {reg.student?.lastName}</td>
-                          <td className="aep-reg-email">{reg.student?.email}</td>
-                          <td>
-                            <span className={`aep-status-chip aep-status-${reg.status}`}>{reg.status}</span>
-                          </td>
-                          <td className="aep-reg-date">{formatDate(reg.createdAt)}</td>
-                          {reg.answers?.length > 0 && (
-                            <td className="aep-reg-answers">
-                              {reg.answers.map((a, i) => (
-                                <div key={i} className="aep-answer-row">
-                                  <span className="aep-answer-q">{a.fieldLabel || `Q${i+1}`}:</span>
-                                  <span className="aep-answer-v">{a.value || '—'}</span>
-                                </div>
-                              ))}
-                            </td>
-                          )}
-                          {showReviewActions && (
-                            <td>
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button
-                                  type="button"
-                                  className="aep-action-allow-btn"
-                                  title="Allow / Confirm"
-                                  onClick={() => handleStatusChange(reg._id, 'confirmed')}
-                                  disabled={reg.status === 'confirmed'}
-                                >
-                                  <Check size={13} /> Allow
-                                </button>
-                                <button
-                                  type="button"
-                                  className="aep-action-reject-btn"
-                                  title="Reject"
-                                  onClick={() => handleStatusChange(reg._id, 'rejected')}
-                                  disabled={reg.status === 'rejected'}
-                                >
-                                  <X size={13} /> Reject
-                                </button>
-                              </div>
-                            </td>
-                          )}
-                          <td>
-                            {isConfirmedOrAttended ? (
-                              <div style={{ display: 'flex', gap: '6px' }}>
-                                <button
-                                  type="button"
-                                  className={`aep-att-btn aep-att-present ${reg.status === 'attended' ? 'active' : ''}`}
-                                  title="Mark Present"
-                                  onClick={() => handleStatusChange(reg._id, 'attended')}
-                                >
-                                  <Check size={12} /> Present
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`aep-att-btn aep-att-absent ${reg.status === 'confirmed' ? 'active' : ''}`}
-                                  title="Mark Absent"
-                                  onClick={() => handleStatusChange(reg._id, 'confirmed')}
-                                >
-                                  <X size={12} /> Absent
-                                </button>
-                              </div>
-                            ) : (
-                              <span style={{ fontSize: '11.5px', color: '#94a3b8' }}>Confirm first</span>
-                            )}
-                          </td>
+                <div className="aep-reg-filter-pills">
+                  <button
+                    type="button"
+                    className={`aep-reg-filter-pill ${attendeeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setAttendeeFilter('all')}
+                  >
+                    All ({totalEnrolled})
+                  </button>
+                  <button
+                    type="button"
+                    className={`aep-reg-filter-pill ${attendeeFilter === 'confirmed' ? 'active' : ''}`}
+                    onClick={() => setAttendeeFilter('confirmed')}
+                  >
+                    Registered ({unattendedCount})
+                  </button>
+                  <button
+                    type="button"
+                    className={`aep-reg-filter-pill ${attendeeFilter === 'attended' ? 'active' : ''}`}
+                    onClick={() => setAttendeeFilter('attended')}
+                  >
+                    Attended ({attendedCount})
+                  </button>
+                  {cancelledCount > 0 && (
+                    <button
+                      type="button"
+                      className={`aep-reg-filter-pill ${attendeeFilter === 'cancelled' ? 'active' : ''}`}
+                      onClick={() => setAttendeeFilter('cancelled')}
+                    >
+                      Cancelled ({cancelledCount})
+                    </button>
+                  )}
+                  {rejectedCount > 0 && (
+                    <button
+                      type="button"
+                      className={`aep-reg-filter-pill ${attendeeFilter === 'rejected' ? 'active' : ''}`}
+                      onClick={() => setAttendeeFilter('rejected')}
+                    >
+                      Rejected ({rejectedCount})
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Table / Content */}
+              <div className="aep-popup-body aep-popup-scroll-x">
+                {regLoading ? (
+                  <div className="aep-popup-loading">
+                    <Clock size={18} className="spinning" />
+                    <span>Loading enrolled students…</span>
+                  </div>
+                ) : regList.length === 0 ? (
+                  <div className="aep-reg-empty-card">
+                    <Users size={32} color="#94a3b8" />
+                    <h4>No Enrollments Yet</h4>
+                    <p>When students register for this event, their details and attendance options will appear here.</p>
+                  </div>
+                ) : filteredRegs.length === 0 ? (
+                  <div className="aep-reg-empty-card">
+                    <p>No enrolled students match your search <strong>"{attendeeSearch}"</strong>.</p>
+                    <button
+                      type="button"
+                      className="aep-empty-reset-btn"
+                      onClick={() => { setAttendeeSearch(''); setAttendeeFilter('all'); }}
+                    >
+                      Clear Filter
+                    </button>
+                  </div>
+                ) : (
+                  <div className="aep-reg-table-card">
+                    <table className="aep-reg-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '36px' }}>#</th>
+                          <th>Student Name</th>
+                          <th>Email</th>
+                          <th>Registered On</th>
+                          <th>Status</th>
+                          {hasQuestions && <th>Responses</th>}
+                          {hasReview && <th>Review</th>}
+                          <th>Attendance</th>
                         </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {filteredRegs.map((reg, idx) => {
+                          const student = reg.student || {}
+                          const first = student.firstName || ''
+                          const last = student.lastName || ''
+                          const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'S'
+                          const isCancelled = reg.status === 'cancelled'
+                          const isRejected = reg.status === 'rejected'
+                          const isConfirmedOrAttended = ['confirmed', 'attended', 'selected'].includes(reg.status)
+                          const hasAnswers = reg.answers && reg.answers.length > 0
+
+                          return (
+                            <tr key={reg._id} className={isCancelled ? 'aep-row-cancelled' : ''}>
+                              {/* # */}
+                              <td className="aep-reg-idx">{idx + 1}</td>
+
+                              {/* Student Name */}
+                              <td>
+                                <div className="aep-student-cell">
+                                  <div className="aep-student-avatar">
+                                    {initials}
+                                  </div>
+                                  <div className="aep-student-info">
+                                    <span className="aep-student-name">
+                                      {first} {last}
+                                      {student.studentId && (
+                                        <span className="aep-student-id-tag">{student.studentId}</span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Email */}
+                              <td className="aep-reg-email">{student.email || '—'}</td>
+
+                              {/* Registered On */}
+                              <td className="aep-reg-date">{formatDate(reg.createdAt)}</td>
+
+                              {/* Status */}
+                              <td>
+                                <span className={`aep-status-chip aep-status-${reg.status}`}>{reg.status}</span>
+                              </td>
+
+                              {/* Responses (ONLY IF EVENT HAS QUESTIONS) */}
+                              {hasQuestions && (
+                                <td>
+                                  {isCancelled ? null : hasAnswers ? (
+                                    <button
+                                      type="button"
+                                      className="aep-answers-btn"
+                                      onClick={() => setSelectedAnswersReg(reg)}
+                                      title="View questionnaire responses"
+                                    >
+                                      <FileText size={13} />
+                                      <span>View ({reg.answers.length})</span>
+                                    </button>
+                                  ) : (
+                                    <span className="aep-no-answers">—</span>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Review (ONLY IF LIMITED SEATS OR APPLICATION) */}
+                              {hasReview && (
+                                <td>
+                                  {isCancelled ? null : (
+                                    <div className="aep-review-actions-wrap">
+                                      <button
+                                        type="button"
+                                        className={`aep-action-allow-btn ${isConfirmedOrAttended ? 'active' : ''}`}
+                                        title="Confirm registration"
+                                        onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                        disabled={['confirmed', 'attended'].includes(reg.status)}
+                                      >
+                                        <Check size={12} /> Confirm
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className={`aep-action-reject-btn ${isRejected ? 'active' : ''}`}
+                                        title="Reject registration"
+                                        onClick={() => handleStatusChange(reg._id, 'rejected')}
+                                        disabled={isRejected}
+                                      >
+                                        <X size={12} /> Reject
+                                      </button>
+                                    </div>
+                                  )}
+                                </td>
+                              )}
+
+                              {/* Attendance */}
+                              <td>
+                                {isCancelled || isRejected || reg.status === 'pending' ? null : (
+                                  <div className="aep-att-btns-wrap">
+                                    <button
+                                      type="button"
+                                      className={`aep-att-btn aep-att-present ${reg.status === 'attended' ? 'active' : ''}`}
+                                      title="Mark Present"
+                                      onClick={() => handleStatusChange(reg._id, 'attended')}
+                                    >
+                                      <Check size={12} /> Present
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className={`aep-att-btn aep-att-absent ${reg.status === 'confirmed' ? 'active' : ''}`}
+                                      title="Mark Absent"
+                                      onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                    >
+                                      <X size={12} /> Absent
+                                    </button>
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* ── Modal for Questionnaire Answers Inspection (Admin) ── */}
+      {selectedAnswersReg && (
+        <div className="aep-overlay" onClick={() => setSelectedAnswersReg(null)} style={{ zIndex: 2200 }}>
+          <div className="aep-answers-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="aep-answers-header">
+              <div>
+                <h3 className="aep-answers-title">Questionnaire Responses</h3>
+                <p className="aep-answers-subtitle">
+                  {selectedAnswersReg.student?.firstName} {selectedAnswersReg.student?.lastName} · {selectedAnswersReg.student?.email}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="aep-popup-close"
+                onClick={() => setSelectedAnswersReg(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="aep-answers-body">
+              {selectedAnswersReg.answers && selectedAnswersReg.answers.length > 0 ? (
+                <div className="aep-answers-list">
+                  {selectedAnswersReg.answers.map((ans, idx) => (
+                    <div key={idx} className="aep-answer-block">
+                      <div className="aep-answer-badge">Q{idx + 1}</div>
+                      <div className="aep-answer-content">
+                        <h4 className="aep-answer-label">{ans.label || ans.fieldLabel || `Question ${idx + 1}`}</h4>
+                        <p className="aep-answer-text">{ans.value || '—'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="aep-answers-empty">No responses recorded for this registration.</p>
               )}
+            </div>
+
+            <div className="aep-answers-footer">
+              <button
+                type="button"
+                className="aep-answers-close-btn"
+                onClick={() => setSelectedAnswersReg(null)}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

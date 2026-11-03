@@ -156,7 +156,7 @@ const getEventRegistrations = async (req, res) => {
 }
 
 // ─── PATCH /api/events/:id/registrations/:regId ──────────────────────────────
-// Admin only: update a registration's status (select / reject)
+// Admin only: update a registration's status (select / reject / confirm / attend)
 const updateRegistrationStatus = async (req, res) => {
   try {
     const { status } = req.body
@@ -166,15 +166,30 @@ const updateRegistrationStatus = async (req, res) => {
       return res.status(400).json({ message: 'Status must be "selected", "rejected", "attended", or "confirmed"' })
     }
 
-    const registration = await Registration.findOneAndUpdate(
-      { _id: req.params.regId, event: req.params.id },
-      { status },
-      { new: true }
-    ).populate('student', 'firstName lastName email')
-
-    if (!registration) {
+    const existing = await Registration.findOne({ _id: req.params.regId, event: req.params.id })
+    if (!existing) {
       return res.status(404).json({ message: 'Registration not found' })
     }
+
+    if (existing.status === 'cancelled') {
+      return res.status(400).json({ message: 'Cannot modify a cancelled registration' })
+    }
+
+    existing.status = status
+    await existing.save()
+
+    // Sync registeredUsers array on Event
+    if (status === 'rejected') {
+      await Event.findByIdAndUpdate(req.params.id, {
+        $pull: { registeredUsers: existing.student },
+      })
+    } else if (['confirmed', 'selected', 'attended'].includes(status)) {
+      await Event.findByIdAndUpdate(req.params.id, {
+        $addToSet: { registeredUsers: existing.student },
+      })
+    }
+
+    const registration = await Registration.findById(existing._id).populate('student', 'firstName lastName email studentId')
 
     res.json({ message: `Registration ${status}`, registration })
   } catch (err) {

@@ -474,89 +474,286 @@
 }
 
 .aep-popup--xl {
-  max-width: 880px;
+  max-width: 980px;
+  width: 95%;
+  padding: 26px 28px;
 }
 
-.aep-popup-header {
+/* Header matching the modern card design */
+.aep-reg-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 12px;
+  gap: 16px;
+  padding-bottom: 14px;
   border-bottom: 1px solid #f1f5f9;
 }
 
-.aep-popup-header h3 {
-  font-size: 15px;
-  font-weight: 800;
-  color: #1e293b;
-  margin: 0 0 2px;
+.aep-reg-title-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
 }
 
-.aep-popup-sub {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.aep-popup-close {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
-  color: #64748b;
+.aep-reg-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(136, 20, 33, 0.08);
+  color: #881421;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
 }
-.aep-popup-close:hover { background: #fee2e2; color: #dc2626; }
 
-.aep-popup-body { flex: 1; overflow-y: auto; }
+.aep-reg-main-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 3px;
+  letter-spacing: -0.02em;
+}
 
-.aep-popup-scroll-x { overflow-x: auto; }
+.aep-reg-main-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
 
-.aep-popup-empty {
+.aep-reg-count-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fdf2f2;
+  color: #881421;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(136, 20, 33, 0.15);
+  white-space: nowrap;
+}
+
+/* Toolbar: Search + Filter Pills */
+.aep-reg-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.aep-reg-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.aep-reg-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 32px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  font-size: 13px;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.aep-reg-search-input:focus { border-color: #881421; }
+
+.aep-reg-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.aep-reg-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.aep-reg-filter-pill {
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.aep-reg-filter-pill:hover { border-color: #cbd5e1; background: #fafafa; }
+.aep-reg-filter-pill.active {
+  background: #881421;
+  color: #ffffff;
+  border-color: #881421;
+}
+
+/* Loading and Empty State in Modal */
+.aep-popup-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.aep-reg-empty-card {
   text-align: center;
-  padding: 28px;
-  color: #94a3b8;
-  font-size: 13.5px;
+  padding: 36px 20px;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1.5px dashed #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
 }
 
-/* Registrations table inside popup */
+.aep-reg-empty-card h4 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.aep-reg-empty-card p {
+  font-size: 13px;
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.4;
+}
+
+.aep-empty-reset-btn {
+  margin-top: 6px;
+  padding: 6px 13px;
+  border-radius: 7px;
+  background: #881421;
+  color: #ffffff;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Registrations Table Card */
+.aep-reg-table-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  margin-top: 8px;
+}
+
 .aep-reg-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 600px;
+  min-width: 680px;
 }
 
 .aep-reg-table th {
   text-align: left;
-  font-size: 11px;
-  font-weight: 700;
-  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #334155;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding: 8px 12px;
+  letter-spacing: 0.05em;
+  padding: 12px 14px;
   background: #fafafa;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1.5px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .aep-reg-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #f8fafc;
-  vertical-align: top;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
 }
-.aep-reg-table tr:last-child td { border-bottom: none; }
-.aep-reg-table tbody tr:hover td { background: #f8fafc; }
+.aep-reg-table tbody tr:last-child td { border-bottom: none; }
+.aep-reg-table tbody tr:hover td { background: #fdf8f8; }
 
-.aep-reg-name { font-weight: 700; color: #1e293b; white-space: nowrap; }
-.aep-reg-email { color: #475569; font-size: 12.5px; white-space: nowrap; }
-.aep-reg-date { color: #94a3b8; font-size: 12px; white-space: nowrap; }
+.aep-row-cancelled td {
+  background: #fafafa;
+  color: #94a3b8;
+}
+
+.aep-reg-idx {
+  font-weight: 800;
+  color: #881421;
+  font-size: 12px;
+}
+
+/* Student info cell */
+.aep-student-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.aep-student-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fdf2f2;
+  color: #881421;
+  font-weight: 800;
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(136, 20, 33, 0.15);
+}
+
+.aep-student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.aep-student-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.aep-student-id-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.aep-reg-email {
+  color: #475569;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.aep-reg-date {
+  color: #94a3b8;
+  font-size: 12px;
+  white-space: nowrap;
+}
 
 .aep-status-chip {
   display: inline-block;
@@ -572,10 +769,169 @@
 .aep-status-pending   { background: #fef9c3; color: #92400e; }
 .aep-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
 .aep-status-rejected  { background: #fee2e2; color: #991b1b; }
+.aep-status-cancelled { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
-.aep-reg-answers { min-width: 220px; }
-.aep-answer-row { font-size: 12px; margin-bottom: 4px; }
-.aep-answer-q { color: #64748b; font-weight: 600; margin-right: 5px; }
+/* Responses Button */
+.aep-answers-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #ffffff;
+  color: #881421;
+  border: 1px solid rgba(136, 20, 33, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.aep-answers-btn:hover {
+  background: #881421;
+  color: #ffffff;
+}
+
+.aep-no-answers {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* Review action buttons wrap */
+.aep-review-actions-wrap {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.aep-att-btns-wrap {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Answers Modal popup */
+.aep-answers-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.aep-answers-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.aep-answers-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+
+.aep-answers-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.aep-answers-body {
+  padding: 20px 22px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.aep-answers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.aep-answer-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border-radius: 10px;
+  border: 1px solid #edf2f7;
+}
+
+.aep-answer-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  background: #881421;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.aep-answer-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.aep-answer-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.aep-answer-text {
+  font-size: 13px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.aep-answers-empty {
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+.aep-answers-footer {
+  padding: 12px 22px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aep-answers-close-btn {
+  background: #881421;
+  color: #ffffff;
+  border: none;
+  padding: 7px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.aep-answers-close-btn:hover { background: #6e101a; }
+
 .aep-action-allow-btn {
   display: inline-flex;
   align-items: center;

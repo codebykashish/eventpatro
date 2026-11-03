@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { X, Search, Trash2 } from 'lucide-react'
+import { X, Search, Trash2, Calendar, MapPin, Tag, CheckCircle2, Clock } from 'lucide-react'
 import { deleteUser, fetchUserRegistrations } from '../utils/api'
 import './AdminUsersPage.css'
 
@@ -61,17 +61,20 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
   }, [userList, search])
 
   // Compute per-user registration and attended counts
+  // Registered = enrolled/confirmed/pending/selected (NOT yet attended)
+  // Attended = once admin marks present (status === 'attended', shifted to attended)
   const userStats = useMemo(() => {
     const map = {}
     allRegistrations.forEach(reg => {
-      if (!reg || reg.status === 'cancelled') return
+      if (!reg || reg.status === 'cancelled' || reg.status === 'rejected') return
       const rawId = typeof reg.student === 'object' ? (reg.student?._id || reg.student?.id) : reg.student
       if (!rawId) return
       const uid = String(rawId)
       if (!map[uid]) map[uid] = { registered: [], attended: [] }
-      map[uid].registered.push(reg)
       if (reg.status === 'attended') {
         map[uid].attended.push(reg)
+      } else if (['confirmed', 'pending', 'selected'].includes(reg.status)) {
+        map[uid].registered.push(reg)
       }
     })
     return map
@@ -88,7 +91,7 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
       if (res && Array.isArray(res.registrations)) {
         const fetchedList = type === 'attended'
           ? res.registrations.filter(r => r.status === 'attended')
-          : res.registrations.filter(r => r.status !== 'cancelled')
+          : res.registrations.filter(r => ['confirmed', 'pending', 'selected'].includes(r.status))
         setPopupEvents(fetchedList)
       } else {
         // Fallback: use preloaded allRegistrations data
@@ -212,58 +215,70 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
             </div>
             <div className="aup-popup-body">
               {popupLoading && popupEvents.length === 0 ? (
-                <p className="aup-popup-empty">Loading registered events…</p>
+                <p className="aup-popup-empty">Loading {popup.type} events…</p>
               ) : popupEvents.length === 0 ? (
-                <p className="aup-popup-empty">No {popup.type} events found.</p>
+                <p className="aup-popup-empty">No {popup.type} events found for this user.</p>
               ) : (
-                <div className="aup-popup-scroll-x">
-                  <table className="aup-event-table">
-                    <thead>
-                      <tr>
-                        <th>Event</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Registered On</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {popupEvents.map(reg => {
-                        const rawEv = reg.event
-                        const eventObj = (typeof rawEv === 'object' && rawEv !== null)
-                          ? rawEv
-                          : (eventsMap[String(rawEv)] || {})
-                        const title = eventObj.title || 'Event'
-                        const cover = eventObj.coverImage || '/campus_hero_bg.jpg'
-                        const date = eventObj.date || reg.createdAt
+                <div className="aup-cards-grid">
+                  {popupEvents.map(reg => {
+                    const rawEv = reg.event
+                    const eventObj = (typeof rawEv === 'object' && rawEv !== null)
+                      ? rawEv
+                      : (eventsMap[String(rawEv)] || {})
+                    const title = eventObj.title || 'Event'
+                    const cover = eventObj.coverImage || '/campus_hero_bg.jpg'
+                    const date = eventObj.date || reg.createdAt
+                    const isAttended = reg.status === 'attended'
 
-                        return (
-                          <tr key={reg._id}>
-                            <td>
-                              <div className="aup-ev-cell">
-                                <img
-                                  src={cover}
-                                  alt={title}
-                                  className="aup-ev-thumb"
-                                  onError={(e) => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
-                                />
-                                <div>
-                                  <div className="aup-ev-title-text" title={title}>{title}</div>
-                                  {eventObj.category && (
-                                    <span className="aup-ev-cat-pill">{eventObj.category}</span>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="aup-ev-date">{formatDate(date)}</td>
-                            <td>
-                              <span className={`aup-status aup-status-${reg.status}`}>{reg.status}</span>
-                            </td>
-                            <td className="aup-ev-date">{formatDate(reg.createdAt)}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                    return (
+                      <div key={reg._id} className="aup-event-card">
+                        <div className="aup-card-thumb-wrap">
+                          <img
+                            src={cover}
+                            alt={title}
+                            className="aup-card-thumb"
+                            onError={(e) => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
+                          />
+                          <span className={`aup-card-status-badge aup-card-status--${reg.status}`}>
+                            {isAttended ? 'Attended' : 'Registered'}
+                          </span>
+                        </div>
+                        <div className="aup-card-content">
+                          {eventObj.category && (
+                            <span className="aup-card-cat">{eventObj.category}</span>
+                          )}
+                          <h4 className="aup-card-title" title={title}>{title}</h4>
+                          <div className="aup-card-meta-row">
+                            <span className="aup-card-meta-item">
+                              <Calendar size={13} className="aup-card-icon" />
+                              {formatDate(date)}
+                            </span>
+                            {eventObj.location && (
+                              <span className="aup-card-meta-item">
+                                <MapPin size={13} className="aup-card-icon" />
+                                {eventObj.location}
+                              </span>
+                            )}
+                          </div>
+                          <div className="aup-card-footer">
+                            <span className="aup-card-reg-date">
+                              Registered: {formatDate(reg.createdAt)}
+                            </span>
+                            {eventObj._id && (
+                              <a
+                                href={`/events/${eventObj._id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="aup-card-view-link"
+                              >
+                                View Event
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>
