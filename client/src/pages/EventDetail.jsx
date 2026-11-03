@@ -17,13 +17,23 @@ import './EventDetail.css'
 
 // Status badge config
 const STATUS_CONFIG = {
-  confirmed: { label: 'Registered', cls: 'status-confirmed' },
+  confirmed: { label: 'Confirmed', cls: 'status-confirmed' },
   attended:  { label: 'Attended', cls: 'status-attended' },
   pending:   { label: 'Application Pending', cls: 'status-pending' },
   selected:  { label: 'Selected', cls: 'status-selected' },
   rejected:  { label: 'Not Selected', cls: 'status-rejected' },
   cancelled: { label: 'Cancelled', cls: 'status-cancelled' },
 }
+
+const isLimitedCapacity = (ev) => ev?.capacity != null && Number(ev.capacity) > 0
+
+const getAttendance = (reg) => {
+  if (reg?.attendance === 'present' || reg?.attendance === 'absent') return reg.attendance
+  if (reg?.status === 'attended') return 'present'
+  return null
+}
+
+const canMarkAttendance = (reg) => ['confirmed', 'selected', 'attended'].includes(reg?.status)
 
 const formatDate = (iso) => {
   if (!iso) return 'TBA'
@@ -276,7 +286,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
   const handleStatusChange = async (regId, status) => {
     setRegActionMsg('')
     try {
-      await updateRegistrationStatus(id, regId, status)
+      await updateRegistrationStatus(id, regId, { status })
       setRegActionMsg(`Applicant ${status} successfully.`)
       await loadRegistrations()
       if (onRegistrationChange) onRegistrationChange()
@@ -285,13 +295,25 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     }
   }
 
+  const handleAttendanceChange = async (regId, attendance) => {
+    setRegActionMsg('')
+    try {
+      await updateRegistrationStatus(id, regId, { attendance })
+      setRegActionMsg(`Attendance marked ${attendance}.`)
+      await loadRegistrations()
+      if (onRegistrationChange) onRegistrationChange()
+    } catch (err) {
+      setRegActionMsg(`Error: ${err.message}`)
+    }
+  }
+
   // ── Derived values ─────────────────────────────────────────────────────────
-  const isRegistered   = myRegistration && myRegistration.status !== 'cancelled'
+  const isRegistered   = myRegistration && ['confirmed', 'pending', 'selected', 'attended'].includes(myRegistration.status)
   const isPastEvent    = event?.date && new Date(event.date) < new Date()
   const deadlinePassed = event?.registrationDeadline && new Date() > new Date(event.registrationDeadline)
   const isFull         = event?.capacity !== null && event?.capacity !== undefined && (event?.spotsLeft === 0 || (event?.registeredUsers?.length ?? 0) >= event.capacity) && !isRegistered
   const canCancel      = isRegistered &&
-    ['confirmed', 'pending'].includes(myRegistration?.status) &&
+    ['confirmed', 'pending', 'selected'].includes(myRegistration?.status) &&
     !deadlinePassed &&
     !isPastEvent
 
@@ -338,9 +360,11 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
   ]
 
   // Admin Enrollments section derived values
+  const hasLimitedSeats = isLimitedCapacity(event)
   const totalEnrolled = registrations.length
-  const attendedCount = registrations.filter(r => r.status === 'attended').length
-  const confirmedCount = registrations.filter(r => r.status === 'confirmed').length
+  const attendedCount = registrations.filter(r => getAttendance(r) === 'present').length
+  const absentCount = registrations.filter(r => getAttendance(r) === 'absent').length
+  const confirmedCount = registrations.filter(r => r.status === 'confirmed' || r.status === 'selected').length
   const cancelledCount = registrations.filter(r => r.status === 'cancelled').length
   const pendingCount = registrations.filter(r => r.status === 'pending').length
   const selectedCount = registrations.filter(r => r.status === 'selected').length
@@ -348,8 +372,8 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
 
   const filteredRegistrations = registrations.filter((reg) => {
     // Filter by tab
-    if (attendeeFilter === 'attended' && reg.status !== 'attended') return false
-    if (attendeeFilter === 'confirmed' && reg.status !== 'confirmed') return false
+    if (attendeeFilter === 'attended' && getAttendance(reg) !== 'present') return false
+    if (attendeeFilter === 'confirmed' && !['confirmed', 'selected'].includes(reg.status)) return false
     if (attendeeFilter === 'pending' && reg.status !== 'pending') return false
     if (attendeeFilter === 'selected' && reg.status !== 'selected') return false
     if (attendeeFilter === 'rejected' && reg.status !== 'rejected') return false
@@ -394,8 +418,8 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
           {!isPastEvent && isFull && (
             <span className="nc-seats-full-pill">No Seats Available</span>
           )}
-          {event.registrationType === 'application' && (
-            <span className="nc-badge-app-pill">Application Required</span>
+          {hasLimitedSeats && (
+            <span className="nc-badge-app-pill">Limited Seats</span>
           )}
           {event.isFree && (
             <span className="nc-free-tag-pill">Free</span>
@@ -597,7 +621,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                   </div>
                   <div>
                     <h3 className="ed-enrollments-title">
-                      {event.registrationType === 'application' ? 'Applications & Candidate Review' : 'Enrollments & Attendance'}
+                      {hasLimitedSeats ? 'Applications & Candidate Review' : 'Enrollments & Attendance'}
                     </h3>
                     <p className="ed-enrollments-subtitle">
                       Manage registered participants, review questionnaire responses, and track attendance.
@@ -617,9 +641,13 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                 </div>
                 <div className="ed-stat-box ed-stat-box--attended">
                   <span className="ed-stat-num">{attendedCount}</span>
-                  <span className="ed-stat-label">Present / Attended</span>
+                  <span className="ed-stat-label">Present</span>
                 </div>
-                {event.registrationType === 'application' ? (
+                <div className="ed-stat-box ed-stat-box--absent">
+                  <span className="ed-stat-num">{absentCount}</span>
+                  <span className="ed-stat-label">Absent</span>
+                </div>
+                {hasLimitedSeats ? (
                   <>
                     <div className="ed-stat-box ed-stat-box--pending">
                       <span className="ed-stat-num">{pendingCount}</span>
@@ -631,9 +659,9 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                     </div>
                   </>
                 ) : (
-                  <div className="ed-stat-box ed-stat-box--absent">
+                  <div className="ed-stat-box ed-stat-box--selected">
                     <span className="ed-stat-num">{confirmedCount}</span>
-                    <span className="ed-stat-label">Unattended / Pending</span>
+                    <span className="ed-stat-label">Confirmed</span>
                   </div>
                 )}
                 {cancelledCount > 0 && (
@@ -682,7 +710,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                   >
                     All ({totalEnrolled})
                   </button>
-                  {event.registrationType === 'application' ? (
+                  {hasLimitedSeats ? (
                     <>
                       <button
                         type="button"
@@ -703,7 +731,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                         className={`ed-filter-pill ${attendeeFilter === 'attended' ? 'active' : ''}`}
                         onClick={() => setAttendeeFilter('attended')}
                       >
-                        Attended ({attendedCount})
+                        Present ({attendedCount})
                       </button>
                     </>
                   ) : (
@@ -720,7 +748,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                         className={`ed-filter-pill ${attendeeFilter === 'attended' ? 'active' : ''}`}
                         onClick={() => setAttendeeFilter('attended')}
                       >
-                        Attended ({attendedCount})
+                        Present ({attendedCount})
                       </button>
                     </>
                   )}
@@ -767,7 +795,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                 </div>
               ) : (() => {
                 const hasQuestions = Boolean(event.formFields && event.formFields.length > 0)
-                const hasReview = Boolean((event.capacity && event.capacity > 0) || event.registrationType === 'application')
+                const hasReview = hasLimitedSeats || pendingCount > 0
 
                 return (
                   <div className="ed-reg-table-container">
@@ -781,7 +809,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                           <th>Status</th>
                           {hasQuestions && <th>Responses</th>}
                           {hasReview && <th>Review</th>}
-                          <th style={{ textAlign: 'right' }}>Attendance</th>
+                          <th>Attendance</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -792,7 +820,9 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                           const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'S'
                           const isCancelled = reg.status === 'cancelled'
                           const isRejected = reg.status === 'rejected'
-                          const isConfirmedOrAttended = ['confirmed', 'attended', 'selected'].includes(reg.status)
+                          const isSelected = reg.status === 'selected' || reg.status === 'attended'
+                          const attendance = getAttendance(reg)
+                          const showAttendance = canMarkAttendance(reg)
                           const hasAnswers = reg.answers && reg.answers.length > 0
 
                           return (
@@ -843,23 +873,23 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                               {/* Review column */}
                               {hasReview && (
                                 <td>
-                                  {isCancelled ? null : (
+                                  {isCancelled ? (
+                                    <span className="ed-no-answers">—</span>
+                                  ) : (
                                     <div style={{ display: 'flex', gap: '6px' }}>
                                       <button
                                         type="button"
-                                        className={`ed-btn-confirm-review ${isConfirmedOrAttended ? 'active' : ''}`}
-                                        title="Confirm registration"
-                                        onClick={() => handleStatusChange(reg._id, 'confirmed')}
-                                        disabled={['confirmed', 'attended'].includes(reg.status)}
+                                        className={`ed-btn-confirm-review ${isSelected ? 'active' : ''}`}
+                                        title="Select applicant"
+                                        onClick={() => handleStatusChange(reg._id, 'selected')}
                                       >
-                                        <Check size={12} /> Confirm
+                                        <Check size={12} /> Select
                                       </button>
                                       <button
                                         type="button"
                                         className={`ed-btn-reject-review ${isRejected ? 'active' : ''}`}
-                                        title="Reject registration"
+                                        title="Reject applicant"
                                         onClick={() => handleStatusChange(reg._id, 'rejected')}
-                                        disabled={isRejected}
                                       >
                                         <X size={12} /> Reject
                                       </button>
@@ -868,27 +898,29 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                                 </td>
                               )}
 
-                              {/* Attendance column */}
-                              <td style={{ textAlign: 'right' }}>
-                                {isCancelled || isRejected || reg.status === 'pending' ? null : (
-                                  <div className="ed-reg-actions-row" style={{ justifyContent: 'flex-end' }}>
+                              {/* Attendance column — always rendered so it is never clipped/missing */}
+                              <td>
+                                {showAttendance ? (
+                                  <div className="ed-reg-actions-row">
                                     <button
                                       type="button"
-                                      className={`ed-att-btn ed-att-present ${reg.status === 'attended' ? 'active' : ''}`}
-                                      onClick={() => handleStatusChange(reg._id, 'attended')}
+                                      className={`ed-att-btn ed-att-present ${attendance === 'present' ? 'active' : ''}`}
+                                      onClick={() => handleAttendanceChange(reg._id, 'present')}
                                       title="Mark student as present"
                                     >
                                       <Check size={12} /> Present
                                     </button>
                                     <button
                                       type="button"
-                                      className={`ed-att-btn ed-att-absent ${reg.status === 'confirmed' ? 'active' : ''}`}
-                                      onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                      className={`ed-att-btn ed-att-absent ${attendance === 'absent' ? 'active' : ''}`}
+                                      onClick={() => handleAttendanceChange(reg._id, 'absent')}
                                       title="Mark student as absent"
                                     >
                                       <X size={12} /> Absent
                                     </button>
                                   </div>
+                                ) : (
+                                  <span className="ed-no-answers">—</span>
                                 )}
                               </td>
                             </tr>
@@ -1095,7 +1127,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                   >
                     {submitting
                       ? 'Processing…'
-                      : event.registrationType === 'application'
+                      : hasLimitedSeats
                         ? 'Apply Now'
                         : 'Enroll Now'}
                   </button>
@@ -1251,7 +1283,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
           <div className="nc-modal-box" onClick={(e) => e.stopPropagation()}>
             <div className="nc-modal-header">
               <h3 className="nc-modal-title">
-                {event.registrationType === 'application' ? 'Event Application Form' : 'Complete Enrollment'}
+                {hasLimitedSeats ? 'Event Application Form' : 'Complete Enrollment'}
               </h3>
               <button
                 type="button"

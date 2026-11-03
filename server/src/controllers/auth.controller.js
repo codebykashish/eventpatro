@@ -338,7 +338,7 @@ const getAllUsers = async (req, res, next) => {
     // Count registrations for each user
     const Registration = require('../models/Registration')
     const regCounts = await Registration.aggregate([
-      { $match: { status: { $ne: 'cancelled' } } },
+      { $match: { status: { $in: ['confirmed', 'pending', 'selected', 'attended'] } } },
       { $group: { _id: '$student', count: { $sum: 1 } } },
     ])
 

@@ -474,9 +474,21 @@
 }
 
 .aep-popup--xl {
-  max-width: 980px;
+  max-width: 1100px;
   width: 95%;
-  padding: 26px 28px;
+  padding: 22px 24px;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.aep-popup-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.aep-popup-scroll-x {
+  overflow: auto;
 }
 
 /* Header matching the modern card design */
@@ -487,6 +499,7 @@
   gap: 16px;
   padding-bottom: 14px;
   border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
 }
 
 .aep-reg-title-group {
@@ -541,6 +554,7 @@
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .aep-reg-search-box {
@@ -652,7 +666,7 @@
 .aep-reg-table-card {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   background: #ffffff;
   margin-top: 8px;
 }
@@ -661,7 +675,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 680px;
+  min-width: 960px;
 }
 
 .aep-reg-table th {
@@ -675,6 +689,9 @@
   background: #fafafa;
   border-bottom: 1.5px solid #e2e8f0;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .aep-reg-table td {
@@ -983,13 +1000,14 @@
 /* Attendance Summary Bar & Buttons */
 .aep-attendance-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 12px;
   padding: 12px 16px;
   background: #f8fafc;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .aep-attendance-stat {

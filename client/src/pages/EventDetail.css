@@ -1717,7 +1717,8 @@
 .ed-reg-table-container {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 520px;
   background: #ffffff;
 }
 
@@ -1726,7 +1727,7 @@
   border-collapse: collapse;
   font-size: 13.5px;
   text-align: left;
-  min-width: 660px;
+  min-width: 960px;
 }
 
 .ed-reg-table th {
@@ -1739,6 +1740,9 @@
   letter-spacing: 0.05em;
   border-bottom: 1.5px solid #e2e8f0;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .ed-reg-table td {

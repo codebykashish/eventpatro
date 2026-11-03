@@ -1,14 +1,24 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Search, Eye, Edit, Trash2, X, Calendar, MapPin, Users, Clock,
-  ChevronDown, ArrowRight, CheckCircle2, Check, UserCheck, FileText, UserX
+  Search, Eye, Edit, Trash2, X, MapPin, Users, Clock,
+  ChevronDown, CheckCircle2, Check, UserCheck, FileText
 } from 'lucide-react'
 import { fetchEvents, getEventRegistrations, deleteEvent, updateRegistrationStatus } from '../utils/api'
 import EditEventPage from './EditEvent'
 import './AdminEventsPage.css'
 
 const CATEGORIES = ['Workshop', 'Seminar', 'Cultural', 'Sports', 'Hackathon', 'Other']
+
+const isLimitedCapacity = (ev) => ev?.capacity != null && Number(ev.capacity) > 0
+
+const getAttendance = (reg) => {
+  if (reg?.attendance === 'present' || reg?.attendance === 'absent') return reg.attendance
+  if (reg?.status === 'attended') return 'present'
+  return null
+}
+
+const canMarkAttendance = (reg) => ['confirmed', 'selected', 'attended'].includes(reg?.status)
 
 const formatDate = (iso) => {
   if (!iso) return '—'
@@ -97,10 +107,30 @@ export default function AdminEventsPage() {
   const handleStatusChange = async (regId, newStatus) => {
     if (!regPopupEvent) return
     try {
-      await updateRegistrationStatus(regPopupEvent._id, regId, newStatus)
-      setRegList(prev => prev.map(r => r._id === regId ? { ...r, status: newStatus } : r))
+      const res = await updateRegistrationStatus(regPopupEvent._id, regId, { status: newStatus })
+      setRegList(prev => prev.map(r => {
+        if (r._id !== regId) return r
+        return res.registration || {
+          ...r,
+          status: newStatus,
+          attendance: newStatus === 'rejected' ? null : r.attendance,
+        }
+      }))
     } catch (err) {
       alert(err.message || 'Failed to update registration status')
+    }
+  }
+
+  const handleAttendanceChange = async (regId, attendance) => {
+    if (!regPopupEvent) return
+    try {
+      const res = await updateRegistrationStatus(regPopupEvent._id, regId, { attendance })
+      setRegList(prev => prev.map(r => {
+        if (r._id !== regId) return r
+        return res.registration || { ...r, attendance }
+      }))
+    } catch (err) {
+      alert(err.message || 'Failed to update attendance')
     }
   }
 
@@ -247,15 +277,16 @@ export default function AdminEventsPage() {
       {/* ── Registrations Popup ── */}
       {regPopupEvent && (() => {
         const hasQuestions = Boolean(regPopupEvent.formFields && regPopupEvent.formFields.length > 0)
-        const hasReview = Boolean((regPopupEvent.capacity && regPopupEvent.capacity > 0) || regPopupEvent.registrationType === 'application')
+        const hasReview = isLimitedCapacity(regPopupEvent) || regList.some((r) => r.status === 'pending')
 
         const totalEnrolled = regList.length
         const totalActive = regList.filter(r => ['confirmed', 'selected', 'attended'].includes(r.status)).length
-        const attendedCount = regList.filter(r => r.status === 'attended').length
-        const unattendedCount = regList.filter(r => r.status === 'confirmed').length
+        const attendedCount = regList.filter(r => getAttendance(r) === 'present').length
+        const absentCount = regList.filter(r => getAttendance(r) === 'absent').length
         const cancelledCount = regList.filter(r => r.status === 'cancelled').length
         const rejectedCount = regList.filter(r => r.status === 'rejected').length
         const pendingCount = regList.filter(r => r.status === 'pending').length
+        const selectedCount = regList.filter(r => r.status === 'selected' || (!hasReview && r.status === 'confirmed')).length
 
         const filteredRegs = regList.filter(r => {
           if (attendeeSearch.trim()) {
@@ -267,7 +298,13 @@ export default function AdminEventsPage() {
           }
           if (attendeeFilter !== 'all') {
             if (attendeeFilter === 'confirmed') {
-              if (!['confirmed', 'selected'].includes(r.status)) return false
+              if (hasReview) {
+                if (r.status !== 'selected') return false
+              } else if (r.status !== 'confirmed' && r.status !== 'selected') {
+                return false
+              }
+            } else if (attendeeFilter === 'attended') {
+              if (getAttendance(r) !== 'present') return false
             } else if (r.status !== attendeeFilter) {
               return false
             }
@@ -286,7 +323,7 @@ export default function AdminEventsPage() {
                   </div>
                   <div>
                     <h3 className="aep-reg-main-title">
-                      {regPopupEvent.registrationType === 'application' ? 'Applications & Candidate Review' : 'Enrollments & Attendance'}
+                      {hasReview ? 'Applications & Candidate Review' : 'Enrollments & Attendance'}
                     </h3>
                     <p className="aep-reg-main-sub">
                       {regPopupEvent.title} · Manage registered participants, questionnaire responses, and attendance.
@@ -312,8 +349,8 @@ export default function AdminEventsPage() {
                   <span className="aep-att-label">Present / Attended</span>
                 </div>
                 <div className="aep-attendance-stat aep-attendance-absent">
-                  <span className="aep-att-num">{unattendedCount}</span>
-                  <span className="aep-att-label">Unattended / Absent</span>
+                  <span className="aep-att-num">{absentCount}</span>
+                  <span className="aep-att-label">Absent</span>
                 </div>
                 {cancelledCount > 0 && (
                   <div className="aep-attendance-stat aep-attendance-cancelled">
@@ -321,7 +358,7 @@ export default function AdminEventsPage() {
                     <span className="aep-att-label">Cancelled</span>
                   </div>
                 )}
-                {regPopupEvent.registrationType === 'application' && (
+                {hasReview && (
                   <>
                     <div className="aep-attendance-stat aep-attendance-pending">
                       <span className="aep-att-num">{pendingCount}</span>
@@ -366,19 +403,28 @@ export default function AdminEventsPage() {
                   >
                     All ({totalEnrolled})
                   </button>
+                  {hasReview && (
+                    <button
+                      type="button"
+                      className={`aep-reg-filter-pill ${attendeeFilter === 'pending' ? 'active' : ''}`}
+                      onClick={() => setAttendeeFilter('pending')}
+                    >
+                      Pending ({pendingCount})
+                    </button>
+                  )}
                   <button
                     type="button"
                     className={`aep-reg-filter-pill ${attendeeFilter === 'confirmed' ? 'active' : ''}`}
                     onClick={() => setAttendeeFilter('confirmed')}
                   >
-                    Registered ({unattendedCount})
+                    {hasReview ? `Selected (${selectedCount})` : `Registered (${selectedCount})`}
                   </button>
                   <button
                     type="button"
                     className={`aep-reg-filter-pill ${attendeeFilter === 'attended' ? 'active' : ''}`}
                     onClick={() => setAttendeeFilter('attended')}
                   >
-                    Attended ({attendedCount})
+                    Present ({attendedCount})
                   </button>
                   {cancelledCount > 0 && (
                     <button
@@ -448,7 +494,9 @@ export default function AdminEventsPage() {
                           const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'S'
                           const isCancelled = reg.status === 'cancelled'
                           const isRejected = reg.status === 'rejected'
-                          const isConfirmedOrAttended = ['confirmed', 'attended', 'selected'].includes(reg.status)
+                          const isSelected = reg.status === 'selected' || reg.status === 'attended'
+                          const attendance = getAttendance(reg)
+                          const showAttendance = canMarkAttendance(reg)
                           const hasAnswers = reg.answers && reg.answers.length > 0
 
                           return (
@@ -506,23 +554,23 @@ export default function AdminEventsPage() {
                               {/* Review (ONLY IF LIMITED SEATS OR APPLICATION) */}
                               {hasReview && (
                                 <td>
-                                  {isCancelled ? null : (
+                                  {isCancelled ? (
+                                    <span className="aep-no-answers">—</span>
+                                  ) : (
                                     <div className="aep-review-actions-wrap">
                                       <button
                                         type="button"
-                                        className={`aep-action-allow-btn ${isConfirmedOrAttended ? 'active' : ''}`}
-                                        title="Confirm registration"
-                                        onClick={() => handleStatusChange(reg._id, 'confirmed')}
-                                        disabled={['confirmed', 'attended'].includes(reg.status)}
+                                        className={`aep-action-allow-btn ${isSelected ? 'active' : ''}`}
+                                        title="Select applicant"
+                                        onClick={() => handleStatusChange(reg._id, 'selected')}
                                       >
-                                        <Check size={12} /> Confirm
+                                        <Check size={12} /> Select
                                       </button>
                                       <button
                                         type="button"
                                         className={`aep-action-reject-btn ${isRejected ? 'active' : ''}`}
-                                        title="Reject registration"
+                                        title="Reject applicant"
                                         onClick={() => handleStatusChange(reg._id, 'rejected')}
-                                        disabled={isRejected}
                                       >
                                         <X size={12} /> Reject
                                       </button>
@@ -531,27 +579,29 @@ export default function AdminEventsPage() {
                                 </td>
                               )}
 
-                              {/* Attendance */}
+                              {/* Attendance — always a cell so the column stays aligned */}
                               <td>
-                                {isCancelled || isRejected || reg.status === 'pending' ? null : (
+                                {showAttendance ? (
                                   <div className="aep-att-btns-wrap">
                                     <button
                                       type="button"
-                                      className={`aep-att-btn aep-att-present ${reg.status === 'attended' ? 'active' : ''}`}
+                                      className={`aep-att-btn aep-att-present ${attendance === 'present' ? 'active' : ''}`}
                                       title="Mark Present"
-                                      onClick={() => handleStatusChange(reg._id, 'attended')}
+                                      onClick={() => handleAttendanceChange(reg._id, 'present')}
                                     >
                                       <Check size={12} /> Present
                                     </button>
                                     <button
                                       type="button"
-                                      className={`aep-att-btn aep-att-absent ${reg.status === 'confirmed' ? 'active' : ''}`}
+                                      className={`aep-att-btn aep-att-absent ${attendance === 'absent' ? 'active' : ''}`}
                                       title="Mark Absent"
-                                      onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                      onClick={() => handleAttendanceChange(reg._id, 'absent')}
                                     >
                                       <X size={12} /> Absent
                                     </button>
                                   </div>
+                                ) : (
+                                  <span className="aep-no-answers">—</span>
                                 )}
                               </td>
                             </tr>

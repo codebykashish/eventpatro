@@ -1,6 +1,12 @@
 const { Event } = require('../models/Event')
 const Registration = require('../models/Registration')
 
+const ACTIVE_STATUSES = ['confirmed', 'pending', 'selected', 'attended']
+
+const isLimitedCapacity = (event) => event?.capacity != null && Number(event.capacity) > 0
+
+const initialStatusForEvent = (event) => (isLimitedCapacity(event) ? 'pending' : 'confirmed')
+
 // ─── POST /api/events/:id/registrations ──────────────────────────────────────
 // Logged-in students: submit registration + form answers for an event
 const createRegistration = async (req, res) => {
@@ -19,7 +25,7 @@ const createRegistration = async (req, res) => {
     // Count active registrations to enforce capacity
     const activeCount = await Registration.countDocuments({
       event: event._id,
-      status: { $in: ['confirmed', 'pending', 'selected', 'attended'] },
+      status: { $in: ACTIVE_STATUSES },
     })
 
     if (event.capacity !== null && activeCount >= event.capacity) {
@@ -30,7 +36,7 @@ const createRegistration = async (req, res) => {
     const existing = await Registration.findOne({
       event: event._id,
       student: req.user._id,
-      status: { $in: ['confirmed', 'pending', 'selected', 'attended'] },
+      status: { $in: ACTIVE_STATUSES },
     })
 
     if (existing) {
@@ -68,8 +74,8 @@ const createRegistration = async (req, res) => {
       }
     })
 
-    // Determine initial status based on event registration type
-    const status = event.registrationType === 'open' ? 'confirmed' : 'pending'
+    // Limited seats wait for admin select/reject; unlimited seats are confirmed immediately
+    const status = initialStatusForEvent(event)
 
     // If student had a previous registration (e.g. cancelled), overwrite/reactivate it
     let registration = await Registration.findOne({
@@ -79,6 +85,7 @@ const createRegistration = async (req, res) => {
 
     if (registration) {
       registration.status = status
+      registration.attendance = null
       registration.answers = savedAnswers
       await registration.save()
     } else {
@@ -128,6 +135,7 @@ const cancelRegistration = async (req, res) => {
     }
 
     registration.status = 'cancelled'
+    registration.attendance = null
     await registration.save()
 
     // Remove from registeredUsers array too
@@ -159,11 +167,18 @@ const getEventRegistrations = async (req, res) => {
 // Admin only: update a registration's status (select / reject / confirm / attend)
 const updateRegistrationStatus = async (req, res) => {
   try {
-    const { status } = req.body
+    const { status, attendance } = req.body
 
-    // Admin can set selected, rejected, or attended (attendance marking)
-    if (!['selected', 'rejected', 'attended', 'confirmed'].includes(status)) {
+    if (status === undefined && attendance === undefined) {
+      return res.status(400).json({ message: 'Provide a status or attendance value' })
+    }
+
+    if (status !== undefined && !['selected', 'rejected', 'attended', 'confirmed'].includes(status)) {
       return res.status(400).json({ message: 'Status must be "selected", "rejected", "attended", or "confirmed"' })
+    }
+
+    if (attendance !== undefined && attendance !== null && !['present', 'absent'].includes(attendance)) {
+      return res.status(400).json({ message: 'Attendance must be "present" or "absent"' })
     }
 
     const existing = await Registration.findOne({ _id: req.params.regId, event: req.params.id })
@@ -175,15 +190,51 @@ const updateRegistrationStatus = async (req, res) => {
       return res.status(400).json({ message: 'Cannot modify a cancelled registration' })
     }
 
-    existing.status = status
+    const event = await Event.findById(req.params.id)
+    const previousStatus = existing.status
+
+    if (status !== undefined) {
+      if (status === 'selected' && previousStatus === 'rejected' && isLimitedCapacity(event)) {
+        const activeCount = await Registration.countDocuments({
+          event: event._id,
+          status: { $in: ACTIVE_STATUSES },
+        })
+        if (activeCount >= event.capacity) {
+          return res.status(400).json({ message: 'Event is fully booked' })
+        }
+      }
+
+      existing.status = status
+      if (status === 'rejected' || status === 'pending') {
+        existing.attendance = null
+      } else if (
+        (status === 'selected' || status === 'confirmed') &&
+        !['selected', 'confirmed', 'attended'].includes(previousStatus)
+      ) {
+        existing.attendance = null
+      }
+    }
+
+    if (attendance !== undefined) {
+      const eligible = ['selected', 'confirmed', 'attended'].includes(existing.status)
+      if (!eligible) {
+        return res.status(400).json({ message: 'Attendance can only be marked after the student is selected or confirmed' })
+      }
+      existing.attendance = attendance
+      // Legacy rows used status === 'attended' for present; keep status as selected/confirmed
+      if (existing.status === 'attended') {
+        existing.status = isLimitedCapacity(event) ? 'selected' : 'confirmed'
+      }
+    }
+
     await existing.save()
 
     // Sync registeredUsers array on Event
-    if (status === 'rejected') {
+    if (existing.status === 'rejected') {
       await Event.findByIdAndUpdate(req.params.id, {
         $pull: { registeredUsers: existing.student },
       })
-    } else if (['confirmed', 'selected', 'attended'].includes(status)) {
+    } else if (['confirmed', 'selected', 'attended'].includes(existing.status)) {
       await Event.findByIdAndUpdate(req.params.id, {
         $addToSet: { registeredUsers: existing.student },
       })
@@ -191,7 +242,7 @@ const updateRegistrationStatus = async (req, res) => {
 
     const registration = await Registration.findById(existing._id).populate('student', 'firstName lastName email studentId')
 
-    res.json({ message: `Registration ${status}`, registration })
+    res.json({ message: 'Registration updated', registration })
   } catch (err) {
     res.status(500).json({ message: 'Failed to update status', error: err.message })
   }
@@ -251,7 +302,6 @@ const getUserRegistrations = async (req, res) => {
   try {
     const registrations = await Registration.find({
       student: req.params.userId,
-      status: { $ne: 'cancelled' },
     })
       .populate('event', 'title date location category capacity coverImage')
       .populate('student', 'firstName lastName email studentId')

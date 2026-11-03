@@ -77,12 +77,14 @@ export const getMyRegistrations = () => request('/registrations/me')
 export const getEventRegistrations = (eventId) =>
   request(`/events/${eventId}/registrations`)
 
-/** Admin: update a registration's status (select / reject) */
-export const updateRegistrationStatus = (eventId, regId, status) =>
-  request(`/events/${eventId}/registrations/${regId}`, {
+/** Admin: update a registration's status and/or attendance */
+export const updateRegistrationStatus = (eventId, regId, payload) => {
+  const body = typeof payload === 'string' ? { status: payload } : payload
+  return request(`/events/${eventId}/registrations/${regId}`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify(body),
   })
+}
 
 /** Admin: fetch all registered users */
 export const fetchUsers = () => request('/auth/users')

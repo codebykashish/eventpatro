@@ -40,12 +40,19 @@ const registrationSchema = new mongoose.Schema(
     },
 
     // Status lifecycle:
-    //  open event → 'confirmed' immediately
-    //  application event → 'pending' until admin reviews
+    //  unlimited seats → 'confirmed' immediately
+    //  limited seats → 'pending' until admin selects or rejects
     status: {
       type: String,
       enum: ['confirmed', 'pending', 'selected', 'attended', 'rejected', 'cancelled'],
       default: 'pending',
+    },
+
+    // Present / absent, only after the student is confirmed or selected
+    attendance: {
+      type: String,
+      enum: ['present', 'absent', null],
+      default: null,
     },
 
     // Answers to every form field (empty array if no custom form)

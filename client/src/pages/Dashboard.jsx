@@ -279,7 +279,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
     try {
       if (isAdmin) {
         const [eventsRes, usersRes, regsRes] = await Promise.allSettled([
-          fetchEvents({ limit: 100 }),
+          fetchEvents({ limit: 200 }),
           fetchUsers(),
           fetchAllRegistrations(),
         ])

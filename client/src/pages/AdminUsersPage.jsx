@@ -1,11 +1,35 @@
 import { useState, useEffect, useMemo } from 'react'
-import { X, Search, Trash2, Calendar, MapPin, Tag, CheckCircle2, Clock } from 'lucide-react'
-import { deleteUser, fetchUserRegistrations } from '../utils/api'
+import { X, Search, Trash2 } from 'lucide-react'
+import { deleteUser, fetchUserRegistrations, fetchAllRegistrations } from '../utils/api'
 import './AdminUsersPage.css'
 
 const formatDate = (iso) => {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const idOf = (value) => {
+  if (!value) return ''
+  if (typeof value === 'string' || typeof value === 'number') return String(value)
+  return String(value._id || value.id || '')
+}
+
+const isPresent = (reg) => reg?.attendance === 'present' || reg?.status === 'attended'
+
+const matchesUser = (reg, u) => {
+  if (!reg || !u) return false
+  const uid = idOf(u._id || u.id)
+  const student = reg.student
+  const sid = idOf(student)
+  if (uid && sid && uid === sid) return true
+  const userEmail = (u.email || '').toLowerCase()
+  const studentEmail = (typeof student === 'object' ? student?.email : '')?.toLowerCase()
+  return Boolean(userEmail && studentEmail && userEmail === studentEmail)
+}
+
+const listedForType = (regs, type) => {
+  if (type === 'attended') return regs.filter(isPresent)
+  return regs.filter((r) => r.status !== 'cancelled')
 }
 
 export default function AdminUsersPage({ users = [], allRegistrations = [], events = [], onUserDeleted }) {
@@ -14,34 +38,54 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
   const [userToDelete, setUserToDelete] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [regCache, setRegCache] = useState(allRegistrations)
 
-  // Map events by ID for quick lookup when reg.event is just an ID
   const eventsMap = useMemo(() => {
     const map = {}
-    events.forEach(ev => {
+    events.forEach((ev) => {
       if (ev?._id) map[String(ev._id)] = ev
     })
     return map
   }, [events])
 
-  // Sync userList whenever parent users prop changes
   useEffect(() => {
     setUserList(users)
   }, [users])
 
-  // Popup state
-  const [popup, setPopup] = useState(null) // { user, type: 'registered' | 'attended' }
-  const [popupEvents, setPopupEvents] = useState([]) // list of events for the popup
+  useEffect(() => {
+    setRegCache(allRegistrations)
+  }, [allRegistrations])
+
+  useEffect(() => {
+    if (allRegistrations.length > 0) return
+    fetchAllRegistrations()
+      .then((d) => setRegCache(d.registrations || []))
+      .catch(() => {})
+  }, [allRegistrations.length])
+
+  const [popup, setPopup] = useState(null)
+  const [popupEvents, setPopupEvents] = useState([])
   const [popupLoading, setPopupLoading] = useState(false)
+
+  const resolveEvent = (reg) => {
+    const rawEv = reg?.event
+    if (rawEv && typeof rawEv === 'object' && (rawEv.title || rawEv.date || rawEv.coverImage)) {
+      return rawEv
+    }
+    const eventId = idOf(rawEv)
+    return (eventId && eventsMap[eventId]) || (typeof rawEv === 'object' && rawEv !== null ? rawEv : {}) || {}
+  }
+
+  const regsForUser = (u, list = regCache) => list.filter((r) => matchesUser(r, u))
 
   const handleDelete = async () => {
     if (!userToDelete) return
-    const uid = String(userToDelete._id || userToDelete.id)
+    const uid = idOf(userToDelete._id || userToDelete.id)
     setDeleting(true)
     setDeleteError('')
     try {
       await deleteUser(uid)
-      setUserList(prev => prev.filter(u => String(u._id || u.id) !== uid))
+      setUserList((prev) => prev.filter((u) => idOf(u._id || u.id) !== uid))
       if (onUserDeleted) onUserDeleted(uid)
       setUserToDelete(null)
     } catch (err) {
@@ -54,57 +98,47 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return userList
-    return userList.filter(u =>
+    return userList.filter((u) =>
       `${u.firstName} ${u.lastName}`.toLowerCase().includes(q) ||
       u.email?.toLowerCase().includes(q)
     )
   }, [userList, search])
 
-  // Compute per-user registration and attended counts
-  // Registered = enrolled/confirmed/pending/selected (NOT yet attended)
-  // Attended = once admin marks present (status === 'attended', shifted to attended)
   const userStats = useMemo(() => {
     const map = {}
-    allRegistrations.forEach(reg => {
-      if (!reg || reg.status === 'cancelled' || reg.status === 'rejected') return
-      const rawId = typeof reg.student === 'object' ? (reg.student?._id || reg.student?.id) : reg.student
-      if (!rawId) return
-      const uid = String(rawId)
-      if (!map[uid]) map[uid] = { registered: [], attended: [] }
-      if (reg.status === 'attended') {
-        map[uid].attended.push(reg)
-      } else if (['confirmed', 'pending', 'selected'].includes(reg.status)) {
-        map[uid].registered.push(reg)
+    userList.forEach((u) => {
+      const uid = idOf(u._id || u.id)
+      const regs = regsForUser(u, regCache)
+      map[uid] = {
+        registered: listedForType(regs, 'registered'),
+        attended: listedForType(regs, 'attended'),
       }
     })
     return map
-  }, [allRegistrations])
+  }, [regCache, userList])
 
   const openPopup = async (u, type) => {
+    const uid = idOf(u._id || u.id)
+    const localList = listedForType(regsForUser(u), type)
+
     setPopup({ user: u, type })
-    setPopupEvents([])
-    setPopupLoading(true)
+    setPopupEvents(localList)
+    setPopupLoading(localList.length === 0)
 
     try {
-      const uid = String(u._id || u.id)
       const res = await fetchUserRegistrations(uid)
-      if (res && Array.isArray(res.registrations)) {
-        const fetchedList = type === 'attended'
-          ? res.registrations.filter(r => r.status === 'attended')
-          : res.registrations.filter(r => ['confirmed', 'pending', 'selected'].includes(r.status))
+      const source = Array.isArray(res?.registrations) ? res.registrations : []
+      const fetchedList = listedForType(source, type)
+      if (fetchedList.length > 0) {
         setPopupEvents(fetchedList)
-      } else {
-        // Fallback: use preloaded allRegistrations data
-        const uid2 = String(u._id || u.id)
-        const localRegs = userStats[uid2] || { registered: [], attended: [] }
-        setPopupEvents(type === 'attended' ? localRegs.attended : localRegs.registered)
+      } else if (localList.length === 0 && source.length > 0) {
+        setPopupEvents(source)
       }
     } catch (err) {
       console.warn('Could not fetch user registrations dynamically, using preloaded data', err)
-      // Fallback: use preloaded allRegistrations data
-      const uid2 = String(u._id || u.id)
-      const localRegs = userStats[uid2] || { registered: [], attended: [] }
-      setPopupEvents(type === 'attended' ? localRegs.attended : localRegs.registered)
+      if (localList.length === 0) {
+        setPopupEvents(listedForType(regsForUser(u), type))
+      }
     } finally {
       setPopupLoading(false)
     }
@@ -112,7 +146,6 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
 
   return (
     <div className="aup-root">
-      {/* Header */}
       <div className="aup-page-header">
         <div>
           <h1 className="aup-page-title">Users</h1>
@@ -124,14 +157,13 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
             type="text"
             placeholder="Search users…"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="aup-search-input"
           />
           {search && <button className="aup-search-clear" onClick={() => setSearch('')}><X size={13}/></button>}
         </div>
       </div>
 
-      {/* Table */}
       <div className="aup-table-card">
         <div className="aup-table-scroll">
           <table className="aup-table">
@@ -152,11 +184,11 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
                   <td colSpan={7} className="aup-empty">No users found.</td>
                 </tr>
               ) : filteredUsers.map((u, idx) => {
-                const uid = String(u._id || u.id)
+                const uid = idOf(u._id || u.id)
                 const stats = userStats[uid] || { registered: [], attended: [] }
                 const regCount = stats.registered.length || u.registrationsCount || 0
                 return (
-                  <tr key={uid}>
+                  <tr key={uid || idx}>
                     <td className="aup-idx">{idx + 1}</td>
                     <td className="aup-name">{u.firstName} {u.lastName}</td>
                     <td className="aup-email">{u.email}</td>
@@ -200,15 +232,15 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
         </div>
       </div>
 
-      {/* Popup */}
       {popup && (
         <div className="aup-overlay" onClick={() => setPopup(null)}>
-          <div className="aup-popup" onClick={e => e.stopPropagation()}>
+          <div className="aup-popup" onClick={(e) => e.stopPropagation()}>
             <div className="aup-popup-header">
               <div>
                 <h3>{popup.user.firstName} {popup.user.lastName}</h3>
                 <span className="aup-popup-sub">
-                  {popup.type === 'attended' ? 'Attended events' : 'Registered events'} · {popupEvents.length} total
+                  {popup.type === 'attended' ? 'Attended events' : 'Registered events'}
+                  {popupEvents.length > 0 ? ` · ${popupEvents.length}` : ''}
                 </span>
               </div>
               <button className="aup-popup-close" onClick={() => setPopup(null)}><X size={16}/></button>
@@ -219,77 +251,38 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
               ) : popupEvents.length === 0 ? (
                 <p className="aup-popup-empty">No {popup.type} events found for this user.</p>
               ) : (
-                <div className="aup-cards-grid">
-                  {popupEvents.map(reg => {
-                    const rawEv = reg.event
-                    const eventObj = (typeof rawEv === 'object' && rawEv !== null)
-                      ? rawEv
-                      : (eventsMap[String(rawEv)] || {})
-                    const title = eventObj.title || 'Event'
+                <ul className="aup-simple-event-list">
+                  {popupEvents.map((reg, idx) => {
+                    const eventObj = resolveEvent(reg)
+                    const title = eventObj.title || 'Untitled event'
                     const cover = eventObj.coverImage || '/campus_hero_bg.jpg'
                     const date = eventObj.date || reg.createdAt
-                    const isAttended = reg.status === 'attended'
 
                     return (
-                      <div key={reg._id} className="aup-event-card">
-                        <div className="aup-card-thumb-wrap">
-                          <img
-                            src={cover}
-                            alt={title}
-                            className="aup-card-thumb"
-                            onError={(e) => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
-                          />
-                          <span className={`aup-card-status-badge aup-card-status--${reg.status}`}>
-                            {isAttended ? 'Attended' : 'Registered'}
-                          </span>
+                      <li key={reg._id || idx} className="aup-simple-event-row">
+                        <img
+                          src={cover}
+                          alt=""
+                          className="aup-ev-thumb"
+                          onError={(e) => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
+                        />
+                        <div className="aup-simple-event-copy">
+                          <span className="aup-simple-event-name">{title}</span>
+                          <span className="aup-simple-event-date">{formatDate(date)}</span>
                         </div>
-                        <div className="aup-card-content">
-                          {eventObj.category && (
-                            <span className="aup-card-cat">{eventObj.category}</span>
-                          )}
-                          <h4 className="aup-card-title" title={title}>{title}</h4>
-                          <div className="aup-card-meta-row">
-                            <span className="aup-card-meta-item">
-                              <Calendar size={13} className="aup-card-icon" />
-                              {formatDate(date)}
-                            </span>
-                            {eventObj.location && (
-                              <span className="aup-card-meta-item">
-                                <MapPin size={13} className="aup-card-icon" />
-                                {eventObj.location}
-                              </span>
-                            )}
-                          </div>
-                          <div className="aup-card-footer">
-                            <span className="aup-card-reg-date">
-                              Registered: {formatDate(reg.createdAt)}
-                            </span>
-                            {eventObj._id && (
-                              <a
-                                href={`/events/${eventObj._id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="aup-card-view-link"
-                              >
-                                View Event
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                      </li>
                     )
                   })}
-                </div>
+                </ul>
               )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete User Modal */}
       {userToDelete && (
         <div className="aup-overlay" onClick={() => !deleting && setUserToDelete(null)}>
-          <div className="aup-popup aup-popup--sm" onClick={e => e.stopPropagation()}>
+          <div className="aup-popup aup-popup--sm" onClick={(e) => e.stopPropagation()}>
             <div className="aup-popup-header">
               <h3>Delete User</h3>
               <button className="aup-popup-close" onClick={() => setUserToDelete(null)} disabled={deleting}><X size={16}/></button>
