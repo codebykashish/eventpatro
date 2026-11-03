@@ -4,7 +4,7 @@ import {
   Calendar, MapPin, Users, CheckCircle2, AlertCircle,
   Edit, Trash2, Shield, UserCheck, Clock, Send, XCircle, ChevronDown,
   ClipboardList, FileText, Share2, Copy, Check, Coffee, Laptop,
-  Award, ExternalLink, Mail, Phone, User as UserIcon, UserX, X
+  Award, ExternalLink, Mail, Phone, User as UserIcon, UserX, X, Search
 } from 'lucide-react'
 import {
   fetchEventById, deleteEvent,
@@ -12,6 +12,7 @@ import {
   getMyRegistrationForEvent, getEventRegistrations, updateRegistrationStatus,
 } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import EditEventPage from './EditEvent'
 import './EventDetail.css'
 
 // Status badge config
@@ -97,6 +98,14 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
   const [registrations, setRegistrations] = useState([])
   const [regLoading, setRegLoading] = useState(false)
   const [regActionMsg, setRegActionMsg] = useState('')
+
+  // Admin: Edit event modal popup
+  const [showEditModal, setShowEditModal] = useState(false)
+
+  // Admin: Search & Filter states for Enrollments section
+  const [attendeeSearch, setAttendeeSearch] = useState('')
+  const [attendeeFilter, setAttendeeFilter] = useState('all') // 'all' | 'attended' | 'confirmed' | 'pending' | 'selected'
+  const [selectedAnswersReg, setSelectedAnswersReg] = useState(null)
 
   // Load event details
   const loadEvent = useCallback(async () => {
@@ -328,6 +337,32 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     'Curiosity, open mindset, and enthusiasm for active campus participation.'
   ]
 
+  // Admin Enrollments section derived values
+  const totalEnrolled = registrations.length
+  const attendedCount = registrations.filter(r => r.status === 'attended').length
+  const confirmedCount = registrations.filter(r => r.status === 'confirmed').length
+  const pendingCount = registrations.filter(r => r.status === 'pending').length
+  const selectedCount = registrations.filter(r => r.status === 'selected').length
+  const rejectedCount = registrations.filter(r => r.status === 'rejected').length
+
+  const filteredRegistrations = registrations.filter((reg) => {
+    // Filter by tab
+    if (attendeeFilter === 'attended' && reg.status !== 'attended') return false
+    if (attendeeFilter === 'confirmed' && reg.status !== 'confirmed') return false
+    if (attendeeFilter === 'pending' && reg.status !== 'pending') return false
+    if (attendeeFilter === 'selected' && reg.status !== 'selected') return false
+    if (attendeeFilter === 'rejected' && reg.status !== 'rejected') return false
+
+    // Filter by search query
+    if (!attendeeSearch.trim()) return true
+    const q = attendeeSearch.toLowerCase().trim()
+    const name = `${reg.student?.firstName || ''} ${reg.student?.lastName || ''}`.toLowerCase()
+    const email = (reg.student?.email || '').toLowerCase()
+    const code = (reg.registrationCode || '').toLowerCase()
+    const studentId = (reg.student?.studentId || '').toLowerCase()
+    return name.includes(q) || email.includes(q) || code.includes(q) || studentId.includes(q)
+  })
+
   return (
     <div className="nextcoach-event-detail-container">
       {/* ── Breadcrumb Navigation: Events > Details ── */}
@@ -550,116 +585,294 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
             </div>
           )}
 
-          {/* Admin Attendees Section */}
+          {/* Admin Attendee & Application Management Section */}
           {isAdmin && (
-            <div className="admin-attendees-section">
-              <div className="attendees-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <UserCheck size={18} color="#881421" />
-                  <h3>
-                    {event.registrationType === 'application' ? 'Applications' : 'Enrollments'}
-                    {' '}({registrations.length})
-                  </h3>
+            <div className="ed-enrollments-card">
+              <div className="ed-enrollments-header">
+                <div className="ed-enrollments-title-group">
+                  <div className="ed-enrollments-icon-box">
+                    <UserCheck size={20} />
+                  </div>
+                  <div>
+                    <h3 className="ed-enrollments-title">
+                      {event.registrationType === 'application' ? 'Applications & Candidate Review' : 'Enrollments & Attendance'}
+                    </h3>
+                    <p className="ed-enrollments-subtitle">
+                      Manage registered participants, review questionnaire responses, and track attendance.
+                    </p>
+                  </div>
+                </div>
+                <div className="ed-enrollments-count-pill">
+                  <span>{totalEnrolled} Total Enrolled</span>
                 </div>
               </div>
 
+              {/* Summary Stats Strip */}
+              <div className="ed-enrollments-stats-strip">
+                <div className="ed-stat-box">
+                  <span className="ed-stat-num">{totalEnrolled}</span>
+                  <span className="ed-stat-label">Total Enrolled</span>
+                </div>
+                <div className="ed-stat-box ed-stat-box--attended">
+                  <span className="ed-stat-num">{attendedCount}</span>
+                  <span className="ed-stat-label">Present / Attended</span>
+                </div>
+                {event.registrationType === 'application' ? (
+                  <>
+                    <div className="ed-stat-box ed-stat-box--pending">
+                      <span className="ed-stat-num">{pendingCount}</span>
+                      <span className="ed-stat-label">Pending Review</span>
+                    </div>
+                    <div className="ed-stat-box ed-stat-box--selected">
+                      <span className="ed-stat-num">{selectedCount}</span>
+                      <span className="ed-stat-label">Selected</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="ed-stat-box ed-stat-box--absent">
+                    <span className="ed-stat-num">{confirmedCount}</span>
+                    <span className="ed-stat-label">Unattended / Pending</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Action feedback message banner */}
               {regActionMsg && (
-                <div className="action-success" style={{ marginBottom: '12px' }}>
-                  <CheckCircle2 size={14} /> {regActionMsg}
+                <div className="ed-reg-alert-success">
+                  <CheckCircle2 size={16} /> <span>{regActionMsg}</span>
                 </div>
               )}
 
-              {regLoading ? (
-                <p className="attendees-empty">Loading registrations…</p>
-              ) : registrations.length === 0 ? (
-                <p className="attendees-empty">No registrations yet.</p>
-              ) : (
-                <div className="admin-reg-table-wrap">
-                  <div className="admin-reg-table">
-                    <div className="admin-reg-header">
-                      <span>#</span>
-                      <span>Student</span>
-                      <span>Code</span>
-                      <span>Status</span>
-                      <span>Actions</span>
-                    </div>
-                    {registrations.map((reg, idx) => (
-                      <div key={reg._id} className="admin-reg-row">
-                        <span className="row-num">{idx + 1}</span>
-                        <div className="reg-student-info">
-                          <span className="row-name">
-                            {reg.student?.firstName} {reg.student?.lastName}
-                          </span>
-                          <span className="row-email">{reg.student?.email}</span>
-                          {reg.answers?.length > 0 && (
-                            <div className="admin-reg-answers">
-                              {reg.answers.map((a, i) => (
-                                <div key={i} className="admin-answer-row">
-                                  <span className="admin-q">{a.label}:</span>
-                                  <span className="admin-a">{a.value || '—'}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <span className="row-code">{reg.registrationCode}</span>
-                        <span className={`reg-status-badge ${STATUS_CONFIG[reg.status]?.cls}`}>
-                          {STATUS_CONFIG[reg.status]?.label || reg.status}
-                        </span>
-                        <div className="admin-reg-actions">
-                          {/* Attendance marking for confirmed or selected students */}
-                          {['confirmed', 'selected'].includes(reg.status) && (
-                            <button
-                              type="button"
-                              className="btn-mark-attended"
-                              onClick={() => handleStatusChange(reg._id, 'attended')}
-                            >
-                              Mark Attended
-                            </button>
-                          )}
-                          {reg.status === 'attended' && (
-                            <button
-                              type="button"
-                              className="btn-revoke-attended"
-                              onClick={() => handleStatusChange(reg._id, 'confirmed')}
-                              title="Click to revert to Confirmed"
-                            >
-                              Attended
-                            </button>
-                          )}
+              {/* Search & Filter Bar */}
+              <div className="ed-enrollments-toolbar">
+                <div className="ed-enrollments-search-box">
+                  <Search size={15} className="ed-search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Search enrolled students by name, email, or code…"
+                    value={attendeeSearch}
+                    onChange={(e) => setAttendeeSearch(e.target.value)}
+                    className="ed-enrollments-search-input"
+                  />
+                  {attendeeSearch && (
+                    <button
+                      type="button"
+                      className="ed-search-clear-btn"
+                      onClick={() => setAttendeeSearch('')}
+                      title="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
 
-                          {/* Application event decision buttons */}
-                          {event.registrationType === 'application' && reg.status === 'pending' && (
-                            <>
-                              <button
-                                type="button"
-                                className="btn-select"
-                                onClick={() => handleStatusChange(reg._id, 'selected')}
-                              >
-                                Select
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-reject"
-                                onClick={() => handleStatusChange(reg._id, 'rejected')}
-                              >
-                                Reject
-                              </button>
-                            </>
-                          )}
-                          {event.registrationType === 'application' && reg.status === 'selected' && (
-                            <button
-                              type="button"
-                              className="btn-reject"
-                              onClick={() => handleStatusChange(reg._id, 'rejected')}
-                            >
-                              Revoke
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                <div className="ed-enrollments-filter-pills">
+                  <button
+                    type="button"
+                    className={`ed-filter-pill ${attendeeFilter === 'all' ? 'active' : ''}`}
+                    onClick={() => setAttendeeFilter('all')}
+                  >
+                    All ({totalEnrolled})
+                  </button>
+                  {event.registrationType === 'application' ? (
+                    <>
+                      <button
+                        type="button"
+                        className={`ed-filter-pill ${attendeeFilter === 'pending' ? 'active' : ''}`}
+                        onClick={() => setAttendeeFilter('pending')}
+                      >
+                        Pending ({pendingCount})
+                      </button>
+                      <button
+                        type="button"
+                        className={`ed-filter-pill ${attendeeFilter === 'selected' ? 'active' : ''}`}
+                        onClick={() => setAttendeeFilter('selected')}
+                      >
+                        Selected ({selectedCount})
+                      </button>
+                      <button
+                        type="button"
+                        className={`ed-filter-pill ${attendeeFilter === 'attended' ? 'active' : ''}`}
+                        onClick={() => setAttendeeFilter('attended')}
+                      >
+                        Attended ({attendedCount})
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className={`ed-filter-pill ${attendeeFilter === 'confirmed' ? 'active' : ''}`}
+                        onClick={() => setAttendeeFilter('confirmed')}
+                      >
+                        Registered ({confirmedCount})
+                      </button>
+                      <button
+                        type="button"
+                        className={`ed-filter-pill ${attendeeFilter === 'attended' ? 'active' : ''}`}
+                        onClick={() => setAttendeeFilter('attended')}
+                      >
+                        Attended ({attendedCount})
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Table or Empty state */}
+              {regLoading ? (
+                <div className="ed-enrollments-loading">
+                  <Clock size={20} className="spinning" />
+                  <span>Loading enrolled students…</span>
+                </div>
+              ) : registrations.length === 0 ? (
+                <div className="ed-enrollments-empty-card">
+                  <div className="ed-empty-icon-wrap">
+                    <Users size={32} />
                   </div>
+                  <h4 className="ed-empty-title">No Enrollments Yet</h4>
+                  <p className="ed-empty-sub">
+                    When students register for this event, their registration codes, questionnaire responses, and attendance status will be displayed here.
+                  </p>
+                </div>
+              ) : filteredRegistrations.length === 0 ? (
+                <div className="ed-enrollments-empty-card">
+                  <p className="ed-empty-sub">
+                    No enrolled students match your search <strong>"{attendeeSearch}"</strong>.
+                  </p>
+                  <button
+                    type="button"
+                    className="ed-empty-reset-btn"
+                    onClick={() => { setAttendeeSearch(''); setAttendeeFilter('all'); }}
+                  >
+                    Clear Filter
+                  </button>
+                </div>
+              ) : (
+                <div className="ed-reg-table-container">
+                  <table className="ed-reg-table">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '40px' }}>#</th>
+                        <th>Student</th>
+                        <th>Reg Code</th>
+                        {event?.formFields?.length > 0 && <th>Responses</th>}
+                        <th>Status</th>
+                        <th style={{ textAlign: 'right' }}>Attendance &amp; Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredRegistrations.map((reg, idx) => {
+                        const student = reg.student || {}
+                        const first = student.firstName || ''
+                        const last = student.lastName || ''
+                        const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'S'
+                        const hasAnswers = reg.answers && reg.answers.length > 0
+
+                        return (
+                          <tr key={reg._id}>
+                            <td className="ed-reg-td-idx">{idx + 1}</td>
+                            <td>
+                              <div className="ed-student-cell">
+                                <div className="ed-student-avatar">
+                                  {initials}
+                                </div>
+                                <div className="ed-student-info">
+                                  <div className="ed-student-name">
+                                    {first} {last}
+                                    {student.studentId && (
+                                      <span className="ed-student-id-badge">{student.studentId}</span>
+                                    )}
+                                  </div>
+                                  <div className="ed-student-email">{student.email}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="ed-code-cell">
+                                <span className="ed-code-badge">{reg.registrationCode}</span>
+                              </div>
+                            </td>
+                            {event?.formFields?.length > 0 && (
+                              <td>
+                                {hasAnswers ? (
+                                  <button
+                                    type="button"
+                                    className="ed-answers-btn"
+                                    onClick={() => setSelectedAnswersReg(reg)}
+                                    title="View student's questionnaire responses"
+                                  >
+                                    <FileText size={13} />
+                                    <span>View ({reg.answers.length})</span>
+                                  </button>
+                                ) : (
+                                  <span className="ed-no-answers">—</span>
+                                )}
+                              </td>
+                            )}
+                            <td>
+                              <span className={`ed-status-badge ed-status-${reg.status}`}>
+                                {STATUS_CONFIG[reg.status]?.label || reg.status}
+                              </span>
+                            </td>
+                            <td style={{ textAlign: 'right' }}>
+                              <div className="ed-reg-actions-row">
+                                {['confirmed', 'selected'].includes(reg.status) && (
+                                  <button
+                                    type="button"
+                                    className="ed-btn-mark-present"
+                                    onClick={() => handleStatusChange(reg._id, 'attended')}
+                                    title="Mark student as attended"
+                                  >
+                                    <Check size={13} /> Mark Present
+                                  </button>
+                                )}
+                                {reg.status === 'attended' && (
+                                  <button
+                                    type="button"
+                                    className="ed-btn-present-active"
+                                    onClick={() => handleStatusChange(reg._id, 'confirmed')}
+                                    title="Attended — Click to revert to Confirmed"
+                                  >
+                                    <CheckCircle2 size={13} /> Present
+                                  </button>
+                                )}
+
+                                {/* Application event decision buttons */}
+                                {event.registrationType === 'application' && reg.status === 'pending' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      className="ed-btn-select"
+                                      onClick={() => handleStatusChange(reg._id, 'selected')}
+                                    >
+                                      Select
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="ed-btn-reject"
+                                      onClick={() => handleStatusChange(reg._id, 'rejected')}
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                )}
+                                {event.registrationType === 'application' && reg.status === 'selected' && (
+                                  <button
+                                    type="button"
+                                    className="ed-btn-reject"
+                                    onClick={() => handleStatusChange(reg._id, 'rejected')}
+                                  >
+                                    Revoke
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
@@ -676,9 +889,13 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                 <span>Admin Management</span>
               </div>
               <div className="nc-admin-actions">
-                <Link to={`/admin/events/${event._id}/edit`} className="nc-btn-admin-edit">
+                <button
+                  type="button"
+                  className="nc-btn-admin-edit"
+                  onClick={() => setShowEditModal(true)}
+                >
                   <Edit size={14} /> Edit Event
-                </Link>
+                </button>
                 <button
                   type="button"
                   className="nc-btn-admin-delete"
@@ -1142,6 +1359,68 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
             </div>
           </div>
         </div>
+      )}
+      {/* ── Modal for Questionnaire Answers Inspection (Admin) ── */}
+      {selectedAnswersReg && (
+        <div className="nc-modal-backdrop" onClick={() => setSelectedAnswersReg(null)}>
+          <div className="ed-answers-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="ed-answers-modal-header">
+              <div>
+                <span className="ed-answers-modal-badge">Questionnaire Responses</span>
+                <h3 className="ed-answers-modal-title">
+                  {selectedAnswersReg.student?.firstName} {selectedAnswersReg.student?.lastName}
+                </h3>
+                <span className="ed-answers-modal-sub">
+                  {selectedAnswersReg.student?.email} · Reg Code: <strong>{selectedAnswersReg.registrationCode}</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                className="nc-modal-close-btn"
+                onClick={() => setSelectedAnswersReg(null)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="ed-answers-modal-body">
+              {selectedAnswersReg.answers?.map((ans, idx) => (
+                <div key={idx} className="ed-answer-item-card">
+                  <div className="ed-answer-q-label">
+                    <span className="ed-answer-idx">Q{idx + 1}</span>
+                    <span>{ans.label}</span>
+                  </div>
+                  <div className="ed-answer-value">
+                    {ans.value || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>No response provided</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="ed-answers-modal-footer">
+              <button
+                type="button"
+                className="ed-answers-close-btn"
+                onClick={() => setSelectedAnswersReg(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal for Editing Event (Admin) with blurred backdrop ── */}
+      {showEditModal && (
+        <EditEventPage
+          eventId={event._id}
+          isModal={true}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={() => {
+            setShowEditModal(false)
+            loadEvent()
+            if (onRegistrationChange) onRegistrationChange()
+          }}
+        />
       )}
     </div>
   )

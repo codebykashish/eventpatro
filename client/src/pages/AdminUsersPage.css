@@ -1,13 +1,13 @@
 /* ── Admin Users Page ────────────────────────────────────────────────────── */
 .aup-root {
-  padding: 32px 36px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 24px;
   width: 100%;
   box-sizing: border-box;
-  background: #f8fafc;
-  min-height: 100%;
+  background: transparent;
+  min-height: auto;
 }
 
 .aup-page-header {
@@ -100,7 +100,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 14px 18px;
-  background: #f8fafc;
+  background: #fafafa;
   border-bottom: 1.5px solid #e2e8f0;
   white-space: nowrap;
 }
@@ -111,7 +111,7 @@
   vertical-align: middle;
 }
 .aup-table tbody tr:last-child td { border-bottom: none; }
-.aup-table tbody tr:hover td { background: #f8fafc; }
+.aup-table tbody tr:hover td { background: #fdf8f8; }
 
 .aup-idx {
   color: #881421;
@@ -255,7 +255,7 @@
   height: 30px;
   border-radius: 8px;
   border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
+  background: #fafafa;
   color: #64748b;
   display: flex;
   align-items: center;
@@ -292,7 +292,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 10px 14px;
-  background: #f8fafc;
+  background: #fafafa;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
@@ -303,7 +303,7 @@
   vertical-align: middle;
 }
 .aup-event-table tr:last-child td { border-bottom: none; }
-.aup-event-table tbody tr:hover td { background: #f8fafc; }
+.aup-event-table tbody tr:hover td { background: #fdf8f8; }
 
 .aup-ev-cell {
   display: flex;
@@ -318,7 +318,7 @@
   object-fit: cover;
   flex-shrink: 0;
   border: 1px solid #e2e8f0;
-  background: #f1f5f9;
+  background: #fafafa;
 }
 
 .aup-ev-title-text {

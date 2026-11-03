@@ -5,6 +5,7 @@ import {
   ChevronDown, ArrowRight, CheckCircle2, Check,
 } from 'lucide-react'
 import { fetchEvents, getEventRegistrations, deleteEvent, updateRegistrationStatus } from '../utils/api'
+import EditEventPage from './EditEvent'
 import './AdminEventsPage.css'
 
 const CATEGORIES = ['Workshop', 'Seminar', 'Cultural', 'Sports', 'Hackathon', 'Other']
@@ -38,6 +39,9 @@ export default function AdminEventsPage() {
   const [deleteItem, setDeleteItem] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+
+  // Edit Event modal
+  const [editingEventId, setEditingEventId] = useState(null)
 
   useEffect(() => {
     fetchEvents({ limit: 200 })
@@ -202,6 +206,7 @@ export default function AdminEventsPage() {
                   <EventTable
                     rows={upcomingEvents}
                     onViewRegs={openRegs}
+                    onEdit={(ev) => setEditingEventId(ev._id)}
                     onDelete={setDeleteItem}
                     formatDate={formatDate}
                     daysUntil={daysUntil}
@@ -220,6 +225,7 @@ export default function AdminEventsPage() {
                   <EventTable
                     rows={pastEvents}
                     onViewRegs={openRegs}
+                    onEdit={(ev) => setEditingEventId(ev._id)}
                     onDelete={setDeleteItem}
                     formatDate={formatDate}
                     daysUntil={daysUntil}
@@ -390,11 +396,26 @@ export default function AdminEventsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Edit Event Modal (with blurred background) ── */}
+      {editingEventId && (
+        <EditEventPage
+          eventId={editingEventId}
+          isModal={true}
+          onClose={() => setEditingEventId(null)}
+          onSuccess={() => {
+            setEditingEventId(null)
+            fetchEvents({ limit: 200 })
+              .then((d) => setEvents(d.events || []))
+              .catch(() => {})
+          }}
+        />
+      )}
     </div>
   )
 }
 
-function EventTable({ rows, onViewRegs, onDelete, formatDate, daysUntil, isUpcoming }) {
+function EventTable({ rows, onViewRegs, onEdit, onDelete, formatDate, daysUntil, isUpcoming }) {
   if (rows.length === 0) {
     return <div className="aep-empty-table">No {isUpcoming ? 'upcoming' : 'past'} events found.</div>
   }
@@ -453,8 +474,15 @@ function EventTable({ rows, onViewRegs, onDelete, formatDate, daysUntil, isUpcom
                 </td>
                 <td>
                   <div className="aep-row-actions">
-                    <Link to={`/events/${ev._id}`} className="aep-icon-btn" title="View"><Eye size={14}/></Link>
-                    <Link to={`/admin/events/${ev._id}/edit`} className="aep-icon-btn" title="Edit"><Edit size={14}/></Link>
+                    <Link to={`/events/${ev._id}`} className="aep-icon-btn" title="View Details"><Eye size={14}/></Link>
+                    <button
+                      type="button"
+                      className="aep-icon-btn"
+                      title="Edit Event"
+                      onClick={() => onEdit(ev)}
+                    >
+                      <Edit size={14}/>
+                    </button>
                     <button className="aep-icon-btn aep-icon-btn--delete" title="Delete" onClick={() => onDelete(ev)}>
                       <Trash2 size={14}/>
                     </button>

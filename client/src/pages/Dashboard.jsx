@@ -41,6 +41,7 @@ import EventDetailPage from './EventDetail'
 import AdminEventsPage from './AdminEventsPage'
 import AdminUsersPage from './AdminUsersPage'
 import CreateEventPage from './CreateEvent'
+import EditEventPage from './EditEvent'
 import './Dashboard.css'
 
 // Categories for the filter sidebar matching the mockup
@@ -266,8 +267,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
   const [adminDeleting, setAdminDeleting] = useState(false)
   const [adminSuccess, setAdminSuccess] = useState('')
   const [adminError, setAdminError] = useState('')
-  const [adminViewAllEventsModal, setAdminViewAllEventsModal] = useState(false)
-  const [adminViewAllUsersModal, setAdminViewAllUsersModal] = useState(false)
+  const [adminEditingEventId, setAdminEditingEventId] = useState(null)
   const [adminSelectedEventForRegs, setAdminSelectedEventForRegs] = useState(null)
   const [adminEventRegsList, setAdminEventRegsList] = useState([])
   const [adminLoadingEventRegs, setAdminLoadingEventRegs] = useState(false)
@@ -1034,7 +1034,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                           <Calendar size={18} className="admin-panel-title-icon" />
                           <h2>Event Management</h2>
                         </div>
-                        <button type="button" className="admin-view-all-btn" onClick={() => setAdminViewAllEventsModal(true)}>
+                        <button type="button" className="admin-view-all-btn" onClick={() => handleTabChange('adminEvents')}>
                           <span>View All</span>
                         </button>
                       </div>
@@ -1058,7 +1058,14 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                               <div className="admin-event-actions">
                                 <span className="admin-reg-badge-pill">{ev.registeredUsers?.length || 0} registered</span>
                                 <Link to={`/events/${ev._id}`} className="admin-action-icon-btn" title="View Details"><Eye size={15} /></Link>
-                                <Link to={`/admin/events/${ev._id}/edit`} className="admin-action-icon-btn" title="Edit"><Edit size={15} /></Link>
+                                <button
+                                  type="button"
+                                  className="admin-action-icon-btn"
+                                  title="Edit Event"
+                                  onClick={() => setAdminEditingEventId(ev._id)}
+                                >
+                                  <Edit size={15} />
+                                </button>
                                 <button type="button" className="admin-action-icon-btn admin-action-delete-btn" title="Delete" onClick={() => setAdminDeleteItem(ev)}><Trash2 size={15} /></button>
                               </div>
                             </div>
@@ -1075,7 +1082,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                           <Users size={18} className="admin-panel-title-icon" />
                           <h2>Users</h2>
                         </div>
-                        <button type="button" className="admin-view-all-btn" onClick={() => setAdminViewAllUsersModal(true)}>
+                        <button type="button" className="admin-view-all-btn" onClick={() => handleTabChange('adminUsers')}>
                           <span>View All</span>
                         </button>
                       </div>
@@ -1136,65 +1143,17 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                   </section>
 
                   {/* ── Admin Modals ── */}
-                  {/* View All Events */}
-                  {adminViewAllEventsModal && (
-                    <div className="admin-modal-overlay" onClick={() => setAdminViewAllEventsModal(false)}>
-                      <div className="admin-modal-box admin-modal-box-large" onClick={(e) => e.stopPropagation()}>
-                        <div className="admin-modal-header">
-                          <h3>All Events ({events.length})</h3>
-                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminViewAllEventsModal(false)}><X size={18} /></button>
-                        </div>
-                        <div className="admin-modal-body">
-                          <div className="admin-events-list">
-                            {events.map((ev) => (
-                              <div key={ev._id} className="admin-event-row">
-                                <img src={ev.coverImage || '/campus_hero_bg.jpg'} alt={ev.title} className="admin-event-thumb" />
-                                <div className="admin-event-details">
-                                  <span className="admin-event-title">{ev.title}</span>
-                                  <div className="admin-event-meta-row"><span>{formatAdminDate(ev.date)}</span><span>•</span><span>{ev.location}</span></div>
-                                </div>
-                                <div className="admin-event-actions">
-                                  <span className="admin-reg-badge-pill">{ev.registeredUsers?.length || 0} reg</span>
-                                  <Link to={`/events/${ev._id}`} className="admin-action-icon-btn" onClick={() => setAdminViewAllEventsModal(false)}><Eye size={15} /></Link>
-                                  <Link to={`/admin/events/${ev._id}/edit`} className="admin-action-icon-btn" onClick={() => setAdminViewAllEventsModal(false)}><Edit size={15} /></Link>
-                                  <button type="button" className="admin-action-icon-btn admin-action-delete-btn" onClick={() => { setAdminViewAllEventsModal(false); setAdminDeleteItem(ev) }}><Trash2 size={15} /></button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* View All Users */}
-                  {adminViewAllUsersModal && (
-                    <div className="admin-modal-overlay" onClick={() => setAdminViewAllUsersModal(false)}>
-                      <div className="admin-modal-box admin-modal-box-large" onClick={(e) => e.stopPropagation()}>
-                        <div className="admin-modal-header">
-                          <h3>All Users ({adminUsers.length})</h3>
-                          <button type="button" className="admin-modal-close-btn" onClick={() => setAdminViewAllUsersModal(false)}><X size={18} /></button>
-                        </div>
-                        <div className="admin-modal-body">
-                          <div className="admin-users-table-wrap">
-                            <table className="admin-users-table">
-                              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Regs</th></tr></thead>
-                              <tbody>
-                                {adminUsers.map((u) => (
-                                  <tr key={u._id || u.id}>
-                                    <td className="admin-user-cell-name">{u.firstName} {u.lastName}</td>
-                                    <td className="admin-user-cell-email">{u.email}</td>
-                                    <td style={{ textTransform:'capitalize', color:'#64748b' }}>{u.role}</td>
-                                    <td className="admin-user-cell-joined">{formatAdminDate(u.createdAt)}</td>
-                                    <td className="admin-user-reg-count">{u.registrationsCount ?? 0}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  {/* Edit Event Modal (Admin) with blurred backdrop */}
+                  {adminEditingEventId && (
+                    <EditEventPage
+                      eventId={adminEditingEventId}
+                      isModal={true}
+                      onClose={() => setAdminEditingEventId(null)}
+                      onSuccess={() => {
+                        setAdminEditingEventId(null)
+                        loadData()
+                      }}
+                    />
                   )}
 
                   {/* Event Registrations popup */}

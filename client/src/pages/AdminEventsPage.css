@@ -3,11 +3,11 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding: 32px 36px;
+  padding: 0;
   width: 100%;
   box-sizing: border-box;
-  background: #f8fafc;
-  min-height: 100%;
+  background: transparent;
+  min-height: auto;
 }
 
 /* Stats row */
@@ -327,12 +327,12 @@
 
 .aep-events-table td {
   padding: 11px 14px;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
 .aep-events-table tbody tr:last-child td { border-bottom: none; }
-.aep-events-table tbody tr:hover td { background: #f8fafc; }
+.aep-events-table tbody tr:hover td { background: #fdf8f8; }
 
 /* Event name cell */
 .aep-ev-cell-name {
@@ -568,7 +568,7 @@
   white-space: nowrap;
 }
 .aep-status-confirmed { background: #dcfce7; color: #15803d; }
-.aep-status-attended  { background: #e0e7ff; color: #3730a3; }
+.aep-status-attended  { background: #fdf2f2; color: #881421; }
 .aep-status-pending   { background: #fef9c3; color: #92400e; }
 .aep-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
 .aep-status-rejected  { background: #fee2e2; color: #991b1b; }

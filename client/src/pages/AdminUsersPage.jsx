@@ -291,7 +291,7 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button
                   type="button"
-                  style={{ padding: '8px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', background: '#f8fafc', color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}
+                  style={{ padding: '8px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', background: '#fafafa', color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}
                   onClick={() => setUserToDelete(null)}
                   disabled={deleting}
                 >

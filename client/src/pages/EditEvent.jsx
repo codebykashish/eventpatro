@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { fetchEventById, updateEvent, deleteEvent, uploadImage } from '../utils/api'
-import { AlertCircle, CheckCircle2, Trash2, Settings, Upload, Image as ImageIcon } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Trash2, Settings, Upload, Image as ImageIcon, X } from 'lucide-react'
 import FormBuilder from '../components/FormBuilder'
 import './EventForm.css'
 
@@ -18,9 +18,20 @@ const toDatetimeLocal = (isoString) => {
   return localDate.toISOString().slice(0, 16)
 }
 
-const EditEventPage = () => {
-  const { id } = useParams()
+const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSuccess }) => {
+  const { id: paramId } = useParams()
+  const id = propEventId || paramId
   const navigate = useNavigate()
+
+  // Handle Escape key when rendered as modal popup
+  useEffect(() => {
+    if (!isModal || !onClose) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isModal, onClose])
 
   const [form, setForm] = useState({
     title: '',
@@ -179,7 +190,14 @@ const EditEventPage = () => {
 
       await updateEvent(id, payload)
       setSuccess('Event updated successfully!')
-      setTimeout(() => navigate(`/events/${id}`), 1500)
+      if (isModal) {
+        setTimeout(() => {
+          if (onSuccess) onSuccess()
+          else if (onClose) onClose()
+        }, 700)
+      } else {
+        setTimeout(() => navigate(`/events/${id}`), 1200)
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -192,7 +210,14 @@ const EditEventPage = () => {
     try {
       await deleteEvent(id)
       setSuccess('Event deleted.')
-      setTimeout(() => navigate('/admin'), 1200)
+      if (isModal) {
+        setTimeout(() => {
+          if (onClose) onClose()
+          navigate('/admin')
+        }, 700)
+      } else {
+        setTimeout(() => navigate('/admin'), 1200)
+      }
     } catch (err) {
       setError(err.message)
       setDeleting(false)
@@ -201,6 +226,21 @@ const EditEventPage = () => {
   }
 
   if (loading) {
+    if (isModal) {
+      return (
+        <div className="edit-event-modal-backdrop" onClick={onClose}>
+          <div className="edit-event-modal-container" onClick={(e) => e.stopPropagation()}>
+            <div className="edit-event-modal-header">
+              <h2 className="edit-event-modal-title">Edit Event</h2>
+              <button type="button" className="edit-event-modal-close" onClick={onClose}><X size={18} /></button>
+            </div>
+            <div className="edit-event-modal-body" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+              Loading event data…
+            </div>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="event-form-page">
         <div className="event-form-loading">Loading event data…</div>
@@ -208,27 +248,21 @@ const EditEventPage = () => {
     )
   }
 
-  return (
-    <div className="event-form-page">
-      <div className="event-form-card">
-        <div className="event-form-header">
-          <h1>Edit Event</h1>
-          <p>Update the details below and save your changes.</p>
+  const formBody = (
+    <>
+      {/* Feedback banners */}
+      {error && (
+        <div className="form-banner form-banner-error">
+          <AlertCircle size={15} /> {error}
         </div>
+      )}
+      {success && (
+        <div className="form-banner form-banner-success">
+          <CheckCircle2 size={15} /> {success}
+        </div>
+      )}
 
-        {/* Feedback banners */}
-        {error && (
-          <div className="form-banner form-banner-error">
-            <AlertCircle size={15} /> {error}
-          </div>
-        )}
-        {success && (
-          <div className="form-banner form-banner-success">
-            <CheckCircle2 size={15} /> {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="event-form" id="edit-event-form">
+      <form onSubmit={handleSubmit} className="event-form" id="edit-event-form">
           {/* Title */}
           <div className="form-field">
             <label htmlFor="ef-title">Event Title *</label>
@@ -628,7 +662,13 @@ const EditEventPage = () => {
 
           {/* Action buttons */}
           <div className="form-actions">
-            <Link to={`/events/${id}`} className="btn-form-cancel">Cancel</Link>
+            {isModal ? (
+              <button type="button" className="btn-form-cancel" onClick={onClose}>
+                Cancel
+              </button>
+            ) : (
+              <Link to={`/events/${id}`} className="btn-form-cancel">Cancel</Link>
+            )}
             <button
               type="button"
               className="btn-form-delete"
@@ -666,6 +706,40 @@ const EditEventPage = () => {
             </div>
           )}
         </form>
+    </>
+  )
+
+  if (isModal) {
+    return (
+      <div className="edit-event-modal-backdrop" onClick={onClose}>
+        <div className="edit-event-modal-container" onClick={(e) => e.stopPropagation()}>
+          <div className="edit-event-modal-header">
+            <div>
+              <h2 className="edit-event-modal-title">Edit Event</h2>
+              <p className="edit-event-modal-sub">Update event details, schedule, and form questions</p>
+            </div>
+            <button type="button" className="edit-event-modal-close" onClick={onClose} title="Close">
+              <X size={18} />
+            </button>
+          </div>
+          <div className="edit-event-modal-body">
+            <div className="edit-event-modal-card">
+              {formBody}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="event-form-page">
+      <div className="event-form-card">
+        <div className="event-form-header">
+          <h1>Edit Event</h1>
+          <p>Update the details below and save your changes.</p>
+        </div>
+        {formBody}
       </div>
     </div>
   )

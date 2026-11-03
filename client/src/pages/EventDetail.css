@@ -1433,4 +1433,646 @@
   color: #ffffff;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN ENROLLMENTS & ATTENDANCE SECTION (MODERN EXECUTIVE UI)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ed-enrollments-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 26px 28px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ed-enrollments-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ed-enrollments-title-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.ed-enrollments-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(136, 20, 33, 0.08);
+  color: #881421;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ed-enrollments-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.02em;
+}
+
+.ed-enrollments-subtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ed-enrollments-count-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fdf2f2;
+  color: #881421;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1px solid rgba(136, 20, 33, 0.15);
+  white-space: nowrap;
+}
+
+/* Summary stats strip */
+.ed-enrollments-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #edf2f7;
+}
+
+.ed-stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #edf2f7;
+}
+
+.ed-stat-num {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.ed-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ed-stat-box--attended .ed-stat-num { color: #15803d; }
+.ed-stat-box--absent .ed-stat-num   { color: #881421; }
+.ed-stat-box--pending .ed-stat-num  { color: #d97706; }
+.ed-stat-box--selected .ed-stat-num { color: #881421; }
+
+.ed-reg-alert-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Toolbar: Search + Filter tabs */
+.ed-enrollments-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.ed-enrollments-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 240px;
+  max-width: 380px;
+}
+
+.ed-enrollments-search-input {
+  width: 100%;
+  padding: 9px 34px 9px 34px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 13.5px;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.ed-enrollments-search-input:focus {
+  border-color: #881421;
+}
+
+.ed-search-icon {
+  position: absolute;
+  left: 11px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.ed-search-clear-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+}
+
+.ed-search-clear-btn:hover {
+  color: #0f172a;
+}
+
+.ed-enrollments-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ed-filter-pill {
+  padding: 6px 13px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ed-filter-pill:hover {
+  border-color: #cbd5e1;
+  background: #fafafa;
+}
+
+.ed-filter-pill.active {
+  background: #881421;
+  color: #ffffff;
+  border-color: #881421;
+}
+
+/* Loading state */
+.ed-enrollments-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Empty states */
+.ed-enrollments-empty-card {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fafafa;
+  border-radius: 14px;
+  border: 1.5px dashed #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ed-empty-icon-wrap {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.ed-empty-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.ed-empty-sub {
+  font-size: 13.5px;
+  color: #64748b;
+  margin: 0;
+  max-width: 440px;
+  line-height: 1.5;
+}
+
+.ed-empty-reset-btn {
+  margin-top: 8px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #881421;
+  color: #ffffff;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ed-empty-reset-btn:hover {
+  background: #6e101a;
+}
+
+/* Table card */
+.ed-reg-table-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow-x: auto;
+  background: #ffffff;
+}
+
+.ed-reg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+  min-width: 660px;
+}
+
+.ed-reg-table th {
+  padding: 13px 16px;
+  background: #fafafa;
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.ed-reg-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.ed-reg-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ed-reg-table tbody tr:hover td {
+  background: #fdf8f8;
+}
+
+.ed-reg-td-idx {
+  color: #881421;
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+/* Student cell */
+.ed-student-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ed-student-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fdf2f2;
+  color: #881421;
+  font-weight: 800;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(136, 20, 33, 0.15);
+}
+
+.ed-student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ed-student-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.ed-student-id-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ed-student-email {
+  font-size: 12.5px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* Registration Code */
+.ed-code-cell {
+  white-space: nowrap;
+}
+
+.ed-code-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #881421;
+  background: #fafafa;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+/* Answers button */
+.ed-answers-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #881421;
+  background: #fdf2f2;
+  border: 1px solid rgba(136, 20, 33, 0.22);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ed-answers-btn:hover {
+  background: #881421;
+  color: #ffffff;
+  border-color: #881421;
+}
+
+.ed-no-answers {
+  color: #94a3b8;
+  font-size: 12.5px;
+}
+
+/* Status pills */
+.ed-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.ed-status-confirmed { background: #dcfce7; color: #15803d; }
+.ed-status-attended  { background: #fdf2f2; color: #881421; }
+.ed-status-pending   { background: #fef9c3; color: #92400e; }
+.ed-status-selected  { background: rgba(136, 20, 33, 0.12); color: #881421; }
+.ed-status-rejected  { background: #fee2e2; color: #991b1b; }
+
+/* Actions cell */
+.ed-reg-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ed-btn-mark-present {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #15803d;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ed-btn-mark-present:hover {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+}
+
+.ed-btn-present-active {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #15803d;
+  border: 1.5px solid #15803d;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ed-btn-present-active:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.ed-btn-select {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #15803d;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ed-btn-select:hover {
+  background: #166534;
+}
+
+.ed-btn-reject {
+  padding: 5px 12px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ed-btn-reject:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+/* ─── Questionnaire Answers Inspection Modal ─────────────────────────────── */
+.ed-answers-modal-card {
+  background: #ffffff;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: editModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ed-answers-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #edf2f7;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ed-answers-modal-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #881421;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+.ed-answers-modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+
+.ed-answers-modal-sub {
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.ed-answers-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.ed-answer-item-card {
+  background: #fafafa;
+  border: 1px solid #edf2f7;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.ed-answer-q-label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+}
+
+.ed-answer-idx {
+  font-size: 11px;
+  font-weight: 800;
+  color: #881421;
+  background: #fdf2f2;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.ed-answer-value {
+  font-size: 13.5px;
+  color: #0f172a;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ed-answers-modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid #edf2f7;
+  display: flex;
+  justify-content: flex-end;
+  background: #fafafa;
+}
+
+.ed-answers-close-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: #881421;
+  color: #ffffff;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ed-answers-close-btn:hover {
+  background: #6e101a;
+}
+
+
 
