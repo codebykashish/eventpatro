@@ -30,20 +30,22 @@ Eventpatro lets the college publish workshops, seminars, competitions, and other
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| Frontend framework | React 19 + Vite | UI rendering and build tooling |
+| Frontend framework | React 19 | UI rendering |
+| Build tool | Vite | Local development and asset bundling |
 | Routing | React Router v7 | Client-side navigation |
 | Styling | Plain CSS | Component and page styles |
 | Icons | Lucide React | UI icons |
-| HTTP client | Native fetch API | API communication |
-| Backend | Node.js + Express.js | REST API server |
-| Authentication | JWT + bcryptjs | Token-based auth, password hashing |
-| Input validation | Zod | Server-side schema validation |
-| Email | Nodemailer + Gmail SMTP | OTP delivery |
-| File uploads | Multer + Cloudinary | Profile pictures, event cover images |
-| Security | Helmet, cors, express-rate-limit | HTTP headers, CORS, rate limiting |
-| Database | MongoDB Atlas + Mongoose | Data storage and ODM |
-| Unique codes | uuid / crypto | EP-XXXXXX registration codes |
-| Environment | dotenv | Environment variable management |
+| HTTP client | Fetch API | Browser-native API communication |
+| Backend | Node.js with Express | REST API server |
+| Authentication | JWT | Token-based session handling |
+| Password hashing | bcryptjs | Secure password hashing |
+| Input validation | Zod | Server-side request schema validation |
+| Email | Nodemailer | OTP delivery via Gmail SMTP |
+| Image storage | Cloudinary | Profile pictures and event cover images |
+| Security | Helmet, CORS, express-rate-limit | HTTP protection and rate limiting |
+| Database | MongoDB Atlas with Mongoose | Cloud document database and schema modeling |
+| Unique codes | crypto / uuid | Registration code generation |
+| Environment | dotenv | Configuration and secret management |
 
 ---
 
