@@ -357,33 +357,35 @@
   display: none;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  border: 1px solid rgba(136, 20, 33, 0.15);
-  background: #fdf2f2;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
   color: #881421;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(136, 20, 33, 0.08);
+  padding: 0;
+  box-shadow: none;
 }
 
 .nav-hamburger:hover {
-  background: #fce7e7;
+  background: transparent;
   color: #700f1a;
-  border-color: rgba(136, 20, 33, 0.25);
+  opacity: 0.8;
 }
 
-/* When navbar is in floating hero overlay pill or standard header, hamburger stays crisp & visible */
+/* When navbar is in floating hero overlay pill or standard header, hamburger stays clean & transparent */
 .navbar .nav-hamburger {
-  background: #fdf2f2;
+  background: transparent;
   color: #881421;
-  border: 1px solid rgba(136, 20, 33, 0.15);
+  border: none;
+  box-shadow: none;
 }
 
 .navbar .nav-hamburger:hover {
-  background: #fce7e7;
+  background: transparent;
   color: #700f1a;
 }
 
