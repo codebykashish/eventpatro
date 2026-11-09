@@ -227,6 +227,10 @@ export default function AdminEventsPage() {
             </button>
           ))}
         </div>
+
+        <Link to="/admin/events/new" className="aep-mobile-create-btn">
+          + Create Event
+        </Link>
       </div>
 
       {/* ── Body: filters + tables ── */}

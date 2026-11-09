@@ -1172,6 +1172,22 @@
   .aep-mobile-filter-chips::-webkit-scrollbar {
     display: none;
   }
+
+  .aep-mobile-create-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px 16px;
+    background: #881421;
+    color: #ffffff !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    border-radius: 10px;
+    text-decoration: none;
+    box-sizing: border-box;
+    box-shadow: 0 2px 6px rgba(136, 20, 33, 0.25);
+  }
 }
 
 /* ── Responsive Card List for Mobile / Small Screens ───────────────────── */
@@ -1317,7 +1333,7 @@
     letter-spacing: 0 !important;
   }
   .aep-body { grid-template-columns: 1fr; }
-  .aep-filter-panel { position: static; }
+  .aep-filter-panel { display: none !important; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

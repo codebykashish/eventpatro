@@ -959,9 +959,27 @@
     font-size: 15px;
   }
   .hero-search-card {
-    flex-direction: column;
-    border-radius: 20px;
-    padding: 14px;
+    flex-direction: row;
+    align-items: center;
+    border-radius: 999px;
+    padding: 6px 8px 6px 14px;
+    gap: 8px;
+    max-width: 480px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .hero-search-input-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+  .btn-hero-search {
+    padding: 8px 16px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .hero-search-or,
+  .btn-hero-browse {
+    display: none;
   }
   .hero-quick-stats {
     flex-direction: column;
