@@ -2197,3 +2197,130 @@
 
 
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVENT DETAIL — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  /* ── 1. Container padding ───────────────────────────────────────────────── */
+  .nextcoach-event-detail-container {
+    padding: 8px 12px 60px;
+  }
+
+  /* ── 2. Event title ─────────────────────────────────────────────────────── */
+  .nc-event-headline {
+    font-size: 22px;
+    line-height: 1.25;
+  }
+
+  /* ── 3. Hero layout — always single column on mobile ────────────────────── */
+  .nc-hero-two-column-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  /* ── 4. Cover image — shorter on mobile ─────────────────────────────────── */
+  .nc-fullwidth-image-wrapper {
+    height: 220px;
+    border-radius: 14px;
+  }
+
+  /* ── 5. Right sticky sidebar — becomes normal flow ──────────────────────── */
+  .nc-right-sidebar-flow {
+    position: static !important;
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  /* ── 6. Enroll CTA button — full width on mobile ────────────────────────── */
+  .nc-enroll-cta-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  /* ── 7. Param rows in summary card — stack them ────────────────────────── */
+  .nc-param-row {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .nc-summary-card {
+    padding: 16px 14px;
+  }
+
+  /* ── 8. Tabs bar — make scrollable ──────────────────────────────────────── */
+  .nc-tabs-header {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap !important;
+    gap: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nc-tabs-header::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nc-tab-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  /* ── 9. Admin attendee table — horizontally scrollable ──────────────────── */
+  .ed-attendee-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── 10. Registration modals — full screen sheet ────────────────────────── */
+  .nc-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .nc-modal-box,
+  .nc-enroll-modal-box {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 92svh;
+    overflow-y: auto;
+  }
+
+  .nc-modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .nc-modal-cancel-btn,
+  .nc-enroll-cta-btn {
+    width: 100%;
+  }
+
+  /* ── 11. Title pill tags — wrap properly ────────────────────────────────── */
+  .nc-title-tag-group {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* ── 12. Breadcrumb — smaller font ─────────────────────────────────────── */
+  .nc-breadcrumb-bar {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* ── 13. Submission passcode display ────────────────────────────────────── */
+  .nc-submission-passcode-box {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+}

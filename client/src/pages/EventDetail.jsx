@@ -13,6 +13,7 @@ import {
 } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import EditEventPage from './EditEvent'
+import { mediaUrl } from '../utils/mediaUrl'
 import './EventDetail.css'
 
 // Status badge config

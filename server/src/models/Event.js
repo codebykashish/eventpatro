@@ -183,7 +183,7 @@ const eventSchema = new mongoose.Schema(
     },
     certificateProvided: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   {

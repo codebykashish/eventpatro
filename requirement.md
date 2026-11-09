@@ -1,10 +1,12 @@
-# CampusPulse — Project Requirements
+# Eventpatro — Project Requirements
 
 ## 1. Project Overview
 
-CampusPulse is a university event management platform where students can discover university programs, register or apply for them, track their participation, and share feedback. Administrators can manage events, registrations, attendance, and feedback.
+Eventpatro (branded as **SSRC Eventpatro**) is a university event management platform for Sunway College, Nepal. Students can discover campus programs, register or apply for them, track their participation, and share feedback. Administrators can manage events, registrations, attendance, and feedback.
 
 The main goal is to build a functional MERN stack project that demonstrates CRUD operations, authentication, authorization, database relationships, and frontend-backend integration.
+
+> **Note on naming:** The internal codebase uses the name `campuspulse` (folder names, some CSS class prefixes). The public-facing brand name is **Eventpatro**. These two names refer to the same project.
 
 ## 2. User Roles
 
@@ -69,7 +71,7 @@ The college email must use the `@sunway.edu.np` domain.
 
 Student ID and email address must be unique.
 
-### 3.2 Password Requirements
+### 3.2 Password Requirements and OTP Verification
 
 - The password must meet a clearly defined minimum length.
 - The confirm-password field must match the password.
@@ -78,7 +80,7 @@ Student ID and email address must be unique.
 - Clearly indicate when a password is weak and explain what needs improvement.
 - Hash passwords before storing them in the database.
 
-Do not implement OTP verification or external college-system integration unless explicitly requested later.
+**OTP Email Verification (implemented):** After signup, a one-time passcode is sent to the student's college email via Nodemailer + Gmail SMTP. The student must enter the OTP to activate their account. This prevents fake signups and verifies that the email belongs to the student.
 
 ### 3.3 Authentication
 
@@ -101,9 +103,8 @@ Each event should contain:
 - Participant capacity
 - Registration type
 - Custom registration questions, if needed
+- Event cover image / poster (uploaded via Multer)
 - Event status: upcoming, ongoing, or completed
-
-Event images and poster uploads are not required in the current project scope.
 
 ### 4.1 Registration Types
 
@@ -323,37 +324,42 @@ Requirements:
 - Administrators can view feedback comments, average ratings, and feedback counts.
 - Feedback may be displayed on the relevant event details page.
 
-## 10. Profile Picture Upload
+## 10. Profile Picture and Event Image Uploads
 
-Students can upload or change their profile picture.
+Students can upload or change their profile picture. Admins can upload a cover image when creating or editing an event.
 
 Requirements:
-- Validate the file type and file size on the server.
-- Store the image using the chosen upload approach.
-- Store the image reference in the student record.
+- Validate the file type and file size on the server (jpg, png, gif, webp; max 5 MB for profile pictures).
+- Store images using Multer on the server filesystem under `/uploads/`.
+- Store the image reference (relative URL) in the student or event record in MongoDB.
+- Serve uploaded images as static files through Express.
 - Handle invalid files and upload failures with clear error messages.
-
-Event poster uploads are not part of the current scope.
 
 ## 11. Technology Stack
 
 ### Frontend
-- React
-- React Router
-- CSS or CSS Modules
+- React (Vite)
+- React Router v7
+- Plain CSS (no CSS modules, no Tailwind)
 - Fetch API for HTTP requests
+- Lucide React for icons
 
 ### Backend
 - Node.js
 - Express.js
 - REST API returning JSON
 - JWT authentication
-- bcrypt or bcryptjs for password hashing
-- Multer for profile picture uploads
+- bcryptjs for password hashing
+- Multer for profile picture and event image uploads
+- Nodemailer (Gmail SMTP) for OTP verification emails
 
 ### Database
-- MongoDB
+- MongoDB (Atlas)
 - Mongoose
+
+### Utilities
+- `uuid` for generating unique registration codes
+- `dotenv` for environment variable management
 
 Use a small number of additional libraries. If a new library is needed, explain why it is necessary before adding it.
 

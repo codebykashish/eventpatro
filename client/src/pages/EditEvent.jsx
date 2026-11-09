@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { fetchEventById, updateEvent, deleteEvent, uploadImage } from '../utils/api'
+import { derivePricing, linesToList } from '../utils/eventForm'
+import { mediaUrl } from '../utils/mediaUrl'
 import { AlertCircle, CheckCircle2, Trash2, Settings, Upload, Image as ImageIcon, X } from 'lucide-react'
 import FormBuilder from '../components/FormBuilder'
 import './EventForm.css'
@@ -54,11 +56,11 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
     learningOutcomes: '',
     requirements: '',
     duration: '',
-    fee: 'Free',
+    fee: '',
     isFree: true,
     hasBreakfast: false,
     laptopRequired: false,
-    certificateProvided: true,
+    certificateProvided: false,
   })
 
   // Custom form questions
@@ -97,11 +99,11 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
           learningOutcomes: Array.isArray(ev.learningOutcomes) ? ev.learningOutcomes.join('\n') : '',
           requirements: Array.isArray(ev.requirements) ? ev.requirements.join('\n') : '',
           duration: ev.duration || '',
-          fee: ev.fee || 'Free',
+          fee: ev.isFree ? (ev.fee && ev.fee !== 'Free' ? ev.fee : '') : (ev.fee || ''),
           isFree: ev.isFree ?? true,
           hasBreakfast: ev.hasBreakfast ?? false,
           laptopRequired: ev.laptopRequired ?? false,
-          certificateProvided: ev.certificateProvided ?? true,
+          certificateProvided: ev.certificateProvided ?? false,
         })
         setFormFields(ev.formFields || [])
       } catch (err) {
@@ -173,15 +175,10 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
           email: form.contactEmail || '',
           phone: form.contactPhone || '',
         },
-        learningOutcomes: form.learningOutcomes
-          ? form.learningOutcomes.split('\n').map((s) => s.trim()).filter(Boolean)
-          : [],
-        requirements: form.requirements
-          ? form.requirements.split('\n').map((s) => s.trim()).filter(Boolean)
-          : [],
+        learningOutcomes: linesToList(form.learningOutcomes),
+        requirements: linesToList(form.requirements),
         duration: form.duration || '',
-        fee: form.fee || 'Free',
-        isFree: form.isFree,
+        ...derivePricing(form.fee),
         hasBreakfast: form.hasBreakfast,
         laptopRequired: form.laptopRequired,
         certificateProvided: form.certificateProvided,
@@ -392,7 +389,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
               {form.coverImage && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', padding: '10px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   <img
-                    src={form.coverImage}
+                    src={mediaUrl(form.coverImage)}
                     alt="Cover preview"
                     style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '6px' }}
                     onError={(e) => { e.currentTarget.style.display = 'none' }}

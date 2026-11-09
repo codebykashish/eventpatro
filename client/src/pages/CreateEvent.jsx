@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { createEvent, uploadImage } from '../utils/api'
+import { derivePricing, linesToList } from '../utils/eventForm'
+import { mediaUrl } from '../utils/mediaUrl'
 import { AlertCircle, CheckCircle2, Settings, Upload, Image as ImageIcon, Trash2 } from 'lucide-react'
 import FormBuilder from '../components/FormBuilder'
 import './EventForm.css'
@@ -36,11 +38,11 @@ const CreateEventPage = () => {
     learningOutcomes: '',
     requirements: '',
     duration: '',
-    fee: 'Free',
+    fee: '',
     isFree: true,
     hasBreakfast: false,
     laptopRequired: false,
-    certificateProvided: true,
+    certificateProvided: false,
   })
 
   // Custom form questions state
@@ -109,15 +111,10 @@ const CreateEventPage = () => {
           email: form.contactEmail || '',
           phone: form.contactPhone || '',
         },
-        learningOutcomes: form.learningOutcomes
-          ? form.learningOutcomes.split('\n').map((s) => s.trim()).filter(Boolean)
-          : [],
-        requirements: form.requirements
-          ? form.requirements.split('\n').map((s) => s.trim()).filter(Boolean)
-          : [],
+        learningOutcomes: linesToList(form.learningOutcomes),
+        requirements: linesToList(form.requirements),
         duration: form.duration || '',
-        fee: form.fee || 'Free',
-        isFree: form.isFree,
+        ...derivePricing(form.fee),
         hasBreakfast: form.hasBreakfast,
         laptopRequired: form.laptopRequired,
         certificateProvided: form.certificateProvided,
@@ -287,10 +284,10 @@ const CreateEventPage = () => {
               {form.coverImage && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc', padding: '10px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   <img
-                    src={form.coverImage}
+                    src={mediaUrl(form.coverImage)}
                     alt="Cover preview"
                     style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '6px' }}
-                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                    onError={(e) => { e.currentTarget.src = '/connected_events.jpg' }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontSize: '12px', color: '#1e293b', fontWeight: 600, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

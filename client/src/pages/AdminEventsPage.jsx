@@ -710,79 +710,162 @@ function EventTable({ rows, onViewRegs, onEdit, onDelete, formatDate, daysUntil,
     return <div className="aep-empty-table">No {isUpcoming ? 'upcoming' : 'past'} events found.</div>
   }
   return (
-    <div className="aep-table-scroll">
-      <table className="aep-events-table">
-        <thead>
-          <tr>
-            <th>Event</th>
-            <th>Date</th>
-            <th>{isUpcoming ? 'Days Until' : 'Days Ago'}</th>
-            <th>Location</th>
-            <th>Registrations</th>
-            <th>View Regs</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(ev => {
-            const d = daysUntil(ev.date)
-            const regCount = ev.registeredUsers?.length || 0
-            return (
-              <tr key={ev._id}>
-                {/* Event image + name */}
-                <td className="aep-ev-cell-name">
-                  <img
-                    src={ev.coverImage || '/campus_hero_bg.jpg'}
-                    alt={ev.title}
-                    className="aep-ev-thumb"
-                    onError={e => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
-                  />
-                  <div className="aep-ev-name-wrap">
-                    <span className="aep-ev-title">{ev.title}</span>
+    <>
+      {/* Desktop Table View */}
+      <div className="aep-table-scroll aep-desktop-table-view">
+        <table className="aep-events-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Date</th>
+              <th>{isUpcoming ? 'Days Until' : 'Days Ago'}</th>
+              <th>Location</th>
+              <th>Registrations</th>
+              <th>View Regs</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(ev => {
+              const d = daysUntil(ev.date)
+              const regCount = ev.registeredUsers?.length || 0
+              return (
+                <tr key={ev._id}>
+                  {/* Event image + name */}
+                  <td className="aep-ev-cell-name">
+                    <img
+                      src={ev.coverImage || '/campus_hero_bg.jpg'}
+                      alt={ev.title}
+                      className="aep-ev-thumb"
+                      onError={e => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
+                    />
+                    <div className="aep-ev-name-wrap">
+                      <span className="aep-ev-title">{ev.title}</span>
+                      {ev.category && <span className="aep-ev-cat">{ev.category}</span>}
+                    </div>
+                  </td>
+                  <td className="aep-ev-date">{formatDate(ev.date)}</td>
+                  <td>
+                    {d !== null ? (
+                      <span className={`aep-days-chip ${isUpcoming ? (d <= 3 ? 'aep-days-urgent' : 'aep-days-upcoming') : 'aep-days-past'}`}>
+                        {isUpcoming ? (d === 0 ? 'Today' : `${d}d`) : `${Math.abs(d)}d ago`}
+                      </span>
+                    ) : '—'}
+                  </td>
+                  <td className="aep-ev-location">
+                    <span className="aep-loc-wrap"><MapPin size={13}/>{ev.location || 'Campus'}</span>
+                  </td>
+                  <td className="aep-ev-regs">
+                    <span className="aep-reg-num">{regCount}</span>
+                    {ev.capacity && <span className="aep-cap-text"> / {ev.capacity}</span>}
+                  </td>
+                  <td>
+                    <button className="aep-view-regs-btn" onClick={() => onViewRegs(ev)}>
+                      View Registrations
+                    </button>
+                  </td>
+                  <td>
+                    <div className="aep-row-actions">
+                      <Link to={`/events/${ev._id}`} className="aep-icon-btn" title="View Details"><Eye size={14}/></Link>
+                      <button
+                        type="button"
+                        className="aep-icon-btn"
+                        title="Edit Event"
+                        onClick={() => onEdit(ev)}
+                      >
+                        <Edit size={14}/>
+                      </button>
+                      <button className="aep-icon-btn aep-icon-btn--delete" title="Delete" onClick={() => onDelete(ev)}>
+                        <Trash2 size={14}/>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card List View (No horizontal scrolling!) */}
+      <div className="aep-mobile-card-list">
+        {rows.map(ev => {
+          const d = daysUntil(ev.date)
+          const regCount = ev.registeredUsers?.length || 0
+          return (
+            <div key={ev._id} className="aep-mobile-card">
+              <div className="aep-mobile-card-top">
+                <img
+                  src={ev.coverImage || '/campus_hero_bg.jpg'}
+                  alt={ev.title}
+                  className="aep-mobile-card-thumb"
+                  onError={e => { e.currentTarget.src = '/campus_hero_bg.jpg' }}
+                />
+                <div className="aep-mobile-card-header-info">
+                  <span className="aep-mobile-card-title">{ev.title}</span>
+                  <div className="aep-mobile-card-badges">
                     {ev.category && <span className="aep-ev-cat">{ev.category}</span>}
+                    {d !== null && (
+                      <span className={`aep-days-chip ${isUpcoming ? (d <= 3 ? 'aep-days-urgent' : 'aep-days-upcoming') : 'aep-days-past'}`}>
+                        {isUpcoming ? (d === 0 ? 'Today' : `${d}d`) : `${Math.abs(d)}d ago`}
+                      </span>
+                    )}
                   </div>
-                </td>
-                <td className="aep-ev-date">{formatDate(ev.date)}</td>
-                <td>
-                  {d !== null ? (
-                    <span className={`aep-days-chip ${isUpcoming ? (d <= 3 ? 'aep-days-urgent' : 'aep-days-upcoming') : 'aep-days-past'}`}>
-                      {isUpcoming ? (d === 0 ? 'Today' : `${d}d`) : `${Math.abs(d)}d ago`}
-                    </span>
-                  ) : '—'}
-                </td>
-                <td className="aep-ev-location">
-                  <span className="aep-loc-wrap"><MapPin size={13}/>{ev.location || 'Campus'}</span>
-                </td>
-                <td className="aep-ev-regs">
-                  <span className="aep-reg-num">{regCount}</span>
-                  {ev.capacity && <span className="aep-cap-text"> / {ev.capacity}</span>}
-                </td>
-                <td>
-                  <button className="aep-view-regs-btn" onClick={() => onViewRegs(ev)}>
-                    View Registrations
+                </div>
+              </div>
+
+              <div className="aep-mobile-card-details">
+                <div className="aep-mobile-detail-item">
+                  <span className="aep-mobile-detail-label">Date:</span>
+                  <span className="aep-mobile-detail-val">{formatDate(ev.date)}</span>
+                </div>
+                <div className="aep-mobile-detail-item">
+                  <span className="aep-mobile-detail-label">Location:</span>
+                  <span className="aep-mobile-detail-val"><MapPin size={12}/>{ev.location || 'Campus'}</span>
+                </div>
+                <div className="aep-mobile-detail-item">
+                  <span className="aep-mobile-detail-label">Registrations:</span>
+                  <span className="aep-mobile-detail-val">
+                    <strong style={{ color: '#881421' }}>{regCount}</strong>
+                    {ev.capacity ? ` / ${ev.capacity}` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div className="aep-mobile-card-actions">
+                <button
+                  type="button"
+                  className="aep-mobile-view-regs-btn"
+                  onClick={() => onViewRegs(ev)}
+                >
+                  View Registrations ({regCount})
+                </button>
+                <div className="aep-row-actions">
+                  <Link to={`/events/${ev._id}`} className="aep-icon-btn" title="View Details">
+                    <Eye size={15}/>
+                  </Link>
+                  <button
+                    type="button"
+                    className="aep-icon-btn"
+                    title="Edit Event"
+                    onClick={() => onEdit(ev)}
+                  >
+                    <Edit size={15}/>
                   </button>
-                </td>
-                <td>
-                  <div className="aep-row-actions">
-                    <Link to={`/events/${ev._id}`} className="aep-icon-btn" title="View Details"><Eye size={14}/></Link>
-                    <button
-                      type="button"
-                      className="aep-icon-btn"
-                      title="Edit Event"
-                      onClick={() => onEdit(ev)}
-                    >
-                      <Edit size={14}/>
-                    </button>
-                    <button className="aep-icon-btn aep-icon-btn--delete" title="Delete" onClick={() => onDelete(ev)}>
-                      <Trash2 size={14}/>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                  <button
+                    type="button"
+                    className="aep-icon-btn aep-icon-btn--delete"
+                    title="Delete"
+                    onClick={() => onDelete(ev)}
+                  >
+                    <Trash2 size={15}/>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }

@@ -4319,3 +4319,716 @@
 }
 
 
+
+/* ── Hide mobile elements on desktop by default ──────────────────────────── */
+.portal-mobile-bottom-nav {
+  display: none;
+}
+
+.portal-mobile-brand {
+  display: none;
+}
+
+.mobile-explore-chips {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE & TABLET RESPONSIVE — Target: 390px × 844px & below 768px
+   ALL rules below only affect mobile/tablet screens. Desktop is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── 1. Hide desktop sidebar completely on mobile/tablet — use bottom footer nav ── */
+  .portal-sidebar {
+    display: none !important;
+  }
+
+  /* ── 2. Stack workspace full-width (use 100dvh to eliminate mobile overscroll white space) ── */
+  .portal-layout {
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+    background-color: #ffffff !important;
+  }
+
+  .portal-workspace {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    background-color: #ffffff !important;
+  }
+
+  /* ── 3. Topbar — clean & compact on mobile ──────────────────────────────── */
+  .portal-topbar {
+    padding: 10px 14px !important;
+    gap: 10px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+    flex-shrink: 0 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+  }
+
+  /* Show SSRC Events brand and logo at top of mobile screen */
+  .portal-mobile-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    text-decoration: none !important;
+    user-select: none !important;
+  }
+
+  .portal-mobile-brand-logo {
+    height: 32px !important;
+    width: 32px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+  }
+
+  .portal-mobile-brand-title {
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    color: #881421 !important;
+    font-family: 'Playfair Display', Georgia, serif !important;
+    white-space: nowrap !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1 !important;
+  }
+
+  /* Hide wide search box on mobile topbar */
+  .portal-search-box {
+    display: none !important;
+  }
+
+  .portal-topbar-right {
+    gap: 10px !important;
+    margin-left: auto !important;
+  }
+
+  .profile-avatar-circle {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 12px !important;
+  }
+
+  /* ── 4. Main content container — space for fixed bottom nav ──────────────── */
+  .portal-main-content {
+    flex: 1 !important;
+    padding: 16px 18px calc(68px + env(safe-area-inset-bottom, 12px)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    background-color: #ffffff !important;
+  }
+
+  /* ── 5. User Greeting ───────────────────────────────────────────────────── */
+  .portal-greeting-section {
+    margin-bottom: 18px !important;
+  }
+
+  .portal-greeting-heading {
+    font-size: 20px !important;
+    letter-spacing: -0.01em !important;
+    margin-bottom: 4px !important;
+  }
+
+  .portal-greeting-subtext {
+    font-size: 13px !important;
+  }
+
+  /* ── 6. Student Dashboard 3 Metric Cards — SIDE-BY-SIDE in 1 row ────────── */
+  .portal-metrics-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 22px !important;
+  }
+
+  .portal-metric-card {
+    padding: 12px 6px !important;
+    border-radius: 14px !important;
+    gap: 6px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  .portal-metric-circle {
+    display: none !important;
+  }
+
+  .portal-metric-text {
+    align-items: center !important;
+  }
+
+  .portal-metric-value {
+    font-size: 20px !important;
+    font-weight: 800 !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+  }
+
+  .portal-metric-title {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    white-space: normal !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+  }
+
+  /* ── 7. Student Dashboard Body — Single column flow ──────────────────────── */
+  .portal-dashboard-body {
+    flex-direction: column !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  .portal-dashboard-left {
+    width: 100% !important;
+  }
+
+  /* Right panel becomes compact banner below events on mobile */
+  .portal-right-panel {
+    width: 100% !important;
+    min-width: unset !important;
+    position: static !important;
+    height: auto !important;
+    max-height: none !important;
+    margin-top: 12px !important;
+    gap: 14px !important;
+  }
+
+  .portal-campus-card {
+    min-height: 170px !important;
+    max-height: 200px !important;
+    border-radius: 16px !important;
+  }
+
+  .portal-campus-overlay {
+    padding: 16px !important;
+  }
+
+  .portal-campus-heading {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .portal-campus-tagline {
+    font-size: 12px !important;
+  }
+
+  .portal-cta-card {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  /* ── 8. Student Upcoming Event Cards on Mobile ──────────────────────────── */
+  .portal-events-feed {
+    gap: 12px !important;
+  }
+
+  .portal-event-card {
+    flex-direction: column !important;
+    min-height: unset !important;
+    border-radius: 14px !important;
+  }
+
+  .portal-event-thumb-wrap {
+    width: 100% !important;
+    height: 140px !important;
+    min-height: unset !important;
+  }
+
+  .portal-event-card-body {
+    padding: 12px 14px !important;
+  }
+
+  .portal-event-title {
+    font-size: 15px !important;
+    margin: 4px 0 6px !important;
+  }
+
+  .portal-event-description {
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 10px !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+  }
+
+  .portal-event-card-footer {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    font-size: 11.5px !important;
+  }
+
+  /* ── 9. ADMIN DASHBOARD: 3 NUMBER CARDS SIDE BY SIDE ────────────────────── */
+  .admin-content-container {
+    padding: 14px 12px 90px !important;
+    gap: 18px !important;
+  }
+
+  .admin-hero-section {
+    padding: 18px 16px !important;
+    border-radius: 14px !important;
+  }
+
+  .admin-hero-section h1 {
+    font-size: 20px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .admin-hero-section p {
+    font-size: 12.5px !important;
+  }
+
+  /* Admin 3 Metric Cards — side by side in 1 row (equal 3 columns) */
+  .admin-metrics-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .admin-metric-card {
+    padding: 12px 6px !important;
+    border-radius: 14px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 6px !important;
+    justify-content: center !important;
+  }
+
+  .admin-metric-left {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  .admin-metric-icon-circle {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 10px !important;
+  }
+
+  .admin-metric-icon-circle svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .admin-metric-values {
+    align-items: center !important;
+    gap: 2px !important;
+  }
+
+  .admin-metric-num {
+    font-size: 19px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  .admin-metric-label {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+    white-space: normal !important;
+  }
+
+  /* Hide the arrow button on mobile metric cards to save space */
+  .admin-metric-arrow-btn {
+    display: none !important;
+  }
+
+  /* ── 10. ADMIN DASHBOARD: EVENTS & USERS LIST (LIMIT TO TOP 3 ON MOBILE) ─── */
+  .admin-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .admin-panel-card {
+    border-radius: 14px !important;
+  }
+
+  .admin-panel-header {
+    padding: 12px 14px !important;
+  }
+
+  .admin-panel-header h2 {
+    font-size: 15px !important;
+  }
+
+  /* Limit items shown on mobile so user isn't overwhelmed */
+  .admin-event-row:nth-child(n+4) {
+    display: none !important;
+  }
+
+  .admin-event-row {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  .admin-event-thumb {
+    width: 46px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  .admin-event-title {
+    font-size: 13.5px !important;
+  }
+
+  .admin-event-meta-item {
+    font-size: 11.5px !important;
+  }
+
+  .admin-reg-badge-pill {
+    padding: 3px 7px !important;
+    font-size: 11px !important;
+  }
+
+  .admin-action-icon-btn {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+  }
+
+  .admin-action-icon-btn svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  /* Limit user rows to top 3 on mobile */
+  .admin-users-table tbody tr:nth-child(n+4) {
+    display: none !important;
+  }
+
+  .admin-users-table th,
+  .admin-users-table td {
+    padding: 10px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* Hide Joined and Regs columns on small screens to fit cleanly */
+  .admin-users-table th:nth-child(3),
+  .admin-users-table td:nth-child(3),
+  .admin-users-table th:nth-child(4),
+  .admin-users-table td:nth-child(4) {
+    display: none !important;
+  }
+
+  .admin-card-footer-info {
+    padding: 8px 14px !important;
+    font-size: 11.5px !important;
+  }
+
+  .admin-quick-actions-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .admin-create-event-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 11px 16px !important;
+  }
+
+  /* ── 11. Explore page — hide filter sidebar, show chips on mobile ───────── */
+  .explore-layout-wrap {
+    grid-template-columns: 1fr !important;
+  }
+
+  .explore-filter-sidebar {
+    display: none !important;
+  }
+
+  .explore-content-main {
+    min-width: 0 !important;
+  }
+
+  .explore-main-title {
+    font-size: 20px !important;
+  }
+
+  .mobile-explore-chips {
+    display: flex !important;
+    overflow-x: auto !important;
+    gap: 8px !important;
+    padding: 8px 0 !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-explore-chips::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .mobile-chip {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    border-radius: 999px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    background: #ffffff !important;
+    color: #475569 !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .mobile-chip:hover {
+    border-color: #881421 !important;
+    color: #881421 !important;
+  }
+
+  .mobile-chip-active {
+    background: #881421 !important;
+    border-color: #881421 !important;
+    color: #ffffff !important;
+  }
+
+  /* ── 12. Profile page — Instagram 2-column grid with side spacing ─────── */
+  .profile-hero-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 18px 14px !important;
+    border-radius: 16px !important;
+    gap: 14px !important;
+  }
+
+  .profile-hero-identity {
+    align-items: center !important;
+  }
+
+  .profile-stats-row {
+    justify-content: center !important;
+    gap: 16px !important;
+  }
+
+  .profile-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Two cards per row like Instagram grid with comfortable side margins */
+  .profile-events-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    padding: 14px 12px 20px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-event-post-card {
+    border-radius: 12px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .profile-post-cover {
+    height: 105px !important;
+    padding: 6px 8px !important;
+  }
+
+  .profile-post-cat-tag {
+    font-size: 8.5px !important;
+    padding: 2px 6px !important;
+  }
+
+  .profile-post-top-badges {
+    gap: 4px !important;
+  }
+
+  .profile-post-top-badges .reg-status-chip,
+  .profile-post-badge.past {
+    font-size: 8px !important;
+    padding: 2px 5px !important;
+  }
+
+  .profile-post-body {
+    padding: 8px 10px 10px !important;
+    gap: 6px !important;
+  }
+
+  .profile-post-title {
+    font-size: 12.5px !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+  }
+
+  .profile-post-meta {
+    gap: 3px !important;
+  }
+
+  .profile-post-meta-item {
+    font-size: 10.5px !important;
+    gap: 4px !important;
+  }
+
+  .profile-post-footer {
+    padding-top: 6px !important;
+    margin-top: 2px !important;
+  }
+
+  .profile-post-spots {
+    font-size: 9.5px !important;
+  }
+
+  .profile-post-view-btn {
+    font-size: 10px !important;
+  }
+
+  /* ── 13. Portal modals — bottom sheet on mobile ──────────────────────────── */
+  .portal-modal-card,
+  .admin-modal-box,
+  .edit-event-modal-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    margin: 0 !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+  }
+
+  .portal-modal-backdrop,
+  .admin-modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  /* Logout Confirmation Dialog — ALWAYS centered in the middle of the screen! */
+  .portal-modal-backdrop-centered {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    z-index: 10001 !important;
+  }
+
+  .portal-logout-dialog {
+    width: 90% !important;
+    max-width: 360px !important;
+    border-radius: 20px !important;
+    margin: auto !important;
+    padding: 24px 20px !important;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.25) !important;
+    text-align: center !important;
+    animation: scaleUp 0.18s ease-out !important;
+  }
+
+  /* ── 14. Notifications popover — full width on mobile ───────────────────── */
+  .notification-popover {
+    right: -16px !important;
+    width: calc(100vw - 24px) !important;
+  }
+
+  /* ── 15. MOBILE FOOTER / BOTTOM NAVIGATION BAR ──────────────────────────── */
+  .portal-mobile-bottom-nav {
+    display: flex !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: #ffffff !important;
+    border-top: 1px solid #edf2f7 !important;
+    z-index: 9999 !important;
+    padding: 6px 0 env(safe-area-inset-bottom, 8px) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  .portal-mobile-bottom-nav-inner {
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  .portal-mobile-nav-btn {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 2px !important;
+    padding: 5px 8px !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: #94a3b8 !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    transition: color 0.15s !important;
+    font-family: inherit !important;
+    min-width: 48px !important;
+  }
+
+  .portal-mobile-nav-btn.active {
+    color: #881421 !important;
+  }
+
+  .portal-mobile-nav-btn svg {
+    flex-shrink: 0 !important;
+  }
+
+  .portal-mobile-nav-icon-wrap {
+    position: relative !important;
+  }
+
+  .portal-mobile-nav-dot {
+    position: absolute !important;
+    top: -2px !important;
+    right: -4px !important;
+    width: 6px !important;
+    height: 6px !important;
+    background: #881421 !important;
+    border-radius: 50% !important;
+    border: 1.5px solid #fff !important;
+  }
+
+  /* ── 16. Event detail inside portal — stack on mobile ───────────────────── */
+  .nc-hero-two-column-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .nc-right-sticky-col {
+    position: static !important;
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .event-form-card {
+    padding: 18px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .filter-chip {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+}

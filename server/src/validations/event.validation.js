@@ -1,24 +1,40 @@
 const { z } = require('zod')
 const { CATEGORIES, FIELD_TYPES } = require('../models/Event')
 
-// Validation for a single form field question
 const formFieldSchema = z.object({
   label: z
     .string({ required_error: 'Field label is required' })
     .min(1, 'Label cannot be empty')
     .max(200, 'Label cannot exceed 200 characters'),
-
   type: z.enum(FIELD_TYPES, {
     errorMap: () => ({ message: `Field type must be one of: ${FIELD_TYPES.join(', ')}` }),
   }),
-
-  // Options required only for multiple_choice, ignored for others
   options: z.array(z.string()).default([]),
-
   required: z.boolean().default(false),
 })
 
-// Validation for creating a new event
+const mentorSchema = z.object({
+  name: z.string().trim().optional().default(''),
+  occupation: z.string().trim().optional().default(''),
+  photo: z.string().optional().default(''),
+  linkedin: z.string().optional().default(''),
+  bio: z.string().optional().default(''),
+}).optional()
+
+const contactPersonSchema = z.object({
+  name: z.string().trim().optional().default(''),
+  email: z.string().trim().optional().default(''),
+  phone: z.string().trim().optional().default(''),
+}).optional()
+
+const coverImageSchema = z.preprocess(
+  (v) => (v === '' ? null : v),
+  z.union([
+    z.string().url(),
+    z.string().regex(/^\/uploads\//, 'Cover image path must be valid'),
+  ]).nullable().optional()
+)
+
 const createEventSchema = z.object({
   title: z
     .string({ required_error: 'Title is required' })
@@ -34,7 +50,6 @@ const createEventSchema = z.object({
     errorMap: () => ({ message: `Category must be one of: ${CATEGORIES.join(', ')}` }),
   }).default('other'),
 
-  // Accept ISO string from frontend and coerce to Date
   date: z.coerce.date({ required_error: 'Event date is required' }),
 
   location: z
@@ -49,23 +64,24 @@ const createEventSchema = z.object({
     .optional()
     .default(null),
 
-  coverImage: z.union([
-    z.string().url('Cover image must be a valid URL'),
-    z.string().regex(/^\/uploads\/.+/, 'Cover image path must be valid'),
-    z.string().max(500),
-  ]).nullable().optional().default(null),
+  coverImage: coverImageSchema,
 
-  // --- Phase 3 fields ---
   registrationType: z.enum(['open', 'application']).default('open'),
-
   registrationDeadline: z.coerce.date().nullable().optional().default(null),
-
-  // Array of custom form questions (may be empty)
   formFields: z.array(formFieldSchema).default([]),
+
+  mentor: mentorSchema,
+  contactPerson: contactPersonSchema,
+  learningOutcomes: z.array(z.string()).optional().default([]),
+  requirements: z.array(z.string()).optional().default([]),
+  duration: z.string().optional().default(''),
+  fee: z.string().optional().default(''),
+  isFree: z.boolean().optional(),
+  hasBreakfast: z.boolean().optional().default(false),
+  laptopRequired: z.boolean().optional().default(false),
+  certificateProvided: z.boolean().optional().default(false),
 })
 
-// For updating — all fields are optional
 const updateEventSchema = createEventSchema.partial()
 
 module.exports = { createEventSchema, updateEventSchema }
-

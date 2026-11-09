@@ -228,3 +228,50 @@
   transform: none;
   background: #e5e7eb;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVENT CARD — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  /* Slightly smaller cover image height on mobile */
+  .ec-cover {
+    height: 190px;
+  }
+
+  /* Title stays readable */
+  .ec-title {
+    font-size: 15px;
+  }
+
+  /* Description — fewer lines on mobile */
+  .ec-description {
+    font-size: 13px;
+    -webkit-line-clamp: 2;
+  }
+
+  /* Meta row wraps tightly */
+  .ec-meta-row {
+    gap: 8px 12px;
+  }
+
+  .ec-meta-item {
+    font-size: 12px;
+  }
+
+  /* CTA button — comfortable touch target */
+  .ec-cta-btn {
+    padding: 13px 16px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  /* Card body padding */
+  .ec-body {
+    padding: 14px 14px 14px;
+    gap: 10px;
+  }
+
+}

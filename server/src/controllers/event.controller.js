@@ -1,5 +1,14 @@
 const { Event } = require('../models/Event')
 
+const derivePricing = (body) => {
+  const fee = String(body.fee ?? '').trim()
+  const isPaid = Boolean(fee) && !/^free$/i.test(fee) && fee !== '0'
+  return {
+    fee: isPaid ? fee : (fee || 'Free'),
+    isFree: !isPaid,
+  }
+}
+
 // ─── GET /api/events ─────────────────────────────────────────────────────────
 // Public: list all published events with optional search & category filter
 const getEvents = async (req, res) => {
@@ -55,9 +64,11 @@ const getEventById = async (req, res) => {
 // Admin only: create a new event
 const createEvent = async (req, res) => {
   try {
+    const pricing = derivePricing(req.body)
     const event = await Event.create({
       ...req.body,
-      organiser: req.user._id, // req.user is set by the protect middleware
+      ...pricing,
+      organiser: req.user._id,
     })
 
     res.status(201).json({ message: 'Event created successfully', event })
@@ -70,9 +81,12 @@ const createEvent = async (req, res) => {
 // Admin only: update an existing event
 const updateEvent = async (req, res) => {
   try {
+    const pricing = req.body.fee !== undefined || req.body.isFree !== undefined
+      ? derivePricing(req.body)
+      : {}
     const event = await Event.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: { ...req.body, ...pricing } },
       { new: true, runValidators: true }
     )
 

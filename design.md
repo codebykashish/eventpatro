@@ -1,8 +1,8 @@
-# Eventify Design Specification
+# Eventpatro Design Specification
 
 ## 1. Purpose and Design Principles
 
-Eventify is a university event management website for Sunway College. It allows students to discover campus programs, register for events, apply for selective programs, and track their participation.
+Eventpatro is a university event management website for Sunway College. It allows students to discover campus programs, register for events, apply for selective programs, and track their participation.
 
 This document is the complete design specification for the website. Implement the described design without requiring screenshots or external visual references.
 
@@ -104,7 +104,7 @@ Use restrained corner rounding and subtle borders. Heavy shadows are unnecessary
 
 The landing page is the public homepage. Visitors can view it without an account or without being logged in.
 
-The page should introduce Eventify, establish its connection to Sunway College, preview upcoming events, explain the platform's value, and encourage visitors to sign up.
+The page should introduce Eventpatro, establish its connection to Sunway College, preview upcoming events, explain the platform's value, and encourage visitors to sign up.
 
 The page order is:
 
@@ -112,7 +112,7 @@ The page order is:
 2. Full-width campus hero.
 3. Event search and browsing actions.
 4. Upcoming events.
-5. Why Eventify?
+5. Why Eventpatro?
 6. Signup call-to-action.
 7. Footer.
 
@@ -124,7 +124,7 @@ Create a slim horizontal navigation bar with a warm off-white background.
 
 **Left side**
 - A simple college-inspired landmark logo in burgundy.
-- The Eventify wordmark in burgundy.
+- The Eventpatro wordmark in burgundy.
 
 **Center**
 - Home.
@@ -258,9 +258,9 @@ Use real event data once the backend is connected. Do not retain fictional event
 
 ---
 
-# 7. Why Eventify? Section
+# 7. Why Eventpatro? Section
 
-This section explains the purpose and value of Eventify. It must be a spacious, image-led section rather than a compact row of small icons.
+This section explains the purpose and value of Eventpatro. It must be a spacious, image-led section rather than a compact row of small icons.
 
 ## 7.1 Section Introduction
 
@@ -275,7 +275,7 @@ Use this hierarchy:
 
 Suggested paragraph:
 
-“Eventify brings campus programs into one place. Discover workshops, seminars, cultural festivals and competitions, then keep track of the opportunities you take part in throughout your college experience.”
+“Eventpatro brings campus programs into one place. Discover workshops, seminars, cultural festivals and competitions, then keep track of the opportunities you take part in throughout your college experience.”
 
 The heading should be large and prominent. The paragraph should have a comfortable maximum width of approximately 800 pixels and use muted charcoal text.
 
@@ -378,7 +378,7 @@ Do not remove the images on mobile simply to save space.
 
 # 8. Signup Call-to-Action
 
-Place a prominent signup section after Why Eventify? and before the footer.
+Place a prominent signup section after Why Eventpatro? and before the footer.
 
 Use a wide burgundy panel with restrained styling.
 
@@ -405,7 +405,7 @@ The footer should be light, clean, and college-specific.
 ### Main footer row
 
 **Left:**
-- Eventify logo and wordmark.
+- Eventpatro logo and wordmark.
 - Short tagline: `A smarter way to experience campus events.`
 
 **Center:**
@@ -504,7 +504,7 @@ Use a full-screen two-column layout on desktop.
 
 ### Left panel
 
-- Eventify branding.
+- Eventpatro branding.
 - A welcoming heading.
 - A short explanation of the platform.
 - A suitable campus or student-life photograph, or a restrained burgundy image treatment.
@@ -556,7 +556,7 @@ The profile should contain three distinct content tabs:
 - Registered.
 - Applied.
 
-The tabs should work like separate content categories on a social profile, but they must use Eventify's own branding and design.
+The tabs should work like separate content categories on a social profile, but they must use Eventpatro's own branding and design.
 
 ### Attended
 
@@ -656,7 +656,7 @@ Do not use:
 - Tiny photographs in sections that require large images.
 - Overcrowded text or squeezed columns.
 - Extra marketing sections that are not described in this specification.
-- Unsupported claims about payments, support, or other features Eventify does not provide.
+- Unsupported claims about payments, support, or other features Eventpatro does not provide.
 
 Avoid the marketing phrase structure “It's not X, it's Y” and avoid em dashes in interface and marketing copy.
 
@@ -707,13 +707,47 @@ Implement the design in this order:
 1. Establish shared colors, typography, spacing, and reusable components.
 2. Build the public navigation and campus hero.
 3. Build the search area and upcoming event cards.
-4. Build the three-column Why Eventify? section exactly as specified.
+4. Build the three-column Why Eventpatro? section exactly as specified.
 5. Add the signup call-to-action and college-specific footer.
 6. Apply the shared design system to login and signup.
 7. Apply the shared design system to student and administrator dashboards.
 8. Implement responsive behavior and accessibility.
 9. Test the layout at desktop, tablet, and mobile sizes.
 
-The most important design requirement is that the public landing page feels like a polished Sunway College event platform, with a burgundy campus hero, clean event cards, and a spacious three-column Why Eventify? section containing an icon, heading, description, and large image in each column.
+The most important design requirement is that the public landing page feels like a polished Sunway College event platform, with a burgundy campus hero, clean event cards, and a spacious three-column Why Eventpatro? section containing an icon, heading, description, and large image in each column.
 
 Preserve this direction throughout implementation. Do not replace it with a compact icon row or an unrelated template.
+
+---
+
+# 19. Mobile Responsive Design Specification (390px × 844px Viewport)
+
+The application provides a dedicated responsive mobile experience optimized for modern mobile viewports (e.g. 390px × 844px — iPhone 14 Pro). The desktop experience is completely preserved.
+
+### 19.1 Landing Page Navigation
+- The floating frosted-glass header collapses its center links and auth buttons on mobile.
+- A hamburger menu button (Lucide `Menu` / `X`) triggers a slide-in drawer from the right.
+- The drawer includes navigation anchors, auth actions (Login / Sign Up), and locks body scrolling when open.
+
+### 19.2 Portal Navigation (Student & Admin)
+- The hover-expandable desktop sidebar (`.portal-sidebar`) is hidden on mobile screens.
+- Navigation is replaced by a fixed **Bottom Footer Tab Bar** (`.portal-mobile-bottom-nav`) pinned to the bottom of the viewport with safe-area padding:
+  - **Student tabs:** Home (`LayoutDashboard`), Events (`Calendar`), My Events (`ClipboardList`), Profile (`User`).
+  - **Admin tabs:** Home (`LayoutDashboard`), Events (`Calendar`), Create (`Plus`), Users (`Users`).
+- Active tab is highlighted with primary burgundy color (`#881421`) and bold weight.
+
+### 19.3 Student Dashboard Mobile Layout
+- 3 metric cards are displayed **side-by-side in a 3-column row** (`repeat(3, 1fr)`) with compact numbers and labels.
+- The right panel with decorative campus image becomes a neat banner below upcoming events.
+- Upcoming event cards stack cleanly with vertical thumb-and-content layout.
+
+### 19.4 Admin Dashboard Mobile Layout
+- 3 metric cards (Total Events, Total Users, Registrations) are displayed **side-by-side in 1 row** (`repeat(3, 1fr)`) without vertical stacking.
+- Admin event management list shows the top 3 events on mobile with compact metadata.
+- Admin users table displays top 3 users with essential columns (Name, Email, Actions) while hiding lower-priority columns to fit 390px cleanly.
+- Full lists remain accessible via "View All" actions.
+
+### 19.5 Explore & Modals
+- Explore tab replaces the desktop filter sidebar with a horizontal swipeable chips row (`.mobile-explore-chips`).
+- Modals (Auth, Event forms, Registration confirmation) open as slide-up bottom sheets with rounded top corners.
+

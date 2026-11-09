@@ -678,6 +678,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
     () => events.reduce((s, ev) => s + (ev.registeredUsers?.length || 0), 0),
     [events]
   )
+  // On desktop we slice to 8; mobile CSS further limits visible items to 3 so it doesn't overwhelm the mobile screen
   const adminDashboardEvents = useMemo(() => events.slice(0, 8), [events])
   const adminDashboardUsers = useMemo(() => adminUsers.slice(0, 8), [adminUsers])
 
@@ -817,6 +818,18 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
       <main className="portal-workspace">
         {/* Top Header Bar */}
         <header className="portal-topbar">
+          {/* Mobile-only brand logo + title at top of screen */}
+          <div
+            className="portal-mobile-brand"
+            onClick={() => handleTabChange('dashboard')}
+            role="button"
+            tabIndex={0}
+            style={{ cursor: 'pointer' }}
+          >
+            <img src="/logo.png" alt="SSRC Events Logo" className="portal-mobile-brand-logo" />
+            <span className="portal-mobile-brand-title">SSRC Events</span>
+          </div>
+
           {/* Search bar */}
           <div className="portal-search-box">
             <Search size={17} className="portal-search-icon" />
@@ -1461,6 +1474,39 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                     <strong>{exploreFilteredEvents.length}</strong> events found
                   </span>
                 </div>
+              </div>
+
+              {/* ── Mobile-only horizontal filter chips (replaces sidebar on mobile) ── */}
+              <div className="mobile-explore-chips">
+                <button
+                  type="button"
+                  className={`mobile-chip ${timelineFilter === 'all' ? 'mobile-chip-active' : ''}`}
+                  onClick={() => setTimelineFilter('all')}
+                >All</button>
+                <button
+                  type="button"
+                  className={`mobile-chip ${timelineFilter === 'upcoming' ? 'mobile-chip-active' : ''}`}
+                  onClick={() => setTimelineFilter('upcoming')}
+                >Upcoming</button>
+                <button
+                  type="button"
+                  className={`mobile-chip ${timelineFilter === 'past' ? 'mobile-chip-active' : ''}`}
+                  onClick={() => setTimelineFilter('past')}
+                >Past</button>
+                {FILTER_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`mobile-chip ${selectedCategories.includes(cat.id) ? 'mobile-chip-active' : ''}`}
+                    onClick={() => {
+                      setSelectedCategories(prev =>
+                        prev.includes(cat.id) ? prev.filter(c => c !== cat.id) : [...prev, cat.id]
+                      )
+                    }}
+                  >
+                    {cat.icon} {cat.label}
+                  </button>
+                ))}
               </div>
 
               {/* Two-Column Layout: Sticky Left Filter + Right Scrollable Cards */}
@@ -2224,9 +2270,9 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
 
       {/* ── Logout Confirmation Modal ──────────────────────────────────────── */}
       {showLogoutModal && (
-        <div className="portal-modal-backdrop" onClick={() => setShowLogoutModal(false)}>
+        <div className="portal-modal-backdrop portal-modal-backdrop-centered" onClick={() => setShowLogoutModal(false)}>
           <div
-            className="portal-modal-card"
+            className="portal-modal-card portal-logout-dialog"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -2379,6 +2425,82 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
           </div>
         </div>
       )}
+      {/* ── Mobile Bottom Navigation Bar (visible only on mobile) ─────── */}
+      <nav className="portal-mobile-bottom-nav" role="navigation" aria-label="Mobile navigation">
+        <div className="portal-mobile-bottom-nav-inner">
+          <button
+            type="button"
+            className={`portal-mobile-nav-btn ${activeTab === 'dashboard' && !currentEventId ? 'active' : ''}`}
+            onClick={() => handleTabChange('dashboard')}
+          >
+            <span className="portal-mobile-nav-icon-wrap">
+              <LayoutDashboard size={20} strokeWidth={2} />
+            </span>
+            <span>Home</span>
+          </button>
+
+          <button
+            type="button"
+            className={`portal-mobile-nav-btn ${((isAdmin && activeTab === 'adminEvents') || (!isAdmin && activeTab === 'events')) && !currentEventId ? 'active' : ''}`}
+            onClick={() => handleTabChange(isAdmin ? 'adminEvents' : 'events')}
+          >
+            <span className="portal-mobile-nav-icon-wrap">
+              <Calendar size={20} strokeWidth={2} />
+            </span>
+            <span>Events</span>
+          </button>
+
+          {!isAdmin ? (
+            <button
+              type="button"
+              className={`portal-mobile-nav-btn ${activeTab === 'registrations' && !currentEventId ? 'active' : ''}`}
+              onClick={() => handleTabChange('registrations')}
+            >
+              <span className="portal-mobile-nav-icon-wrap">
+                <ClipboardList size={20} strokeWidth={2} />
+              </span>
+              <span>My Events</span>
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={`portal-mobile-nav-btn ${activeTab === 'adminCreateEvent' && !currentEventId ? 'active' : ''}`}
+                onClick={() => handleTabChange('adminCreateEvent')}
+              >
+                <span className="portal-mobile-nav-icon-wrap">
+                  <Plus size={20} strokeWidth={2.4} />
+                </span>
+                <span>Create</span>
+              </button>
+
+              <button
+                type="button"
+                className={`portal-mobile-nav-btn ${activeTab === 'adminUsers' && !currentEventId ? 'active' : ''}`}
+                onClick={() => handleTabChange('adminUsers')}
+              >
+                <span className="portal-mobile-nav-icon-wrap">
+                  <Users size={20} strokeWidth={2} />
+                </span>
+                <span>Users</span>
+              </button>
+            </>
+          )}
+
+          {!isAdmin && (
+            <button
+              type="button"
+              className={`portal-mobile-nav-btn ${activeTab === 'profile' && !currentEventId ? 'active' : ''}`}
+              onClick={() => handleTabChange('profile')}
+            >
+              <span className="portal-mobile-nav-icon-wrap">
+                <User size={20} strokeWidth={2} />
+              </span>
+              <span>Profile</span>
+            </button>
+          )}
+        </div>
+      </nav>
     </div>
   )
 }

@@ -1119,9 +1119,212 @@
 .aep-btn-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 .aep-btn-delete:hover:not(:disabled) { opacity: 0.9; }
 
+/* ── Responsive Card List for Mobile / Small Screens ───────────────────── */
+.aep-mobile-card-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .aep-desktop-table-view {
+    display: none !important;
+  }
+
+  .aep-mobile-card-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .aep-mobile-card {
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .aep-mobile-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .aep-mobile-card-thumb {
+    width: 54px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+
+  .aep-mobile-card-header-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .aep-mobile-card-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    word-break: break-word;
+  }
+
+  .aep-mobile-card-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .aep-mobile-card-details {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+  }
+
+  .aep-mobile-detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+  }
+
+  .aep-mobile-detail-label {
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .aep-mobile-detail-val {
+    color: #1e293b;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .aep-mobile-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-top: 4px;
+  }
+
+  .aep-mobile-view-regs-btn {
+    flex: 1;
+    padding: 7px 12px;
+    background: #fdf2f2;
+    border: 1px solid rgba(136, 20, 33, 0.2);
+    color: #881421;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.15s ease;
+  }
+
+  .aep-mobile-view-regs-btn:active {
+    background: #fee2e2;
+  }
+}
+
 @media (max-width: 768px) {
   .aep-root { padding: 16px; }
-  .aep-stats-row { grid-template-columns: 1fr; }
+  .aep-stats-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+  .aep-stat-card {
+    padding: 12px 6px !important;
+    border-radius: 12px !important;
+    text-align: center !important;
+    align-items: center !important;
+  }
+  .aep-stat-num {
+    font-size: 20px !important;
+  }
+  .aep-stat-label {
+    font-size: 10px !important;
+    letter-spacing: 0 !important;
+  }
   .aep-body { grid-template-columns: 1fr; }
   .aep-filter-panel { position: static; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN EVENTS PAGE — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  .aep-root {
+    padding: 12px 10px 70px;
+  }
+
+  /* Stats — 3 cards side by side in 1 row */
+  .aep-stats-row {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .aep-stat-card {
+    padding: 10px 4px !important;
+    border-radius: 12px !important;
+    text-align: center !important;
+    align-items: center !important;
+    border-left-width: 3px !important;
+  }
+
+  .aep-stat-num {
+    font-size: 18px !important;
+    line-height: 1 !important;
+  }
+
+  .aep-stat-label {
+    font-size: 9.5px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0 !important;
+  }
+
+  /* Body — single column, hide filter panel */
+  .aep-body {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  .aep-filter-panel {
+    display: none !important;
+  }
+
+  /* Search — full width */
+  .aep-search-wrap {
+    max-width: 100%;
+  }
+
+  /* Event table — horizontal scroll */
+  .aep-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Cards — if any are used */
+  .aep-event-card {
+    border-radius: 12px;
+  }
+
 }

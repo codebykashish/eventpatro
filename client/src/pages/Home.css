@@ -1002,3 +1002,244 @@
     text-align: center;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HOME PAGE — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  /* ── 1. Hero section — fit mobile height comfortably ────────────────────── */
+  .hero-banner-fullscreen {
+    min-height: 100svh;
+    padding: 90px 16px 56px;
+    border-radius: 0 0 28px 28px;
+  }
+
+  .hero-content-center {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .hero-badge-pill {
+    font-size: 10.5px;
+    padding: 5px 12px;
+    margin-bottom: 14px;
+  }
+
+  .hero-headline {
+    font-size: 30px;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    line-height: 1.15;
+  }
+
+  .hero-subtext {
+    font-size: 14px;
+    margin-bottom: 24px;
+    padding: 0 4px;
+  }
+
+  /* ── 2. Hero search bar — stack vertically on mobile ─────────────────────── */
+  .hero-search-card {
+    flex-direction: column;
+    border-radius: 18px;
+    padding: 14px 16px;
+    gap: 10px;
+    margin-bottom: 24px;
+    max-width: 100%;
+  }
+
+  .hero-search-input-wrap {
+    width: 100%;
+  }
+
+  .btn-hero-search {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 12px;
+  }
+
+  /* Hide the "or Browse" in search bar on mobile — not enough room */
+  .hero-search-or,
+  .btn-hero-browse {
+    display: none;
+  }
+
+  /* ── 3. Quick stats bar — wrap on mobile ─────────────────────────────────── */
+  .hero-quick-stats {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 18px;
+    justify-content: center;
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .stat-number {
+    font-size: 15px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  /* ── 4. Upcoming events section ──────────────────────────────────────────── */
+  .upcoming-events-section {
+    padding: 48px 0;
+  }
+
+  .section-container {
+    padding: 0 16px;
+  }
+
+  .upcoming-events-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px;
+  }
+
+  /* Section headers */
+  .section-heading {
+    font-size: 26px;
+  }
+
+  /* ── 5. CTA "Explore More" button — full width ───────────────────────────── */
+  .explore-more-btn,
+  .btn-cta-explore {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── 6. Campus story / zigzag section ────────────────────────────────────── */
+  .zigzag-section {
+    padding: 48px 0;
+  }
+
+  .zigzag-row {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+  }
+
+  /* Both reversed rows — reset order on mobile */
+  .zigzag-row.reverse .zigzag-media,
+  .zigzag-row.reverse .zigzag-content {
+    order: unset !important;
+  }
+
+  .zigzag-media img {
+    border-radius: 16px;
+    height: 220px;
+    object-fit: cover;
+  }
+
+  .zigzag-content {
+    padding: 0;
+  }
+
+  .zigzag-heading {
+    font-size: 22px;
+  }
+
+  /* ── 7. How it works — single column ─────────────────────────────────────── */
+  .how-it-works-section {
+    padding: 48px 0;
+  }
+
+  .how-steps-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px;
+  }
+
+  .how-step-card {
+    padding: 20px 18px;
+    border-radius: 16px;
+  }
+
+  /* ── 8. Quick signup section — single column ──────────────────────────────── */
+  .embedded-signup-section {
+    padding: 40px 0;
+  }
+
+  .embedded-signup-card {
+    grid-template-columns: 1fr !important;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  /* Signup section — stack the two columns vertically on mobile */
+  .signup-perks-column {
+    display: none; /* Hide the decorative image/perks panel on tiny screens */
+  }
+
+  .signup-form-column {
+    padding: 28px 20px;
+  }
+
+  .quick-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* ── 9. Footer ────────────────────────────────────────────────────────────── */
+  .home-footer {
+    padding: 48px 0 32px;
+  }
+
+  .footer-contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px;
+    padding-bottom: 28px;
+  }
+
+  .footer-col-brand .footer-brand-title {
+    font-size: 26px;
+  }
+
+  .footer-brand-desc {
+    font-size: 13px;
+  }
+
+  .footer-bottom-bar {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+    padding-top: 20px;
+  }
+
+  /* Social icons row — center on mobile */
+  .footer-social-icons {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  /* ── 10. Navbar floating pill — full width on mobile ─────────────────────── */
+  .navbar.navbar-hero-overlay {
+    top: 10px;
+    padding: 0 12px;
+  }
+
+  .navbar.navbar-hero-overlay .navbar-container {
+    max-width: 100%;
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+
+  /* ── 11. AuthModal — full screen sheet on mobile ─────────────────────────── */
+  .auth-modal-overlay {
+    align-items: flex-end !important;
+    padding: 0 !important;
+  }
+
+  .auth-modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 95svh !important;
+    overflow-y: auto !important;
+  }
+
+}

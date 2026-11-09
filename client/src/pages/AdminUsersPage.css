@@ -548,9 +548,178 @@
   text-decoration: underline;
 }
 
+/* ── Responsive Card List for Mobile / Small Screens ───────────────────── */
+.aup-mobile-card-list {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .aup-desktop-table-view {
+    display: none !important;
+  }
+
+  .aup-mobile-card-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    width: 100% !important;
+  }
+
+  .aup-mobile-user-card {
+    background: #ffffff;
+    border: 1px solid #edf2f7;
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  .aup-mobile-user-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .aup-mobile-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fdf2f2;
+    border: 1.5px solid rgba(136, 20, 33, 0.2);
+    color: #881421;
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .aup-mobile-user-identity {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .aup-mobile-user-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+  }
+
+  .aup-mobile-user-email {
+    font-size: 12.5px;
+    color: #64748b;
+    word-break: break-all;
+  }
+
+  .aup-mobile-user-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .aup-mobile-stat-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s ease;
+  }
+
+  .aup-mobile-stat-pill:active {
+    background: #f1f5f9;
+  }
+
+  .aup-mobile-stat-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .aup-mobile-stat-badge {
+    background: #fdf2f2;
+    color: #881421;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(136, 20, 33, 0.2);
+  }
+
+  .aup-mobile-stat-badge.attended {
+    background: #f0fdf4;
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+
+  .aup-mobile-user-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 11.5px;
+    color: #94a3b8;
+    padding-top: 4px;
+    border-top: 1px solid #f8fafc;
+  }
+}
+
 @media (max-width: 640px) {
   .aup-root { padding: 16px; }
   .aup-search-input { width: 100%; }
   .aup-page-header { flex-direction: column; align-items: flex-start; }
   .aup-cards-grid { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN USERS PAGE — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  .aup-root {
+    padding: 14px 12px 60px;
+  }
+
+  .aup-page-title {
+    font-size: 20px;
+  }
+
+  /* Search — full width */
+  .aup-search-wrap {
+    max-width: 100%;
+  }
+
+  /* Table card — no horizontal padding compression */
+  .aup-table-card {
+    padding: 14px 12px;
+    border-radius: 14px;
+  }
+
+  /* Table — scroll horizontally */
+  .aup-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide non-essential columns on mobile: joined date, student ID */
+  .aup-table th:nth-child(4),
+  .aup-table td:nth-child(4),
+  .aup-table th:nth-child(5),
+  .aup-table td:nth-child(5) {
+    display: none;
+  }
+
 }

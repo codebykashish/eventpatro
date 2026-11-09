@@ -241,3 +241,74 @@
     padding: 36px 0 24px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVENTS PAGE — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  /* ── Page wrapper padding ───────────────────────────────────────────────── */
+  .events-page {
+    padding: 0 14px 60px;
+  }
+
+  /* ── Hero header ────────────────────────────────────────────────────────── */
+  .events-hero {
+    padding: 36px 0 20px;
+  }
+
+  .events-hero-title {
+    font-size: 26px;
+  }
+
+  .events-hero-sub {
+    font-size: 14px;
+  }
+
+  /* ── Search box — full width ────────────────────────────────────────────── */
+  .search-wrapper {
+    max-width: 100%;
+  }
+
+  /* ── Category pills — horizontally scrollable row ───────────────────────── */
+  .category-pills {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    gap: 8px;
+  }
+
+  .category-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .category-pill {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
+  /* ── Event grid — 1 column on mobile ───────────────────────────────────── */
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* ── Pagination — compact ───────────────────────────────────────────────── */
+  .events-pagination {
+    gap: 6px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+}

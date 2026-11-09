@@ -341,3 +341,63 @@
 }
 
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVENT FORM — MOBILE 390px × 844px
+   Only adds mobile behavior. Desktop layout is UNTOUCHED.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 430px) {
+
+  .event-form-page {
+    padding: 20px 14px 60px;
+  }
+
+  .event-form-card {
+    padding: 20px 16px !important;
+    border-radius: 16px;
+  }
+
+  .event-form-header h1 {
+    font-size: 20px;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .btn-form-cancel,
+  .btn-form-submit {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Edit modal — full screen sheet */
+  .edit-event-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .edit-event-modal-container {
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 95svh;
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  .edit-event-modal-header {
+    padding: 16px 20px;
+  }
+
+  .edit-event-modal-body {
+    padding: 16px 20px 24px;
+  }
+
+}

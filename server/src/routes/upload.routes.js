@@ -2,29 +2,22 @@ const express = require('express')
 const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
-const { protect, restrictTo } = require('../middleware/auth')
+const cloudinary = require('cloudinary').v2
+const { protect } = require('../middleware/auth')
 
 const router = express.Router()
 
-// Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '../../uploads')
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true })
 }
 
-// Multer storage engine
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir)
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname) || '.jpg'
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-    cb(null, 'event-' + uniqueSuffix + ext)
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-// File filter (accept images only)
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true)
@@ -34,24 +27,55 @@ const fileFilter = (req, file, cb) => {
 }
 
 const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter,
 })
 
-// POST /api/upload - admin or authenticated user upload
-router.post('/', protect, upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No file uploaded.' })
-  }
+const cloudinaryReady = () =>
+  Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
 
-  // Generate URL for client to use
-  const fileUrl = `/uploads/${req.file.filename}`
-  res.status(200).json({
-    success: true,
-    url: fileUrl,
-    filename: req.file.filename,
+const uploadToCloudinary = (file) =>
+  new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'eventpatro', resource_type: 'image' },
+      (err, result) => (err ? reject(err) : resolve(result))
+    )
+    stream.end(file.buffer)
   })
+
+router.post('/', protect, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded.' })
+    }
+
+    if (cloudinaryReady()) {
+      const result = await uploadToCloudinary(req.file)
+      return res.status(200).json({
+        success: true,
+        url: result.secure_url,
+        publicId: result.public_id,
+      })
+    }
+
+    const ext = path.extname(req.file.originalname || '') || '.jpg'
+    const filename = `event-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`
+    fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer)
+
+    const origin = process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`
+    return res.status(200).json({
+      success: true,
+      url: `${origin.replace(/\/$/, '')}/uploads/${filename}`,
+      filename,
+    })
+  } catch (err) {
+    console.error('[Upload Error]', err.message)
+    return res.status(500).json({
+      success: false,
+      message: err.message || 'Image upload failed',
+    })
+  }
 })
 
 module.exports = router

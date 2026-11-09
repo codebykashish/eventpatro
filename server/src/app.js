@@ -12,7 +12,9 @@ const app = express();
 // --- Security middleware ---
 // helmet() automatically sets a collection of HTTP headers that protect
 // against common attacks (e.g. clickjacking, MIME sniffing).
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}))
 
 // cors() controls which web origins are allowed to send requests to this API.
 // The CLIENT_URL environment variable should be your React app's address.

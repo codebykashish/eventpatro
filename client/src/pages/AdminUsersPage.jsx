@@ -165,7 +165,8 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
       </div>
 
       <div className="aup-table-card">
-        <div className="aup-table-scroll">
+        {/* Desktop Table View */}
+        <div className="aup-table-scroll aup-desktop-table-view">
           <table className="aup-table">
             <thead>
               <tr>
@@ -227,6 +228,65 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Card List View (No horizontal scrolling!) */}
+        <div className="aup-mobile-card-list">
+          {filteredUsers.length === 0 ? (
+            <div className="aup-empty" style={{ padding: '24px', textAlign: 'center' }}>No users found.</div>
+          ) : filteredUsers.map((u, idx) => {
+            const uid = idOf(u._id || u.id)
+            const stats = userStats[uid] || { registered: [], attended: [] }
+            const regCount = stats.registered.length || u.registrationsCount || 0
+            const first = u.firstName || ''
+            const last = u.lastName || ''
+            const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'U'
+
+            return (
+              <div key={uid || idx} className="aup-mobile-user-card">
+                <div className="aup-mobile-user-top">
+                  <div className="aup-mobile-user-avatar">{initials}</div>
+                  <div className="aup-mobile-user-identity">
+                    <span className="aup-mobile-user-name">{u.firstName} {u.lastName}</span>
+                    <span className="aup-mobile-user-email">{u.email}</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="aup-delete-btn"
+                    title="Delete user"
+                    onClick={() => setUserToDelete(u)}
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+
+                <div className="aup-mobile-user-stats-row">
+                  <button
+                    type="button"
+                    className="aup-mobile-stat-pill"
+                    onClick={() => openPopup(u, 'registered')}
+                  >
+                    <span className="aup-mobile-stat-label">Registered</span>
+                    <span className="aup-mobile-stat-badge">{regCount}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="aup-mobile-stat-pill aup-mobile-stat-pill--attended"
+                    onClick={() => openPopup(u, 'attended')}
+                  >
+                    <span className="aup-mobile-stat-label">Attended</span>
+                    <span className="aup-mobile-stat-badge attended">{stats.attended.length}</span>
+                  </button>
+                </div>
+
+                <div className="aup-mobile-user-footer">
+                  <span>Joined: {formatDate(u.createdAt)}</span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
         <div className="aup-table-footer">
           Showing {filteredUsers.length} of {userList.length} users
         </div>
