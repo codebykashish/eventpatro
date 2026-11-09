@@ -21,3 +21,13 @@ npm-debug.log*
 
 # Uploaded files (profile pictures etc.) — stored locally, not in git
 server/uploads/
+
+# Local documentation — kept on disk but not published to GitHub
+requirement.md
+memory.md
+architecture.md
+design.md
+phases.md
+rules.md
+dashboard_inspo.png
+client/README.md
