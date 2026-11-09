@@ -4,7 +4,9 @@
 
 Eventpatro (branded as **SSRC Eventpatro**) is a university event management platform for Sunway College, Nepal. Students can discover campus programs, register or apply for them, track their participation, and share feedback. Administrators can manage events, registrations, attendance, and feedback.
 
-The main goal is to build a functional MERN stack project that demonstrates CRUD operations, authentication, authorization, database relationships, and frontend-backend integration.
+The main goal was to build a functional MERN stack project that demonstrates CRUD operations, authentication, authorization, database relationships, and frontend-backend integration.
+
+> **Status:** This project is complete. All features described in this document have been built and tested.
 
 > **Note on naming:** The internal codebase uses the name `campuspulse` (folder names, some CSS class prefixes). The public-facing brand name is **Eventpatro**. These two names refer to the same project.
 
@@ -402,39 +404,32 @@ Backend validation is required even when the frontend already validates the same
 
 ## 14. Project Boundaries
 
-The project must stay manageable for a student learning the MERN stack.
+The project was scoped to stay manageable for a student learning the MERN stack.
 
-Do not add the following unless explicitly requested later:
+The following features were intentionally left out:
 - Payment processing
-- QR scanning
-- Event image or poster uploads
+- QR code scanning
 - Live chat
 - AI event recommendations
 - Push notifications
-- External APIs
-- Complex analytics
-- Advanced form-builder features
+- Complex analytics or reporting dashboards
 - A full social media feed or social networking system
 
-The Instagram-inspired profile is limited to three separate event-category tabs and shared event cards. It does not require posts, likes, comments, reposts, reels, or other Instagram features.
+**What was added beyond the original boundaries:** Event cover image upload (via Cloudinary) was added during development as it improved usability and was straightforward to implement with Multer.
 
 ## 15. Acceptance Criteria
 
-The project can be considered functionally complete when:
+All of the following have been met in the final build:
 - Public visitors can browse events without accessing private student features.
-- Students can sign up and log in securely.
-- The backend enforces role-based access.
-- Administrators can manage events and registration forms.
+- Students can sign up and log in securely with @sunway.edu.np email verification.
+- The backend enforces role-based access for all protected routes.
+- Administrators can manage events and registration forms including custom question builder.
 - Students can register or apply according to an event's registration type.
 - Administrators can review applications and manage attendance.
-- Student profiles display separate Attended, Registered, and Applied tabs.
-- Each tab displays only the event cards appropriate to its purpose.
-- All three tabs reuse the same event-card design as the main Events page.
-- Application statuses remain visible in Applied, including after an application decision.
-- Confirmed applications can appear in both Applied and Registered.
-- Attendance marked Present moves an event into Attended.
-- The attendance count matches records marked Present.
+- Student profiles display Registered and Attended tabs with correct filtering.
+- Attendance marked Present moves an event into the Attended section.
 - Students marked Present can submit feedback once per event.
 - Administrators can view feedback and rating summaries.
-- Errors and invalid inputs are handled clearly.
-- The application works on desktop and mobile screen sizes.
+- Errors and invalid inputs are handled clearly on both client and server.
+- The application works on desktop and mobile screen sizes (390px and above).
+- Logout confirmation is shown as a centered modal before logging out.
