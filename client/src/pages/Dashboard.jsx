@@ -549,18 +549,15 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
   const upcomingEventsCount = upcomingEvents.length > 0 ? upcomingEvents.length : events.length
 
   // Metric 2: Registrations count (current user's registrations)
+  const isAttendedReg = (r) => r?.attendance === 'present' || r?.status === 'attended'
+
   const activeRegistrations = registrations.filter((r) =>
-    ['confirmed', 'pending', 'selected'].includes(r.status)
+    ['confirmed', 'pending', 'selected'].includes(r.status) && !isAttendedReg(r)
   )
   const registrationsCount = activeRegistrations.length
 
   // Metric 3: Events Attended count
-  const attendedCount = registrations.filter(
-    (r) =>
-      ['confirmed', 'selected'].includes(r.status) &&
-      r.event?.date &&
-      new Date(r.event.date) < now
-  ).length
+  const attendedCount = registrations.filter(isAttendedReg).length
 
   // Filtered upcoming events list according to search query:
   // On the dashboard tab, completed/past events are excluded, and capped to at most 10 events
@@ -2077,13 +2074,15 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                   {/* Quick stat row */}
                   <div className="profile-stats-row">
                     <div className="profile-stat-item">
-                      <span className="profile-stat-number">{registrations.length}</span>
+                      <span className="profile-stat-number">
+                        {registrations.filter(r => ['confirmed', 'selected', 'pending'].includes(r.status) && !isAttendedReg(r)).length}
+                      </span>
                       <span className="profile-stat-label">Registered</span>
                     </div>
                     <div className="profile-stat-divider" />
                     <div className="profile-stat-item">
                       <span className="profile-stat-number">
-                        {registrations.filter(r => r.status === 'attended').length}
+                        {registrations.filter(isAttendedReg).length}
                       </span>
                       <span className="profile-stat-label">Attended</span>
                     </div>
@@ -2151,8 +2150,8 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                   {(() => {
                     const now = new Date()
                     const list = profileActivityTab === 'registered'
-                      ? registrations.filter(r => ['confirmed', 'selected', 'pending', 'attended'].includes(r.status))
-                      : registrations.filter(r => r.status === 'attended')
+                      ? registrations.filter(r => ['confirmed', 'selected', 'pending'].includes(r.status) && !isAttendedReg(r))
+                      : registrations.filter(isAttendedReg)
 
                     if (list.length === 0) {
                       return (

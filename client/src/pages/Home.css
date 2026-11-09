@@ -1041,31 +1041,41 @@
     padding: 0 4px;
   }
 
-  /* ── 2. Hero search bar — stack vertically on mobile ─────────────────────── */
+  /* ── 2. Hero search bar — sleek, compact horizontal pill on mobile ───────── */
   .hero-search-card {
-    flex-direction: column;
-    border-radius: 18px;
-    padding: 14px 16px;
-    gap: 10px;
-    margin-bottom: 24px;
-    max-width: 100%;
+    flex-direction: row !important;
+    align-items: center !important;
+    border-radius: 999px !important;
+    padding: 5px 6px 5px 14px !important;
+    gap: 8px !important;
+    margin-bottom: 24px !important;
+    max-width: 350px !important;
+    width: 100% !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22) !important;
   }
 
   .hero-search-input-wrap {
-    width: 100%;
+    flex: 1 !important;
+    width: auto !important;
+    gap: 6px !important;
+  }
+
+  .hero-search-input {
+    font-size: 13px !important;
   }
 
   .btn-hero-search {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 14px;
-    border-radius: 12px;
+    width: auto !important;
+    padding: 8px 16px !important;
+    font-size: 12.5px !important;
+    border-radius: 999px !important;
+    flex-shrink: 0 !important;
   }
 
-  /* Hide the "or Browse" in search bar on mobile — not enough room */
+  /* Hide the "or Browse" in search bar on mobile — keeps it clean and slim */
   .hero-search-or,
   .btn-hero-browse {
-    display: none;
+    display: none !important;
   }
 
   /* ── 3. Quick stats bar — wrap on mobile ─────────────────────────────────── */

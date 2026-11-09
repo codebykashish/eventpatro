@@ -360,27 +360,31 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  border: 1px solid rgba(136, 20, 33, 0.15);
+  background: #fdf2f2;
+  color: #881421;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
   flex-shrink: 0;
-  backdrop-filter: blur(4px);
+  box-shadow: 0 1px 3px rgba(136, 20, 33, 0.08);
 }
 
 .nav-hamburger:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: #fce7e7;
+  color: #700f1a;
+  border-color: rgba(136, 20, 33, 0.25);
 }
 
-/* When navbar is in non-hero (default white) mode, hamburger is dark */
-.navbar:not(.navbar-hero-overlay) .nav-hamburger {
-  background: #f3f4f6;
-  color: #374151;
+/* When navbar is in floating hero overlay pill or standard header, hamburger stays crisp & visible */
+.navbar .nav-hamburger {
+  background: #fdf2f2;
+  color: #881421;
+  border: 1px solid rgba(136, 20, 33, 0.15);
 }
 
-.navbar:not(.navbar-hero-overlay) .nav-hamburger:hover {
-  background: #e5e7eb;
+.navbar .nav-hamburger:hover {
+  background: #fce7e7;
+  color: #700f1a;
 }
 
 /* ── Mobile Nav Backdrop ────────────────────────────────────────────────── */

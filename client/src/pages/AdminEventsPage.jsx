@@ -172,6 +172,63 @@ export default function AdminEventsPage() {
         <div className="aep-success-bar"><CheckCircle2 size={15}/><span>{successMsg}</span></div>
       )}
 
+      {/* ── Mobile Horizontal Chips Filter Row (same as user explore page) ── */}
+      <div className="aep-mobile-chips-row">
+        <div className="aep-mobile-search-box">
+          <Search size={14} className="aep-mobile-search-icon" />
+          <input
+            type="text"
+            placeholder="Search events, location…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="aep-mobile-search-input"
+          />
+          {search && (
+            <button
+              type="button"
+              className="aep-search-clear"
+              onClick={() => setSearch('')}
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+
+        <div className="aep-mobile-filter-chips">
+          <button
+            type="button"
+            className={`mobile-chip ${timeline === 'all' && !selectedCat ? 'mobile-chip-active' : ''}`}
+            onClick={() => { setTimeline('all'); setSelectedCat(''); }}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            className={`mobile-chip ${timeline === 'upcoming' ? 'mobile-chip-active' : ''}`}
+            onClick={() => setTimeline(t => t === 'upcoming' ? 'all' : 'upcoming')}
+          >
+            Upcoming
+          </button>
+          <button
+            type="button"
+            className={`mobile-chip ${timeline === 'past' ? 'mobile-chip-active' : ''}`}
+            onClick={() => setTimeline(t => t === 'past' ? 'all' : 'past')}
+          >
+            Past
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              className={`mobile-chip ${selectedCat.toLowerCase() === cat.toLowerCase() ? 'mobile-chip-active' : ''}`}
+              onClick={() => setSelectedCat(c => c.toLowerCase() === cat.toLowerCase() ? '' : cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* ── Body: filters + tables ── */}
       <div className="aep-body">
         {/* Filter sidebar */}

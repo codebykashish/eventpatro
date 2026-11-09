@@ -1119,6 +1119,61 @@
 .aep-btn-delete:disabled { opacity: 0.6; cursor: not-allowed; }
 .aep-btn-delete:hover:not(:disabled) { opacity: 0.9; }
 
+/* ── Mobile Horizontal Chips Filter Row (hidden on desktop) ─────────────── */
+.aep-mobile-chips-row {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .aep-mobile-chips-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .aep-mobile-search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .aep-mobile-search-icon {
+    color: #881421;
+    flex-shrink: 0;
+  }
+
+  .aep-mobile-search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: #1e293b;
+    width: 100%;
+    font-family: inherit;
+  }
+
+  .aep-mobile-filter-chips {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 2px 0 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .aep-mobile-filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* ── Responsive Card List for Mobile / Small Screens ───────────────────── */
 .aep-mobile-card-list {
   display: none;
