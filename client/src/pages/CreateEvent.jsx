@@ -11,47 +11,52 @@ const CATEGORIES = [
   'academic', 'cultural', 'sports', 'workshop', 'seminar', 'social', 'club', 'other',
 ]
 
+const INITIAL_FORM = {
+  title: '',
+  description: '',
+  category: 'workshop',
+  date: '',
+  location: '',
+  capacity: '',
+  coverImage: '',
+  registrationType: 'open',
+  registrationDeadline: '',
+  // Mentor details
+  mentorName: '',
+  mentorOccupation: '',
+  mentorPhoto: '',
+  mentorLinkedin: '',
+  mentorBio: '',
+  // Contact person details
+  contactName: '',
+  contactEmail: '',
+  contactPhone: '',
+  // Details
+  learningOutcomes: '',
+  requirements: '',
+  duration: '',
+  fee: '',
+  qrCode: '',
+  isFree: true,
+  hasBreakfast: false,
+  laptopRequired: false,
+  certificateProvided: false,
+}
+
 const CreateEventPage = () => {
   const navigate = useNavigate()
 
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    category: 'workshop',
-    date: '',
-    location: '',
-    capacity: '',
-    coverImage: '',
-    registrationType: 'open',
-    registrationDeadline: '',
-    // Mentor details
-    mentorName: '',
-    mentorOccupation: '',
-    mentorPhoto: '',
-    mentorLinkedin: '',
-    mentorBio: '',
-    // Contact person details
-    contactName: '',
-    contactEmail: '',
-    contactPhone: '',
-    // Details
-    learningOutcomes: '',
-    requirements: '',
-    duration: '',
-    fee: '',
-    isFree: true,
-    hasBreakfast: false,
-    laptopRequired: false,
-    certificateProvided: false,
-  })
+  const [form, setForm] = useState(INITIAL_FORM)
 
   // Custom form questions state
   const [formFields, setFormFields] = useState([])
 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [createdEventId, setCreatedEventId] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingQr, setUploadingQr] = useState(false)
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
@@ -68,6 +73,21 @@ const CreateEventPage = () => {
     }
   }
 
+  const handleQrUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    setUploadingQr(true)
+    try {
+      const data = await uploadImage(file)
+      setForm((prev) => ({ ...prev, qrCode: data.url }))
+    } catch (err) {
+      setError(err.message || 'Failed to upload QR code')
+    } finally {
+      setUploadingQr(false)
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
@@ -76,7 +96,6 @@ const CreateEventPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setSuccess('')
     setSubmitting(true)
 
     try {
@@ -88,6 +107,8 @@ const CreateEventPage = () => {
           return
         }
       }
+
+      const pricing = derivePricing(form.fee)
 
       const payload = {
         title: form.title,
@@ -114,16 +135,21 @@ const CreateEventPage = () => {
         learningOutcomes: linesToList(form.learningOutcomes),
         requirements: linesToList(form.requirements),
         duration: form.duration || '',
-        ...derivePricing(form.fee),
+        ...pricing,
+        qrCode: pricing.isFree ? null : (form.qrCode || null),
         hasBreakfast: form.hasBreakfast,
         laptopRequired: form.laptopRequired,
         certificateProvided: form.certificateProvided,
         formFields: formFields.map(({ _tempId, ...f }) => f), // strip temp id before sending
       }
 
-      await createEvent(payload)
-      setSuccess('Event created successfully!')
-      setTimeout(() => navigate('/admin'), 1500)
+      const res = await createEvent(payload)
+      const newId = res.event?._id || res.event?.id
+      setCreatedEventId(newId)
+      setSuccess('Event published successfully!')
+      // Refresh / clear the create event form inputs
+      setForm(INITIAL_FORM)
+      setFormFields([])
     } catch (err) {
       setError(err.message)
     } finally {
@@ -143,11 +169,6 @@ const CreateEventPage = () => {
         {error && (
           <div className="form-banner form-banner-error">
             <AlertCircle size={15} /> {error}
-          </div>
-        )}
-        {success && (
-          <div className="form-banner form-banner-success">
-            <CheckCircle2 size={15} /> {success}
           </div>
         )}
 
@@ -338,6 +359,73 @@ const CreateEventPage = () => {
               />
             </div>
           </div>
+
+          {/* Conditional Payment QR Upload — only shown for paid events */}
+          {!derivePricing(form.fee).isFree && (
+            <div className="form-field" style={{ background: '#fdf2f4', padding: '16px', borderRadius: '10px', border: '1px dashed #b91c1c', marginBottom: '16px' }}>
+              <label style={{ color: '#881421', fontWeight: 600 }}>Payment QR Code (Required for paid event enrollments)</label>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 10px' }}>
+                Upload the official QR code (eSewa / Khalti / Fonepay / Bank QR) that students will scan to pay the fee.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <label
+                    htmlFor="ef-qrUpload"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      background: '#881421',
+                      color: '#fff',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: uploadingQr ? 'not-allowed' : 'pointer',
+                      opacity: uploadingQr ? 0.7 : 1,
+                    }}
+                  >
+                    <Upload size={14} />
+                    {uploadingQr ? 'Uploading QR…' : 'Upload Payment QR'}
+                  </label>
+                  <input
+                    id="ef-qrUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleQrUpload}
+                    disabled={uploadingQr}
+                    style={{ display: 'none' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>or paste image URL:</span>
+                  <input
+                    type="url"
+                    name="qrCode"
+                    value={form.qrCode || ''}
+                    onChange={handleChange}
+                    placeholder="https://.../qr.png"
+                    style={{ flex: 1, minWidth: '200px', fontSize: '13px', padding: '7px 10px' }}
+                  />
+                </div>
+                {form.qrCode && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                    <img
+                      src={mediaUrl(form.qrCode)}
+                      alt="Payment QR preview"
+                      style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, qrCode: '' }))}
+                      style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      title="Remove QR"
+                    >
+                      <Trash2 size={15} /> Remove QR
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', margin: '12px 0 20px' }}>
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>
@@ -560,6 +648,98 @@ const CreateEventPage = () => {
             </button>
           </div>
         </form>
+
+        {/* Success Modal Popup */}
+        {success && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.6)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 99999,
+              padding: '16px',
+            }}
+            onClick={() => setSuccess('')}
+          >
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                padding: '32px 28px',
+                maxWidth: '460px',
+                width: '100%',
+                boxShadow: '0 20px 45px rgba(0, 0, 0, 0.25)',
+                textAlign: 'center',
+                animation: 'popIn 0.25s ease-out',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: '#dcfce7',
+                  color: '#15803d',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 18px',
+                }}
+              >
+                <CheckCircle2 size={36} />
+              </div>
+
+              <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>
+                Event Published Successfully!
+              </h2>
+              <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 24px', lineHeight: 1.5 }}>
+                Your event has been published to the campus catalog. The form has been reset for new entries, or you can manage this event right now.
+              </p>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setSuccess('')}
+                  style={{
+                    padding: '10px 18px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#334155',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Create Another Event
+                </button>
+                {createdEventId && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/events/${createdEventId}`)}
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: '#881421',
+                      color: '#ffffff',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    View / Edit Event
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

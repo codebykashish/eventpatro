@@ -4,12 +4,14 @@ import {
   Calendar, MapPin, Users, CheckCircle2, AlertCircle,
   Edit, Trash2, Shield, UserCheck, Clock, Send, XCircle, ChevronDown,
   ClipboardList, FileText, Share2, Copy, Check, Coffee, Laptop,
-  Award, ExternalLink, Mail, Phone, User as UserIcon, UserX, X, Search
+  Award, ExternalLink, Mail, Phone, User as UserIcon, UserX, X, Search,
+  Upload, QrCode
 } from 'lucide-react'
 import {
   fetchEventById, deleteEvent,
   submitRegistration, cancelRegistration,
   getMyRegistrationForEvent, getEventRegistrations, updateRegistrationStatus,
+  uploadImage
 } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import EditEventPage from './EditEvent'
@@ -104,6 +106,10 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
 
   // Form answers state: { [fieldId]: string }
   const [answers, setAnswers] = useState({})
+  // Payment screenshot for paid events
+  const [paymentScreenshot, setPaymentScreenshot] = useState('')
+  const [uploadingScreenshot, setUploadingScreenshot] = useState(false)
+  const [screenshotError, setScreenshotError] = useState('')
 
   // Admin: list of all registrations for this event
   const [registrations, setRegistrations] = useState([])
@@ -181,13 +187,15 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
       return
     }
 
-    // If event has custom registration questions, open interactive modal
-    if (event?.formFields?.length > 0) {
+    const isPaid = !event?.isFree && event?.fee && !/^free$/i.test(event.fee)
+
+    // If event has custom registration questions OR is a paid event, open interactive modal
+    if (event?.formFields?.length > 0 || isPaid) {
       setShowEnrollModal(true)
       return
     }
 
-    // Instant 1-click enrollment for open events without questionnaires
+    // Instant 1-click enrollment for free open events without questionnaires
     setSubmitting(true)
     setActionMsg('')
     setActionError('')
@@ -208,11 +216,33 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     }
   }
 
+  // Handle uploading payment screenshot
+  const handleScreenshotUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setScreenshotError('')
+    setUploadingScreenshot(true)
+    try {
+      const data = await uploadImage(file)
+      setPaymentScreenshot(data.url)
+    } catch (err) {
+      setScreenshotError(err.message || 'Failed to upload screenshot')
+    } finally {
+      setUploadingScreenshot(false)
+    }
+  }
+
   // ── Handle Modal Registration Form Submission ──────────────────────────────
   const handleModalSubmit = async (e) => {
     e.preventDefault()
     if (!user) {
       navigate('/login')
+      return
+    }
+
+    const isPaid = !event?.isFree && event?.fee && !/^free$/i.test(event.fee)
+    if (isPaid && !paymentScreenshot) {
+      setActionError('Please upload a screenshot of your payment to proceed with enrollment.')
       return
     }
 
@@ -226,7 +256,10 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     }))
 
     try {
-      const res = await submitRegistration(id, { answers: formattedAnswers })
+      const res = await submitRegistration(id, {
+        answers: formattedAnswers,
+        paymentScreenshot: isPaid ? paymentScreenshot : null,
+      })
       setActionMsg(res.message || 'Registration submitted!')
       setShowEnrollModal(false)
       if (res.registration) {
@@ -511,16 +544,18 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
               <section className="nc-editorial-section">
                 <h2 className="nc-editorial-heading">Key highlights</h2>
                 <div className="nc-highlights-chips-row">
-                  <span className="nc-editorial-pill">Certificate of Participation</span>
+                  {event.certificateProvided && (
+                    <span className="nc-editorial-pill">Certificate of Participation</span>
+                  )}
                   {event.hasBreakfast && (
                     <span className="nc-editorial-pill">Breakfast &amp; Refreshments Provided</span>
                   )}
-                  {event.laptopRequired ? (
+                  {event.laptopRequired && (
                     <span className="nc-editorial-pill">Laptop Required</span>
-                  ) : (
-                    <span className="nc-editorial-pill">No Laptop Required</span>
                   )}
-                  <span className="nc-editorial-pill">Interactive Live Q&amp;A</span>
+                  {!event.certificateProvided && !event.hasBreakfast && !event.laptopRequired && (
+                    <span className="nc-editorial-pill" style={{ color: '#64748b' }}>Standard campus entry</span>
+                  )}
                 </div>
               </section>
             </div>
@@ -808,7 +843,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                           <th>Email</th>
                           <th>Registered On</th>
                           <th>Status</th>
-                          {hasQuestions && <th>Responses</th>}
+                          {(hasQuestions || !event.isFree) && <th>Submission / Proof</th>}
                           {hasReview && <th>Review</th>}
                           <th>Attendance</th>
                         </tr>
@@ -852,18 +887,22 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                                 </span>
                               </td>
 
-                              {/* Responses column */}
-                              {hasQuestions && (
+                              {/* Responses / Proof column */}
+                              {(hasQuestions || !event.isFree) && (
                                 <td>
-                                  {isCancelled ? null : hasAnswers ? (
+                                  {isCancelled ? null : (hasAnswers || reg.paymentScreenshot) ? (
                                     <button
                                       type="button"
                                       className="ed-answers-btn"
                                       onClick={() => setSelectedAnswersReg(reg)}
-                                      title="View student's questionnaire responses"
+                                      title="View student's questionnaire responses & payment proof"
                                     >
                                       <FileText size={13} />
-                                      <span>View ({reg.answers.length})</span>
+                                      <span>
+                                        {hasAnswers ? `Answers (${reg.answers.length})` : ''}
+                                        {hasAnswers && reg.paymentScreenshot ? ' + ' : ''}
+                                        {reg.paymentScreenshot ? 'Receipt' : ''}
+                                      </span>
                                     </button>
                                   ) : (
                                     <span className="ed-no-answers">—</span>
@@ -1137,31 +1176,31 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
             )}
 
             {/* Inclusions summary */}
-            <div className="nc-inclusions-section">
-              <h4 className="nc-inclusions-title">This event includes:</h4>
-              <ul className="nc-inclusions-list">
-                <li className="nc-inclusion-item">
-                  <Award size={14} color="#881421" />
-                  <span>Verified certificate of attendance</span>
-                </li>
-                {event.hasBreakfast && (
-                  <li className="nc-inclusion-item">
-                    <Coffee size={14} color="#881421" />
-                    <span>Complimentary breakfast &amp; refreshments</span>
-                  </li>
-                )}
-                {event.laptopRequired && (
-                  <li className="nc-inclusion-item">
-                    <Laptop size={14} color="#881421" />
-                    <span>Laptop required for hands-on activities</span>
-                  </li>
-                )}
-                <li className="nc-inclusion-item">
-                  <CheckCircle2 size={14} color="#881421" />
-                  <span>Networking with peers and organizers</span>
-                </li>
-              </ul>
-            </div>
+            {(event.certificateProvided || event.hasBreakfast || event.laptopRequired) && (
+              <div className="nc-inclusions-section">
+                <h4 className="nc-inclusions-title">This event includes:</h4>
+                <ul className="nc-inclusions-list">
+                  {event.certificateProvided && (
+                    <li className="nc-inclusion-item">
+                      <Award size={14} color="#881421" />
+                      <span>Verified certificate of attendance</span>
+                    </li>
+                  )}
+                  {event.hasBreakfast && (
+                    <li className="nc-inclusion-item">
+                      <Coffee size={14} color="#881421" />
+                      <span>Complimentary breakfast &amp; refreshments</span>
+                    </li>
+                  )}
+                  {event.laptopRequired && (
+                    <li className="nc-inclusion-item">
+                      <Laptop size={14} color="#881421" />
+                      <span>Laptop required for hands-on activities</span>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Contact Person Card for Queries */}
@@ -1263,6 +1302,20 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
               ) : (
                 <p className="nc-submission-no-answers">No additional responses submitted.</p>
               )}
+
+              {/* Payment Receipt if submitted */}
+              {myRegistration.paymentScreenshot && (
+                <div style={{ marginTop: '16px', padding: '12px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#334155', margin: '0 0 8px' }}>Payment Receipt Attached:</p>
+                  <a href={mediaUrl(myRegistration.paymentScreenshot)} target="_blank" rel="noreferrer">
+                    <img
+                      src={mediaUrl(myRegistration.paymentScreenshot)}
+                      alt="Payment Receipt"
+                      style={{ maxWidth: '140px', maxHeight: '140px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="nc-submission-modal-footer">
@@ -1296,62 +1349,142 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
             </div>
 
             <form onSubmit={handleModalSubmit} className="nc-modal-form">
-              <div className="reg-form-fields">
-                {event.formFields.map((field, idx) => (
-                  <div key={field._id} className="reg-field">
-                    <label className="reg-field-label">
-                      <span className="reg-field-num">Q{idx + 1}.</span>
-                      {field.label}
-                      {field.required && <span className="req-star"> *</span>}
+              {/* Payment Section for Paid Events */}
+              {!event.isFree && event.fee && !/^free$/i.test(event.fee) && (
+                <div style={{ background: '#fdf2f4', border: '1px solid #fecaca', borderRadius: '10px', padding: '16px', marginBottom: '18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#881421', fontWeight: 700, fontSize: '15px', marginBottom: '6px' }}>
+                    <QrCode size={18} />
+                    <span>Payment Required: {event.fee}</span>
+                  </div>
+                  <p style={{ fontSize: '13px', color: '#475569', margin: '0 0 12px', lineHeight: 1.4 }}>
+                    Please scan the QR code below using your banking/wallet app (eSewa, Khalti, or Mobile Banking) to pay the fee of <strong>{event.fee}</strong>, then upload the receipt screenshot.
+                  </p>
+
+                  {/* QR Image Display */}
+                  {event.qrCode ? (
+                    <div style={{ textAlign: 'center', margin: '10px 0 14px' }}>
+                      <img
+                        src={mediaUrl(event.qrCode)}
+                        alt="Payment QR Code"
+                        style={{ maxWidth: '180px', maxHeight: '180px', objectFit: 'contain', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', padding: '6px' }}
+                      />
+                      <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Scan with eSewa / Khalti / Mobile Banking</p>
+                    </div>
+                  ) : (
+                    <div style={{ background: '#fff', padding: '10px', borderRadius: '6px', fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+                      Please contact event organizer or transfer <strong>{event.fee}</strong> at entry verification.
+                    </div>
+                  )}
+
+                  {/* Screenshot upload */}
+                  <div style={{ marginTop: '10px' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#1e293b', marginBottom: '6px' }}>
+                      Upload Payment Screenshot *
                     </label>
-
-                    {field.type === 'short_answer' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <label
+                        htmlFor="enroll-payment-screenshot"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '7px 14px',
+                          borderRadius: '6px',
+                          background: '#881421',
+                          color: '#fff',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: uploadingScreenshot ? 'not-allowed' : 'pointer',
+                          opacity: uploadingScreenshot ? 0.7 : 1,
+                        }}
+                      >
+                        <Upload size={13} />
+                        {uploadingScreenshot ? 'Uploading…' : paymentScreenshot ? 'Change Screenshot' : 'Upload Receipt Screenshot'}
+                      </label>
                       <input
-                        type="text"
-                        className="reg-field-input"
-                        value={answers[field._id] || ''}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
-                        }
-                        required={field.required}
-                        placeholder="Your answer…"
+                        id="enroll-payment-screenshot"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleScreenshotUpload}
+                        disabled={uploadingScreenshot}
+                        style={{ display: 'none' }}
                       />
+                      {paymentScreenshot && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <img
+                            src={mediaUrl(paymentScreenshot)}
+                            alt="Receipt"
+                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                          />
+                          <span style={{ fontSize: '12px', color: '#166534', fontWeight: 600 }}>Receipt attached</span>
+                        </div>
+                      )}
+                    </div>
+                    {screenshotError && (
+                      <p style={{ fontSize: '12px', color: '#dc2626', margin: '4px 0 0' }}>{screenshotError}</p>
                     )}
+                  </div>
+                </div>
+              )}
 
-                    {field.type === 'paragraph' && (
-                      <textarea
-                        className="reg-field-textarea"
-                        rows={4}
-                        value={answers[field._id] || ''}
-                        onChange={(e) =>
-                          setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
-                        }
-                        required={field.required}
-                        placeholder="Your answer…"
-                      />
-                    )}
+              {event.formFields?.length > 0 && (
+                <div className="reg-form-fields">
+                  {event.formFields.map((field, idx) => (
+                    <div key={field._id} className="reg-field">
+                      <label className="reg-field-label">
+                        <span className="reg-field-num">Q{idx + 1}.</span>
+                        {field.label}
+                        {field.required && <span className="req-star"> *</span>}
+                      </label>
 
-                    {field.type === 'multiple_choice' && (
-                      <div className="reg-field-select-wrap">
-                        <select
-                          className="reg-field-select"
+                      {field.type === 'short_answer' && (
+                        <input
+                          type="text"
+                          className="reg-field-input"
                           value={answers[field._id] || ''}
                           onChange={(e) =>
                             setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
                           }
                           required={field.required}
-                        >
-                          <option value="">— Select an option —</option>
-                          {field.options.map((opt, i) => (
-                            <option key={i} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={14} className="select-chevron" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                          placeholder="Your answer…"
+                        />
+                      )}
+
+                      {field.type === 'paragraph' && (
+                        <textarea
+                          className="reg-field-textarea"
+                          rows={4}
+                          value={answers[field._id] || ''}
+                          onChange={(e) =>
+                            setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
+                          }
+                          required={field.required}
+                          placeholder="Your answer…"
+                        />
+                      )}
+
+                      {field.type === 'multiple_choice' && (
+                        <div className="reg-field-select-wrap">
+                          <select
+                            className="reg-field-select"
+                            value={answers[field._id] || ''}
+                            onChange={(e) =>
+                              setAnswers((prev) => ({ ...prev, [field._id]: e.target.value }))
+                            }
+                            required={field.required}
+                          >
+                            <option value="">— Select an option —</option>
+                            {field.options.map((opt, i) => (
+                              <option key={i} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                          <ChevronDown size={14} className="select-chevron" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="nc-modal-footer">
                 <button
@@ -1441,6 +1574,22 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
               </button>
             </div>
             <div className="ed-answers-modal-body">
+              {selectedAnswersReg.paymentScreenshot && (
+                <div style={{ marginBottom: '18px', padding: '14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#881421', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <QrCode size={15} /> Payment Receipt
+                  </div>
+                  <a href={mediaUrl(selectedAnswersReg.paymentScreenshot)} target="_blank" rel="noreferrer" title="Click to view full receipt">
+                    <img
+                      src={mediaUrl(selectedAnswersReg.paymentScreenshot)}
+                      alt="Student payment receipt"
+                      style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                  </a>
+                  <p style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>Click image to open full preview in new tab</p>
+                </div>
+              )}
+
               {selectedAnswersReg.answers?.map((ans, idx) => (
                 <div key={idx} className="ed-answer-item-card">
                   <div className="ed-answer-q-label">

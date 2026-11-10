@@ -57,6 +57,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
     requirements: '',
     duration: '',
     fee: '',
+    qrCode: '',
     isFree: true,
     hasBreakfast: false,
     laptopRequired: false,
@@ -72,6 +73,8 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
   const [submitting, setSubmitting]       = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting]           = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingQr, setUploadingQr]     = useState(false)
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -100,6 +103,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
           requirements: Array.isArray(ev.requirements) ? ev.requirements.join('\n') : '',
           duration: ev.duration || '',
           fee: ev.isFree ? (ev.fee && ev.fee !== 'Free' ? ev.fee : '') : (ev.fee || ''),
+          qrCode: ev.qrCode || '',
           isFree: ev.isFree ?? true,
           hasBreakfast: ev.hasBreakfast ?? false,
           laptopRequired: ev.laptopRequired ?? false,
@@ -115,8 +119,6 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
     loadEvent()
   }, [id])
 
-  const [uploadingImage, setUploadingImage] = useState(false)
-
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -129,6 +131,21 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
       setError(err.message || 'Failed to upload image')
     } finally {
       setUploadingImage(false)
+    }
+  }
+
+  const handleQrUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setError('')
+    setUploadingQr(true)
+    try {
+      const data = await uploadImage(file)
+      setForm((prev) => ({ ...prev, qrCode: data.url }))
+    } catch (err) {
+      setError(err.message || 'Failed to upload QR code')
+    } finally {
+      setUploadingQr(false)
     }
   }
 
@@ -179,6 +196,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
         requirements: linesToList(form.requirements),
         duration: form.duration || '',
         ...derivePricing(form.fee),
+        qrCode: derivePricing(form.fee).isFree ? null : (form.qrCode || null),
         hasBreakfast: form.hasBreakfast,
         laptopRequired: form.laptopRequired,
         certificateProvided: form.certificateProvided,
@@ -443,6 +461,73 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
               />
             </div>
           </div>
+
+          {/* Conditional Payment QR Upload — only shown for paid events */}
+          {!derivePricing(form.fee).isFree && (
+            <div className="form-field" style={{ background: '#fdf2f4', padding: '16px', borderRadius: '10px', border: '1px dashed #b91c1c', marginBottom: '16px' }}>
+              <label style={{ color: '#881421', fontWeight: 600 }}>Payment QR Code (Required for paid event enrollments)</label>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '2px 0 10px' }}>
+                Upload the official QR code (eSewa / Khalti / Fonepay / Bank QR) that students will scan to pay the fee.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                  <label
+                    htmlFor="edit-ef-qrUpload"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      background: '#881421',
+                      color: '#fff',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: uploadingQr ? 'not-allowed' : 'pointer',
+                      opacity: uploadingQr ? 0.7 : 1,
+                    }}
+                  >
+                    <Upload size={14} />
+                    {uploadingQr ? 'Uploading QR…' : 'Upload Payment QR'}
+                  </label>
+                  <input
+                    id="edit-ef-qrUpload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleQrUpload}
+                    disabled={uploadingQr}
+                    style={{ display: 'none' }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>or paste image URL:</span>
+                  <input
+                    type="url"
+                    name="qrCode"
+                    value={form.qrCode || ''}
+                    onChange={handleChange}
+                    placeholder="https://.../qr.png"
+                    style={{ flex: 1, minWidth: '200px', fontSize: '13px', padding: '7px 10px' }}
+                  />
+                </div>
+                {form.qrCode && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
+                    <img
+                      src={mediaUrl(form.qrCode)}
+                      alt="Payment QR preview"
+                      style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, qrCode: '' }))}
+                      style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: '4px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      title="Remove QR"
+                    >
+                      <Trash2 size={15} /> Remove QR
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', margin: '12px 0 20px' }}>
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px' }}>

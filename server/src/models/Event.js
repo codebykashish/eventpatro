@@ -169,6 +169,10 @@ const eventSchema = new mongoose.Schema(
       type: String,
       default: 'Free',
     },
+    qrCode: {
+      type: String,
+      default: null,
+    },
     duration: {
       type: String,
       default: '',

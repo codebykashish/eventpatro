@@ -61,6 +61,12 @@ const registrationSchema = new mongoose.Schema(
       default: [],
     },
 
+    // Payment proof screenshot for paid events
+    paymentScreenshot: {
+      type: String,
+      default: null,
+    },
+
     // Short unique code students can use as proof of registration (e.g. EP-A3F7K2)
     registrationCode: {
       type: String,

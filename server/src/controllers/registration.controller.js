@@ -76,6 +76,7 @@ const createRegistration = async (req, res) => {
 
     // Limited seats wait for admin select/reject; unlimited seats are confirmed immediately
     const status = initialStatusForEvent(event)
+    const paymentScreenshot = req.body?.paymentScreenshot || null
 
     // If student had a previous registration (e.g. cancelled), overwrite/reactivate it
     let registration = await Registration.findOne({
@@ -87,6 +88,7 @@ const createRegistration = async (req, res) => {
       registration.status = status
       registration.attendance = null
       registration.answers = savedAnswers
+      registration.paymentScreenshot = paymentScreenshot
       await registration.save()
     } else {
       registration = await Registration.create({
@@ -94,6 +96,7 @@ const createRegistration = async (req, res) => {
         student: req.user._id,
         status,
         answers: savedAnswers,
+        paymentScreenshot,
       })
     }
 

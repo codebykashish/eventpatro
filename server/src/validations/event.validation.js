@@ -76,6 +76,7 @@ const createEventSchema = z.object({
   requirements: z.array(z.string()).optional().default([]),
   duration: z.string().optional().default(''),
   fee: z.string().optional().default(''),
+  qrCode: z.preprocess((v) => (v === '' ? null : v), z.string().nullable().optional()),
   isFree: z.boolean().optional(),
   hasBreakfast: z.boolean().optional().default(false),
   laptopRequired: z.boolean().optional().default(false),
