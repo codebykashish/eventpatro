@@ -12,9 +12,8 @@ const VerifyOtp = () => {
   // Email passed via navigation state
   const email = location.state?.email || ''
 
-  // 6 separate OTP input state — starts empty so user types the code
-  const [digits, setDigits] = useState(['', '', '', '', '', ''])
-  const inputRefs = useRef([])
+  // Single OTP code state
+  const [code, setCode] = useState('')
 
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -36,59 +35,22 @@ const VerifyOtp = () => {
     }
   }, [email, navigate])
 
-  // Handle typing inside individual digit boxes
-  const handleChange = (index, value) => {
-    // Only accept numeric digits
-    const cleanVal = value.replace(/[^0-9]/g, '')
-    if (!cleanVal && value) return
-
-    const newDigits = [...digits]
-    newDigits[index] = cleanVal ? cleanVal[cleanVal.length - 1] : ''
-    setDigits(newDigits)
-
-    // Automatically advance to the next input box
-    if (cleanVal && index < 5) {
-      inputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  // Handle backspace navigation between boxes
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !digits[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-  }
-
-  // Handle pasting full 6-digit code
-  const handlePaste = (e) => {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6)
-    if (!pasted) return
-
-    const newDigits = [...digits]
-    for (let i = 0; i < pasted.length; i++) {
-      newDigits[i] = pasted[i]
-    }
-    setDigits(newDigits)
-    inputRefs.current[Math.min(pasted.length, 5)]?.focus()
-  }
-
   // Submit OTP for account verification
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setSuccess('')
 
-    const fullCode = digits.join('')
-    if (fullCode.length !== 6) {
-      setError('Please enter all 6 digits of the code.')
+    const cleanCode = code.trim()
+    if (cleanCode.length !== 6) {
+      setError('Please enter all 6 digits of the verification code.')
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      await verifyOtp(email, fullCode)
+      await verifyOtp(email, cleanCode)
       setSuccess('Verified successfully! Redirecting to your dashboard...')
       setTimeout(() => {
         navigate('/dashboard')
@@ -110,8 +72,7 @@ const VerifyOtp = () => {
       await resendOtp(email)
       setSuccess('A new 6-digit code has been sent.')
       setTimer(60)
-      setDigits(['', '', '', '', '', ''])
-      inputRefs.current[0]?.focus()
+      setCode('')
     } catch (err) {
       setError(err.message)
     }
@@ -148,29 +109,35 @@ const VerifyOtp = () => {
           )}
 
           <form onSubmit={handleSubmit} className="clean-form">
-            {/* 6-box OTP input */}
-            <div className="otp-boxes-container" onPaste={handlePaste}>
-              {digits.map((digit, idx) => (
-                <input
-                  key={idx}
-                  ref={(el) => (inputRefs.current[idx] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleChange(idx, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(idx, e)}
-                  className="otp-box-input"
-                  autoFocus={idx === 0}
-                />
-              ))}
+            <div className="otp-single-field-wrap">
+              <label className="otp-input-label" htmlFor="verify-page-otp">
+                Enter 6-digit code
+              </label>
+              <input
+                id="verify-page-otp"
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={code}
+                onChange={(e) => {
+                  const clean = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+                  setCode(clean)
+                }}
+                placeholder="••••••"
+                className="otp-single-code-input"
+                autoFocus
+                autoComplete="one-time-code"
+              />
+              <span className="otp-hint-text">
+                Paste or enter the 6 digits sent to your college email
+              </span>
             </div>
 
             {/* Submit button */}
             <button
               type="submit"
               className="btn-primary-action"
-              disabled={isSubmitting || digits.join('').length !== 6}
+              disabled={isSubmitting || code.trim().length !== 6}
             >
               {isSubmitting ? 'Verifying...' : 'Verify & Continue'}
             </button>

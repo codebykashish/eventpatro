@@ -40,9 +40,8 @@ const AuthModal = () => {
 
   // OTP state
   const [verifyEmail, setVerifyEmail] = useState('')
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', ''])
+  const [otpCode, setOtpCode] = useState('')
   const [resendTimer, setResendTimer] = useState(60)
-  const otpInputRefs = useRef([])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -65,7 +64,7 @@ const AuthModal = () => {
     setShowSignupPassword(false)
     setShowConfirmPassword(false)
     setVerifyEmail('')
-    setOtpDigits(['', '', '', '', '', ''])
+    setOtpCode('')
     setError('')
     setSuccess('')
   }
@@ -176,39 +175,11 @@ const AuthModal = () => {
     }
   }
 
-  // OTP input handlers
-  const handleOtpChange = (index, value) => {
-    const clean = value.replace(/[^0-9]/g, '')
-    if (!clean && value) return
-    const nextDigits = [...otpDigits]
-    nextDigits[index] = clean ? clean[clean.length - 1] : ''
-    setOtpDigits(nextDigits)
-    if (clean && index < 5) {
-      otpInputRefs.current[index + 1]?.focus()
-    }
-  }
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      otpInputRefs.current[index - 1]?.focus()
-    }
-  }
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6)
-    if (!pasted) return
-    const nextDigits = pasted.split('').concat(Array(6 - pasted.length).fill(''))
-    setOtpDigits(nextDigits)
-    const nextIdx = Math.min(pasted.length, 5)
-    otpInputRefs.current[nextIdx]?.focus()
-  }
-
   const handleVerifySubmit = async (e) => {
     e.preventDefault()
-    const code = otpDigits.join('')
+    const code = otpCode.trim()
     if (code.length !== 6) {
-      setError('Please enter all 6 digits')
+      setError('Please enter the full 6-digit verification code')
       return
     }
     setError('')
@@ -521,24 +492,35 @@ const AuthModal = () => {
             {mode === 'verify' && (
               <>
                 <form onSubmit={handleVerifySubmit} className="clean-form">
-                  <div className="otp-boxes-container" onPaste={handleOtpPaste}>
-                    {otpDigits.map((digit, idx) => (
-                      <input
-                        key={idx}
-                        ref={(el) => (otpInputRefs.current[idx] = el)}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(idx, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                        className="otp-digit-box"
-                        autoFocus={idx === 0}
-                      />
-                    ))}
+                  <div className="otp-single-field-wrap">
+                    <label className="otp-input-label" htmlFor="auth-modal-otp">
+                      Enter 6-digit code
+                    </label>
+                    <input
+                      id="auth-modal-otp"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(e) => {
+                        const clean = e.target.value.replace(/[^0-9]/g, '').slice(0, 6)
+                        setOtpCode(clean)
+                      }}
+                      placeholder="••••••"
+                      className="otp-single-code-input"
+                      autoFocus
+                      autoComplete="one-time-code"
+                    />
+                    <span className="otp-hint-text">
+                      Paste or enter the 6 digits sent to your college email
+                    </span>
                   </div>
 
-                  <button type="submit" className="btn-primary-action" disabled={isSubmitting}>
+                  <button
+                    type="submit"
+                    className="btn-primary-action"
+                    disabled={isSubmitting || otpCode.trim().length !== 6}
+                  >
                     {isSubmitting ? 'Verifying...' : 'Verify Email & Continue'}
                   </button>
                 </form>
