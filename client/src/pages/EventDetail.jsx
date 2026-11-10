@@ -379,20 +379,6 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     )
   }
 
-  // Fallback rich outcomes & requirements
-  const displayOutcomes = event.learningOutcomes?.length > 0 ? event.learningOutcomes : [
-    'Gain hands-on practical experience through interactive sessions and live demonstrations.',
-    'Collaborate and connect directly with fellow campus innovators and industry leaders.',
-    'Receive verified Sunway credentials and certificate of completion for your portfolio.',
-    'Direct Q&A session with organizers and industry practitioners.'
-  ]
-
-  const displayRequirements = event.requirements?.length > 0 ? event.requirements : [
-    'Valid Sunway student identity card required for entry verification.',
-    'Punctual arrival 15 minutes before scheduled start time.',
-    'Curiosity, open mindset, and enthusiasm for active campus participation.'
-  ]
-
   // Admin Enrollments section derived values
   const hasLimitedSeats = isLimitedCapacity(event)
   const totalEnrolled = registrations.length
@@ -515,49 +501,52 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
                 </div>
               </section>
 
-              {/* What You'll Learn & Explore */}
-              <section className="nc-editorial-section">
-                <h2 className="nc-editorial-heading">What you will learn &amp; outcomes</h2>
-                <div className="nc-natural-outcomes-list">
-                  {displayOutcomes.map((item, i) => (
-                    <div key={i} className="nc-natural-outcome-row">
-                      <span className="nc-item-index">{i + 1}.</span>
-                      <p className="nc-outcome-description">{item}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              {/* What You'll Learn & Explore — only rendered if admin provided them */}
+              {event.learningOutcomes?.length > 0 && (
+                <section className="nc-editorial-section">
+                  <h2 className="nc-editorial-heading">What you will learn &amp; outcomes</h2>
+                  <div className="nc-natural-outcomes-list">
+                    {event.learningOutcomes.map((item, i) => (
+                      <div key={i} className="nc-natural-outcome-row">
+                        <span className="nc-item-index">{i + 1}.</span>
+                        <p className="nc-outcome-description">{item}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
 
-              {/* Requirements & Prerequisites */}
-              <section className="nc-editorial-section">
-                <h2 className="nc-editorial-heading">Requirements</h2>
-                <ul className="nc-natural-bullet-list">
-                  {displayRequirements.map((req, i) => (
-                    <li key={i} className="nc-natural-bullet-item">
-                      {req}
-                    </li>
-                  ))}
-                </ul>
-              </section>
+              {/* Requirements & Prerequisites — only rendered if admin provided them */}
+              {event.requirements?.length > 0 && (
+                <section className="nc-editorial-section">
+                  <h2 className="nc-editorial-heading">Requirements</h2>
+                  <ul className="nc-natural-bullet-list">
+                    {event.requirements.map((req, i) => (
+                      <li key={i} className="nc-natural-bullet-item">
+                        {req}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
 
-              {/* Event Inclusions & Highlights */}
-              <section className="nc-editorial-section">
-                <h2 className="nc-editorial-heading">Key highlights</h2>
-                <div className="nc-highlights-chips-row">
-                  {event.certificateProvided && (
-                    <span className="nc-editorial-pill">Certificate of Participation</span>
-                  )}
-                  {event.hasBreakfast && (
-                    <span className="nc-editorial-pill">Breakfast &amp; Refreshments Provided</span>
-                  )}
-                  {event.laptopRequired && (
-                    <span className="nc-editorial-pill">Laptop Required</span>
-                  )}
-                  {!event.certificateProvided && !event.hasBreakfast && !event.laptopRequired && (
-                    <span className="nc-editorial-pill" style={{ color: '#64748b' }}>Standard campus entry</span>
-                  )}
-                </div>
-              </section>
+              {/* Event Inclusions & Highlights — only rendered if admin enabled at least one perk */}
+              {(event.certificateProvided || event.hasBreakfast || event.laptopRequired) && (
+                <section className="nc-editorial-section">
+                  <h2 className="nc-editorial-heading">Key highlights</h2>
+                  <div className="nc-highlights-chips-row">
+                    {event.certificateProvided && (
+                      <span className="nc-editorial-pill">Certificate of Participation</span>
+                    )}
+                    {event.hasBreakfast && (
+                      <span className="nc-editorial-pill">Breakfast &amp; Refreshments Provided</span>
+                    )}
+                    {event.laptopRequired && (
+                      <span className="nc-editorial-pill">Laptop Required</span>
+                    )}
+                  </div>
+                </section>
+              )}
             </div>
           )}
 
