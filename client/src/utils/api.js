@@ -1,5 +1,9 @@
 // Central API helper — wraps fetch with base URL, JSON headers, and auth token injection
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+// In production builds (on EC2), always use relative '/api' so requests go through Nginx.
+// In local development, fall back to VITE_API_URL or '/api'.
+const BASE = import.meta.env.PROD
+  ? '/api'
+  : (import.meta.env.VITE_API_URL || '/api')
 
 // Read JWT from localStorage (set by AuthContext on login/verify)
 const getToken = () => localStorage.getItem('token')
