@@ -274,8 +274,13 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
 
   const dropdownRef = useRef(null)
 
-  // Load events and user registrations (+ admin data when admin)
+  // Load events and user registrations (+ admin data when admin).
+  // user is listed as a dependency so the fetch always re-runs the moment
+  // AuthContext delivers the resolved user after login / OTP verification,
+  // preventing a blank dashboard on first visit from a fresh account.
   const loadData = useCallback(async () => {
+    // Guard: do not fetch while there is no user yet (token still resolving)
+    if (!user) return
     try {
       if (isAdmin) {
         const [eventsRes, usersRes, regsRes] = await Promise.allSettled([
@@ -299,7 +304,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
     } finally {
       setLoading(false)
     }
-  }, [isAdmin])
+  }, [isAdmin, user])
 
   useEffect(() => {
     loadData()
@@ -682,6 +687,39 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
   const formatAdminDate = (iso) => {
     if (!iso) return ''
     return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  // Show a full-page spinner while the user object is still being resolved
+  // (e.g. immediately after verifyOtp / login before state has propagated).
+  if (!user) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          fontFamily: 'var(--font-family)',
+          color: 'var(--color-muted)',
+          fontSize: '15px',
+          gap: '12px',
+          backgroundColor: '#ffffff',
+        }}
+      >
+        <span
+          style={{
+            width: '22px',
+            height: '22px',
+            border: '2.5px solid #e2e8f0',
+            borderTopColor: '#881421',
+            borderRadius: '50%',
+            display: 'inline-block',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        Loading your dashboard...
+      </div>
+    )
   }
 
   return (

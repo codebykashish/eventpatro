@@ -115,9 +115,36 @@ const Home = () => {
     }
   }
 
-  // If authenticated, render nothing while useEffect redirects to prevent flash
+  // While the authenticated user is being redirected to their dashboard,
+  // show a minimal centered spinner instead of a blank white screen.
   if (isAuthenticated && user) {
-    return null
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          fontFamily: 'var(--font-family)',
+          color: 'var(--color-muted)',
+          fontSize: '15px',
+          gap: '12px',
+        }}
+      >
+        <span
+          style={{
+            width: '20px',
+            height: '20px',
+            border: '2.5px solid #e2e8f0',
+            borderTopColor: '#881421',
+            borderRadius: '50%',
+            display: 'inline-block',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        Taking you to your dashboard...
+      </div>
+    )
   }
 
   return (

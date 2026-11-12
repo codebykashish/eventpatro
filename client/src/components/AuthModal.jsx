@@ -188,7 +188,10 @@ const AuthModal = () => {
       const loggedInUser = await verifyOtp(verifyEmail, code)
       resetFormFields()
       closeAuthModal()
-      navigate(loggedInUser.role === 'admin' ? '/admin' : '/dashboard')
+      // Use a hard redirect so the entire app re-mounts cleanly with the
+      // fresh token already in localStorage — avoids any React-Router race
+      // where navigate() fires before AuthContext state has propagated.
+      window.location.href = loggedInUser.role === 'admin' ? '/admin' : '/dashboard'
     } catch (err) {
       setError(err.message || 'Invalid or expired verification code')
     } finally {

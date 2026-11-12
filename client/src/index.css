@@ -73,3 +73,9 @@ button {
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+
+/* Reusable spinner animation (used by ProtectedRoute loading state) */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

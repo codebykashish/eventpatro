@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -50,11 +50,14 @@ const VerifyOtp = () => {
     setIsSubmitting(true)
 
     try {
-      await verifyOtp(email, cleanCode)
+      const loggedInUser = await verifyOtp(email, cleanCode)
       setSuccess('Verified successfully! Redirecting to your dashboard...')
+      // Hard redirect so the app re-mounts with the fresh token already in
+      // localStorage, eliminating the race where navigate() fires before
+      // AuthContext state has propagated to ProtectedRoute.
       setTimeout(() => {
-        navigate('/dashboard')
-      }, 1200)
+        window.location.href = loggedInUser?.role === 'admin' ? '/admin' : '/dashboard'
+      }, 900)
     } catch (err) {
       setError(err.message)
     } finally {

@@ -5,11 +5,37 @@ import { useAuth } from '../context/AuthContext'
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth()
 
-  // Wait for initial token check to finish
-  if (loading) {
+  // A token in localStorage means an auth operation is in-flight (login / verifyOtp).
+  // Keep showing the loading screen until AuthContext resolves the user, so we never
+  // briefly redirect an authenticated user back to the home page.
+  const hasStoredToken = Boolean(localStorage.getItem('token'))
+
+  if (loading || (hasStoredToken && !user)) {
     return (
-      <div style={{ textAlign: 'center', padding: '48px', color: 'var(--color-muted)' }}>
-        Loading session...
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          fontFamily: 'var(--font-family)',
+          color: 'var(--color-muted)',
+          fontSize: '15px',
+          gap: '12px',
+        }}
+      >
+        <span
+          style={{
+            width: '20px',
+            height: '20px',
+            border: '2.5px solid #e2e8f0',
+            borderTopColor: '#881421',
+            borderRadius: '50%',
+            display: 'inline-block',
+            animation: 'spin 0.8s linear infinite',
+          }}
+        />
+        Loading your session...
       </div>
     )
   }

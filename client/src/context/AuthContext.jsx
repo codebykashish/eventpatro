@@ -1,11 +1,17 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(() => localStorage.getItem('token'))
+  // loading stays true until the initial token check is done.
+  // We also keep it true while login/verifyOtp are in flight so that
+  // ProtectedRoute never sees a brief window where token exists but user is null.
   const [loading, setLoading] = useState(true)
+
+  // Tracks how many async auth operations are currently in flight
+  const authInFlight = useRef(0)
 
   // Auth modal overlay state: { isOpen: boolean, mode: 'login' | 'signup' }
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: 'login' })
@@ -37,7 +43,7 @@ export const AuthProvider = ({ children }) => {
           setUser(data.user)
           setToken(savedToken)
         } else {
-          // Token is invalid or expired
+          // Token is invalid or expired — clear everything
           localStorage.removeItem('token')
           setUser(null)
           setToken(null)
@@ -52,31 +58,38 @@ export const AuthProvider = ({ children }) => {
     fetchCurrentUser()
   }, [apiUrl])
 
-  // Login handler
+  // Login handler — sets loading=true while in flight so ProtectedRoute waits
   const login = async (email, password) => {
-    const response = await fetch(`${apiUrl}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
+    authInFlight.current += 1
+    setLoading(true)
+    try {
+      const response = await fetch(`${apiUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (!response.ok) {
-      const error = new Error(data.message || 'Login failed')
-      error.isUnverified = data.isUnverified
-      error.email = data.email
-      throw error
+      if (!response.ok) {
+        const error = new Error(data.message || 'Login failed')
+        error.isUnverified = data.isUnverified
+        error.email = data.email
+        throw error
+      }
+
+      // Persist token before updating state so api.js reads it immediately
+      localStorage.setItem('token', data.token)
+      setToken(data.token)
+      setUser(data.user)
+      return data.user
+    } finally {
+      authInFlight.current -= 1
+      if (authInFlight.current === 0) setLoading(false)
     }
-
-    // Save token in localStorage and update state
-    localStorage.setItem('token', data.token)
-    setToken(data.token)
-    setUser(data.user)
-    return data.user
   }
 
-  // Signup handler
+  // Signup handler — no session is created yet, so no loading toggle needed
   const signup = async (formData) => {
     const response = await fetch(`${apiUrl}/auth/signup`, {
       method: 'POST',
@@ -94,25 +107,32 @@ export const AuthProvider = ({ children }) => {
     return data
   }
 
-  // OTP verification handler
+  // OTP verification handler — sets loading=true while in flight
   const verifyOtp = async (email, otp) => {
-    const response = await fetch(`${apiUrl}/auth/verify-otp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, otp }),
-    })
+    authInFlight.current += 1
+    setLoading(true)
+    try {
+      const response = await fetch(`${apiUrl}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      })
 
-    const data = await response.json()
+      const data = await response.json()
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Verification failed')
+      if (!response.ok) {
+        throw new Error(data.message || 'Verification failed')
+      }
+
+      // Persist token before updating state so api.js reads it immediately
+      localStorage.setItem('token', data.token)
+      setToken(data.token)
+      setUser(data.user)
+      return data.user
+    } finally {
+      authInFlight.current -= 1
+      if (authInFlight.current === 0) setLoading(false)
     }
-
-    // Save token and activate user session upon successful OTP check
-    localStorage.setItem('token', data.token)
-    setToken(data.token)
-    setUser(data.user)
-    return data.user
   }
 
   // Resend fresh OTP code
