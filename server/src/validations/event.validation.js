@@ -50,7 +50,10 @@ const createEventSchema = z.object({
     errorMap: () => ({ message: `Category must be one of: ${CATEGORIES.join(', ')}` }),
   }).default('other'),
 
-  date: z.coerce.date({ required_error: 'Event date is required' }),
+  date: z.coerce.date({ required_error: 'Event date is required' }).refine(
+    (d) => !isNaN(d.getTime()) && d.getTime() > Date.now(),
+    { message: 'Event date must be in the future' }
+  ),
 
   location: z
     .string({ required_error: 'Location is required' })
@@ -81,7 +84,18 @@ const createEventSchema = z.object({
   hasBreakfast: z.boolean().optional().default(false),
   laptopRequired: z.boolean().optional().default(false),
   certificateProvided: z.boolean().optional().default(false),
-})
+}).refine(
+  (data) => {
+    if (data.registrationDeadline && data.date) {
+      return data.registrationDeadline.getTime() < data.date.getTime()
+    }
+    return true
+  },
+  {
+    message: 'Registration deadline must be before the event date',
+    path: ['registrationDeadline'],
+  }
+)
 
 const updateEventSchema = createEventSchema.partial()
 

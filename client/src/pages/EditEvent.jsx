@@ -154,6 +154,11 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
+  // Current local datetime string for input min attribute (YYYY-MM-DDTHH:mm)
+  const nowMin = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -161,6 +166,27 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
     setSubmitting(true)
 
     try {
+      // Validate event date is strictly in the future
+      const eventTime = new Date(form.date).getTime()
+      if (isNaN(eventTime) || eventTime <= Date.now()) {
+        setError('Event date and time must be in the future.')
+        setSubmitting(false)
+        return
+      }
+
+      if (form.registrationDeadline) {
+        const deadlineTime = new Date(form.registrationDeadline).getTime()
+        if (isNaN(deadlineTime) || deadlineTime <= Date.now()) {
+          setError('Registration deadline must be in the future.')
+          setSubmitting(false)
+          return
+        }
+        if (deadlineTime >= eventTime) {
+          setError('Registration deadline must be before the event date and time.')
+          setSubmitting(false)
+          return
+        }
+      }
       // Validate multiple_choice fields
       for (const field of formFields) {
         if (field.type === 'multiple_choice' && (!field.options || field.options.filter(Boolean).length < 2)) {
@@ -323,6 +349,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
                 id="ef-date"
                 name="date"
                 type="datetime-local"
+                min={nowMin}
                 value={form.date}
                 onChange={handleChange}
                 required
@@ -730,6 +757,8 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
                 id="ef-deadline"
                 name="registrationDeadline"
                 type="datetime-local"
+                min={nowMin}
+                max={form.date || undefined}
                 value={form.registrationDeadline}
                 onChange={handleChange}
               />
