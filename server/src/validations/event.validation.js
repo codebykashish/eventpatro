@@ -35,7 +35,7 @@ const coverImageSchema = z.preprocess(
   ]).nullable().optional()
 )
 
-const createEventSchema = z.object({
+const baseEventSchema = z.object({
   title: z
     .string({ required_error: 'Title is required' })
     .min(3, 'Title must be at least 3 characters')
@@ -84,19 +84,21 @@ const createEventSchema = z.object({
   hasBreakfast: z.boolean().optional().default(false),
   laptopRequired: z.boolean().optional().default(false),
   certificateProvided: z.boolean().optional().default(false),
-}).refine(
-  (data) => {
-    if (data.registrationDeadline && data.date) {
-      return data.registrationDeadline.getTime() < data.date.getTime()
-    }
-    return true
-  },
-  {
-    message: 'Registration deadline must be before the event date',
-    path: ['registrationDeadline'],
-  }
-)
+})
 
-const updateEventSchema = createEventSchema.partial()
+const deadlineRefine = (data) => {
+  if (data.registrationDeadline && data.date) {
+    return data.registrationDeadline.getTime() < data.date.getTime()
+  }
+  return true
+}
+
+const deadlineRefineOptions = {
+  message: 'Registration deadline must be before the event date',
+  path: ['registrationDeadline'],
+}
+
+const createEventSchema = baseEventSchema.refine(deadlineRefine, deadlineRefineOptions)
+const updateEventSchema = baseEventSchema.partial().refine(deadlineRefine, deadlineRefineOptions)
 
 module.exports = { createEventSchema, updateEventSchema }
