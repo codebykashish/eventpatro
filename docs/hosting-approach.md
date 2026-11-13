@@ -126,10 +126,11 @@ This is the exact sequence of steps to go from zero to a fully deployed Eventpat
 2. Create a free M0 cluster. Name: `eventpatro-db`. Region: any.
 3. Create a database user (username and password). Save the password.
 4. Go to **Network Access** and add `0.0.0.0/0` (allow connections from any IP). This is needed because the EC2 instance's IP changes whenever the Learner Lab session expires.
-5. Go to **Database** → **Connect** → **Drivers** and copy the connection string. Replace `<password>` with your database user's password. Replace the default database name with `campuspulse`. The final string looks like:
+5. Go to **Database** → **Connect** → **Drivers** and copy the connection string. Replace `<password>` with your database user's password. Replace the default database name with `campuspulse`. The final string follows this pattern:
    ```
-   mongodb+srv://youruser:yourpassword@eventpatro-db.xxxxx.mongodb.net/campuspulse?retryWrites=true&w=majority
+   mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/campuspulse?retryWrites=true&w=majority
    ```
+   Replace `<USERNAME>`, `<PASSWORD>`, and `<CLUSTER>` with your actual values from Atlas.
 
 ### Step 2: Set Up Gmail App Password (One-Time)
 
