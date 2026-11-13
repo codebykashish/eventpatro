@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Eventpatro MERN app infrastructure.
+  Creates an EC2 key pair (private key stored in SSM), a security group,
+  and an Ubuntu 24.04 EC2 instance with Node.js 22, PM2, and Nginx pre-installed.
+
+# ---------------------------------------------------------------------------
+# Parameters – values you can override when running cloudformation deploy
+# ---------------------------------------------------------------------------
+Parameters:
+
+  InstanceType:
+    Type: String
+    Default: t2.micro
+    Description: EC2 instance type (t2.micro is free-tier eligible)
+
+  UbuntuAMI:
+    Type: String
+    Default: ami-0e86e20dae9224db8
+    Description: >
+      Ubuntu 24.04 LTS AMI for us-east-1.
+      To get the latest ID: EC2 console -> Launch Instance -> search "Ubuntu 24.04".
+
+  SSHLocation:
+    Type: String
+    Default: 0.0.0.0/0
+    Description: >
+      IP range allowed to SSH in. 0.0.0.0/0 is open to everyone.
+      This is acceptable for a Learner Lab project because GitHub Actions
+      runners do not have fixed IPs, so we cannot restrict it further.
+
+# ---------------------------------------------------------------------------
+# Resources
+# ---------------------------------------------------------------------------
+Resources:
+
+  # --- Key Pair -----------------------------------------------------------
+  # CloudFormation creates the key pair and automatically stores the private
+  # key in SSM Parameter Store at: /ec2/keypair/{KeyPairId}
+  # GitHub Actions fetches it from there — no .pem file to manage manually.
+  EventpatroKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: eventpatro-cf-key
+      Tags:
+        - Key: Project
+          Value: eventpatro
+
+  # --- Security Group -----------------------------------------------------
+  # Allows HTTP (80) from everywhere and SSH (22) from SSHLocation.
+  EventpatroSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Eventpatro - allow HTTP and SSH
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref SSHLocation
+      Tags:
+        - Key: Name
+          Value: eventpatro-sg
+        - Key: Project
+          Value: eventpatro
+
+  # --- EC2 Instance -------------------------------------------------------
+  EventpatroInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref UbuntuAMI
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref EventpatroKeyPair
+      SecurityGroupIds:
+        - !GetAtt EventpatroSecurityGroup.GroupId
+      Tags:
+        - Key: Name
+          Value: eventpatro
+        - Key: Project
+          Value: eventpatro
+
+      # UserData runs once when the instance first boots.
+      # It sets up everything: Node.js, PM2, Nginx, the repo clone.
+      # GitHub Actions handles all code deployments after this.
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          set -e
+
+          # Log all output to a file for debugging
+          exec > /var/log/userdata.log 2>&1
+          echo "=== Eventpatro EC2 Setup Start ==="
+
+          # Update package lists
+          apt-get update -y
+
+          # Install Node.js 22 via NodeSource
+          curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+          apt-get install -y nodejs
+
+          # Install PM2 globally (keeps Express running 24/7)
+          npm install -g pm2
+
+          # Install Nginx (serves React frontend, proxies /api to Express)
+          apt-get install -y nginx git
+
+          # Create the app directory
+          mkdir -p /var/www/eventpatro
+
+          # Clone the repository
+          git clone https://github.com/codebykashish/eventpatro.git /var/www/eventpatro
+
+          # Configure Nginx using our config file
+          cp /var/www/eventpatro/infra/nginx.conf /etc/nginx/sites-available/eventpatro
+          ln -sf /etc/nginx/sites-available/eventpatro /etc/nginx/sites-enabled/eventpatro
+          rm -f /etc/nginx/sites-enabled/default
+
+          # Test config and start Nginx
+          nginx -t
+          systemctl enable nginx
+          systemctl start nginx
+
+          # Give ubuntu user ownership of the app folder
+          chown -R ubuntu:ubuntu /var/www/eventpatro
+
+          # Enable PM2 to start on reboot (run as ubuntu user)
+          sudo -u ubuntu pm2 startup systemd -u ubuntu --hp /home/ubuntu | tail -1 | bash
+
+          echo "=== Eventpatro EC2 Setup Complete ==="
+
+# ---------------------------------------------------------------------------
+# Outputs – values GitHub Actions reads after cloudformation deploy finishes
+# ---------------------------------------------------------------------------
+Outputs:
+
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value: !GetAtt EventpatroInstance.PublicIp
+    Export:
+      Name: !Sub "${AWS::StackName}-PublicIP"
+
+  PublicURL:
+    Description: HTTP URL of the live site
+    Value: !Sub "http://${EventpatroInstance.PublicIp}"
+
+  SSMKeyPath:
+    Description: >
+      SSM Parameter Store path where the private SSH key is stored.
+      GitHub Actions fetches this to SSH into the instance.
+    Value: !Sub "/ec2/keypair/${EventpatroKeyPair.KeyPairId}"
+    Export:
+      Name: !Sub "${AWS::StackName}-SSMKeyPath"

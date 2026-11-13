@@ -1,48 +1,167 @@
-name: Deploy Eventpatro to Ubuntu EC2
+name: Deploy Eventpatro (CloudFormation + SSH)
 
+# Triggers on every push to main, or manually from the Actions tab
 on:
   push:
     branches:
       - main
   workflow_dispatch:
 
+# Global variables — change STACK_NAME or AWS_REGION here if needed
+env:
+  AWS_REGION: us-east-1
+  STACK_NAME: eventpatro-stack
+
+# ---------------------------------------------------------------------------
+# JOB 1: BUILD
+# Runs in GitHub's cloud. Builds the React frontend and uploads the output
+# as an artifact so the deploy job can use it.
+# ---------------------------------------------------------------------------
 jobs:
-  build-and-deploy:
+  build:
+    name: Build React Frontend
     runs-on: ubuntu-latest
 
     steps:
-      - name: 1. Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 2. Set up Node.js
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-          cache-dependency-path: |
-            server/package-lock.json
-            client/package-lock.json
+          cache: npm
+          cache-dependency-path: client/package-lock.json
 
-      - name: 3. Install Server Dependencies
-        run: |
-          cd server
-          npm ci --omit=dev
+      - name: Install client dependencies
+        run: cd client && npm ci
 
-      - name: 4. Build Client (React + Vite)
+      - name: Build React app for production
         env:
+          # Tells Vite to call /api/... instead of http://localhost:5000/api/...
           VITE_API_URL: /api
-        run: |
-          cd client
-          npm ci
-          npm run build
+        run: cd client && npm run build
 
-      - name: 5. Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.2.0
+      # Save the dist/ folder so the deploy job can download it
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER || 'ubuntu' }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          name: client-dist
+          path: client/dist/
+
+# ---------------------------------------------------------------------------
+# JOB 2: DEPLOY
+# Runs after build. Uses AWS credentials to:
+#   1. Create the EC2 instance via CloudFormation (skips if already exists)
+#   2. Read the EC2 public IP from stack outputs
+#   3. Fetch the SSH private key from SSM Parameter Store
+#   4. SSH into EC2 and deploy the latest code
+# ---------------------------------------------------------------------------
+  deploy:
+    name: Deploy to EC2 via CloudFormation
+    runs-on: ubuntu-latest
+    needs: build   # wait for build job to finish
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download the React build from the build job
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: client-dist
+          path: client/dist/
+
+      # Configure the AWS CLI with Learner Lab credentials.
+      # Update AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN
+      # in GitHub Secrets every time you start a new Learner Lab session.
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # First run: creates the EC2 instance (takes ~5 min including UserData setup)
+      # Subsequent runs: detects no template changes, skips with --no-fail-on-empty-changeset
+      - name: Deploy CloudFormation stack (create or update EC2)
+        run: |
+          aws cloudformation deploy \
+            --stack-name ${{ env.STACK_NAME }} \
+            --template-file infra/ec2-instance.yaml \
+            --parameter-overrides InstanceType=t2.micro \
+            --no-fail-on-empty-changeset \
+            --region ${{ env.AWS_REGION }}
+
+      # Read the EC2 public IP from the CloudFormation stack outputs.
+      # This is why we don't need EC2_HOST as a GitHub Secret anymore.
+      - name: Get EC2 public IP from CloudFormation outputs
+        id: get-ip
+        run: |
+          IP=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --region ${{ env.AWS_REGION }} \
+            --query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" \
+            --output text)
+          echo "EC2_IP=$IP" >> $GITHUB_OUTPUT
+          echo "EC2 is at: $IP"
+
+      # Read the SSM path where the SSH private key lives.
+      # CloudFormation stores it there automatically when it creates the key pair.
+      - name: Get SSH private key from SSM Parameter Store
+        id: get-key
+        run: |
+          SSM_PATH=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --region ${{ env.AWS_REGION }} \
+            --query "Stacks[0].Outputs[?OutputKey=='SSMKeyPath'].OutputValue" \
+            --output text)
+          echo "Fetching key from SSM: $SSM_PATH"
+          aws ssm get-parameter \
+            --name "$SSM_PATH" \
+            --with-decryption \
+            --region ${{ env.AWS_REGION }} \
+            --query "Parameter.Value" \
+            --output text > /tmp/eventpatro-key.pem
+          chmod 600 /tmp/eventpatro-key.pem
+
+      # Wait for SSH to be available on the EC2 instance.
+      # On first run, UserData may still be running (Node.js install takes ~3 min).
+      # On subsequent runs, SSH is usually available within seconds.
+      - name: Wait for EC2 SSH to be ready
+        run: |
+          IP=${{ steps.get-ip.outputs.EC2_IP }}
+          echo "Waiting for SSH on $IP..."
+          for i in $(seq 1 36); do
+            if nc -zw5 "$IP" 22 2>/dev/null; then
+              echo "SSH is ready after $i attempts"
+              exit 0
+            fi
+            echo "Attempt $i/36: SSH not ready yet, waiting 10s..."
+            sleep 10
+          done
+          echo "ERROR: SSH never became available after 6 minutes"
+          exit 1
+
+      # SSH into the EC2 and deploy the latest code.
+      # On first run, also installs server dependencies.
+      # Every run writes the .env, restarts PM2, and reloads Nginx.
+      - name: Deploy application to EC2
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          EC2_IP: ${{ steps.get-ip.outputs.EC2_IP }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        with:
+          host: ${{ steps.get-ip.outputs.EC2_IP }}
+          username: ubuntu
+          key_path: /tmp/eventpatro-key.pem
           script_stop: true
+          envs: EC2_IP,MONGODB_URI,JWT_SECRET,SMTP_USER,SMTP_PASS
           script: |
             echo ">>> [1/5] Pulling latest code..."
             cd /var/www/eventpatro
@@ -53,34 +172,39 @@ jobs:
             cd /var/www/eventpatro/server
             npm ci --omit=dev
 
-            echo ">>> [3/5] Updating server .env file..."
+            echo ">>> [3/5] Writing .env file..."
             printf "%s\n" \
               "PORT=5000" \
               "NODE_ENV=production" \
-              "CLIENT_URL=${{ secrets.CLIENT_URL || 'http://localhost' }}" \
-              "MONGODB_URI=${{ secrets.MONGODB_URI }}" \
-              "JWT_SECRET=${{ secrets.JWT_SECRET }}" \
+              "CLIENT_URL=http://$EC2_IP" \
+              "MONGODB_URI=$MONGODB_URI" \
+              "JWT_SECRET=$JWT_SECRET" \
               "JWT_EXPIRES_IN=7d" \
-              "SMTP_HOST=${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}" \
-              "SMTP_PORT=${{ secrets.SMTP_PORT || '587' }}" \
-              "SMTP_USER=${{ secrets.SMTP_USER }}" \
-              "SMTP_PASS=${{ secrets.SMTP_PASS }}" \
-              "EMAIL_FROM_NAME=\"Eventpatro Sunway\"" \
-              "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" \
-              "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" \
-              "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" \
-              > .env
+              "SMTP_HOST=smtp.gmail.com" \
+              "SMTP_PORT=587" \
+              "SMTP_USER=$SMTP_USER" \
+              "SMTP_PASS=$SMTP_PASS" \
+              "EMAIL_FROM_NAME=Eventpatro Sunway" \
+              > /var/www/eventpatro/server/.env
 
-            echo ">>> [4/5] Building frontend..."
+            echo ">>> [4/5] Building React frontend..."
             cd /var/www/eventpatro/client
             npm ci
             npm run build
 
-            echo ">>> [5/5] Restarting PM2 backend service & reloading Nginx..."
+            echo ">>> [5/5] Restarting PM2 and reloading Nginx..."
             cd /var/www/eventpatro/server
             pm2 restart all --update-env || pm2 start ecosystem.config.cjs --update-env
             pm2 save
             sudo nginx -t && sudo systemctl reload nginx
 
-            echo ">>> Deployment completed successfully!"
+            echo ">>> Deployment complete!"
 
+      # Print the live URL so you can click it straight from the Actions log
+      - name: Print live URL
+        run: echo "Site is live at http://${{ steps.get-ip.outputs.EC2_IP }}"
+
+      # Clean up the private key from the runner's filesystem
+      - name: Clean up SSH key
+        if: always()
+        run: rm -f /tmp/eventpatro-key.pem
