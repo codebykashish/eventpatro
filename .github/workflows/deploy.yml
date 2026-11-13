@@ -204,10 +204,17 @@ jobs:
 
             echo ">>> [5/5] Restarting PM2 and reloading Nginx..."
             cd /var/www/eventpatro/server
-            pm2 restart all --update-env || pm2 start ecosystem.config.cjs --update-env
+            # Delete any stale process and start fresh from ecosystem config
+            pm2 delete all 2>/dev/null || true
+            pm2 start ecosystem.config.cjs --update-env
             pm2 save
             sudo cp /var/www/eventpatro/infra/nginx.conf /etc/nginx/sites-available/eventpatro
             sudo nginx -t && sudo systemctl reload nginx
+
+            echo ">>> [Backend Logs Check]"
+            sleep 3
+            pm2 status
+            pm2 logs --lines 25 --nostream
 
             echo ">>> Deployment complete!"
 
