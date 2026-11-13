@@ -63,10 +63,10 @@ router.post('/', protect, upload.single('image'), async (req, res) => {
     const filename = `event-${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`
     fs.writeFileSync(path.join(uploadDir, filename), req.file.buffer)
 
-    const origin = process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 5000}`
+    // Return relative URL so it works seamlessly in both local and production
     return res.status(200).json({
       success: true,
-      url: `${origin.replace(/\/$/, '')}/uploads/${filename}`,
+      url: `/uploads/${filename}`,
       filename,
     })
   } catch (err) {
