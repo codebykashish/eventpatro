@@ -197,6 +197,9 @@ jobs:
               "EMAIL_FROM_NAME=Eventpatro Sunway" \
               > /var/www/eventpatro/server/.env
 
+            echo ">>> [Verify DB Connection]"
+            node -e "require('dotenv').config(); console.log('MONGODB_URI length:', (process.env.MONGODB_URI||'').length); require('./src/config/db')().then(() => { console.log('✅ DB Connected Successfully'); process.exit(0); }).catch(err => { console.error('❌ DB Connect Error:', err.message); process.exit(1); });"
+
             echo ">>> [4/5] Building React frontend..."
             cd /var/www/eventpatro/client
             npm ci

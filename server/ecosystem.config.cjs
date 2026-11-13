@@ -3,8 +3,9 @@ module.exports = {
   apps: [
     {
       name: 'eventpatro-backend',
-      script: './src/server.js',
+      script: 'src/server.js',
       cwd: '/var/www/eventpatro/server',
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       watch: false,
@@ -16,3 +17,4 @@ module.exports = {
     },
   ],
 }
+
