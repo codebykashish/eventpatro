@@ -107,6 +107,7 @@ Tells PM2 how to run the Express backend:
 - Entry point: `src/server.js`
 - Working directory: `/var/www/eventpatro/server`
 - App name: `eventpatro-backend`
+- `exec_mode: 'fork'` — single-core t2.micro instances require fork mode to prevent SIGINT cluster conflicts.
 
 ### `client/.env.production` — React Production Environment
 Sets `VITE_API_URL=/api` so the React frontend calls `/api/...` (relative path, handled by Nginx) instead of `http://localhost:5000/api` (which would fail in production because it would try to connect to the user's own computer).
@@ -402,6 +403,16 @@ const BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
 **Symptom:** Clicking Login throws a JSON parse error.
 **Cause:** Nginx returned an HTML error page (502 Bad Gateway) because Express on port 5000 was offline or restarting. This happens if MongoDB connection failed, or if the Learner Lab session timed out and revoked credentials.
 **Fix:** Verify MongoDB Atlas Network Access has `0.0.0.0/0` active, ensure AWS credentials in GitHub Secrets are refreshed from an active Learner Lab session, and check PM2 logs (`pm2 logs --lines 50`).
+
+### 7. PM2 cluster mode unstable restarts (SIGINT exit code 0/1)
+**Symptom:** PM2 logs showed `Script server.js had too many unstable restarts (16). Stopped. "errored"`.
+**Cause:** On single-vCPU instances like AWS `t2.micro`, PM2's cluster mode can attempt multi-process IPC channels that instantly receive SIGINT signals on startup.
+**Fix:** Explicitly set `exec_mode: 'fork'` and `instances: 1` in `server/ecosystem.config.cjs`.
+
+### 8. Zod `.partial()` crash on refined schemas
+**Symptom:** Express crashed immediately on startup with `Error: .partial() cannot be used on object schemas containing refinements`.
+**Cause:** Calling `.refine()` directly on `createEventSchema` turns it into a `ZodEffects` instance, which prevents `.partial()` from creating an update schema.
+**Fix:** Defined `baseEventSchema` first, created `updateEventSchema = baseEventSchema.partial().refine(...)`, and `createEventSchema = baseEventSchema.refine(...)`.
 
 ---
 
