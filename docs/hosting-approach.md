@@ -391,6 +391,18 @@ const BASE_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
 **Symptom:** Instance gone or stopped with new IP.
 **Fix:** With CloudFormation, this is now handled automatically. Run the pipeline again and CloudFormation recreates the instance if needed.
 
+### 5. Uploaded images not rendering on the website
+**Symptom:** Created an event and uploaded a cover photo, but the image broke or returned 404 in the browser.
+**Cause 1:** Backend upload route was returning `http://localhost:5000/uploads/...` because `API_PUBLIC_URL` wasn't set. The browser was trying to fetch images from the client's local computer.
+**Fix 1:** Changed `server/src/routes/upload.routes.js` to return relative path `/uploads/${filename}`, and updated `client/src/utils/mediaUrl.js` to automatically clean legacy `localhost:5000` URLs.
+**Cause 2:** In Nginx, regex matching for static files (`location ~* \.(jpg|png...)`) took precedence over `location /uploads/`, so Nginx looked for uploaded files in the React `dist/` directory instead of forwarding to Express.
+**Fix 2:** Added the `^~` modifier (`location ^~ /uploads/`) in `infra/nginx.conf` so Nginx immediately routes all `/uploads/` traffic directly to Express.
+
+### 6. Unexpected token '<', "<html>... is not valid JSON" (502 Bad Gateway on Login)
+**Symptom:** Clicking Login throws a JSON parse error.
+**Cause:** Nginx returned an HTML error page (502 Bad Gateway) because Express on port 5000 was offline or restarting. This happens if MongoDB connection failed, or if the Learner Lab session timed out and revoked credentials.
+**Fix:** Verify MongoDB Atlas Network Access has `0.0.0.0/0` active, ensure AWS credentials in GitHub Secrets are refreshed from an active Learner Lab session, and check PM2 logs (`pm2 logs --lines 50`).
+
 ---
 
 ## Cost Breakdown
@@ -458,9 +470,19 @@ sudo systemctl status nginx
 sudo nginx -t
 ```
 
+### View Nginx live web traffic as it happens (on EC2)
+```bash
+sudo tail -f /var/log/nginx/access.log
+```
+
 ### View Nginx error log (on EC2)
 ```bash
-sudo tail -50 /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+### View Nginx configuration (on EC2)
+```bash
+cat /etc/nginx/sites-available/eventpatro
 ```
 
 ### Pull latest code and rebuild manually, without CI/CD (on EC2)
