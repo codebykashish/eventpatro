@@ -1,158 +1,123 @@
-# Universal MERN DevOps & AWS EC2 Deployment Guide
-### CloudFormation + Systems Manager (SSM) + GitHub Actions CI/CD + Nginx + PM2
+# Web Application Hosting & DevOps Deployment Guide
+### Production Hosting on AWS EC2 with CloudFormation, Nginx, PM2 & GitHub Actions CI/CD
 
-> **About this document:**  
-> This guide outlines the complete, production-grade DevOps and deployment pipeline implemented for the **Eventpatro** MERN project.  
-> It is structured as a **Universal Master Guide** so any student or developer can adapt the exact same architecture, files, and step-by-step workflow to **any MERN stack application** (single frontend, admin portals, or custom ports).
+This document is a complete, step-by-step **Hosting & Infrastructure Guide** for deploying any full-stack web application (Node.js/Express backend + React/Vite/SPA frontend + Cloud Database) onto AWS EC2 using Infrastructure-as-Code and automated CI/CD.
+
+Anyone can follow this guide to host their website on AWS from scratch without manual server configuration.
 
 ---
 
 ## Table of Contents
 
-1. [Architecture Overview](#1-architecture-overview)
-2. [Why This Approach? (Advantages over Manual Hosting)](#2-why-this-approach-advantages-over-manual-hosting)
-3. [Universal Project Mapping (How to adapt for YOUR repo)](#3-universal-project-mapping)
-4. [The 4 Reusable Infrastructure Files](#4-the-4-reusable-infrastructure-files)
-   - [File 1: CloudFormation Template (`infra/ec2-instance.yaml`)](#file-1-infraec2-instanceyaml)
-   - [File 2: Nginx Reverse Proxy Config (`infra/nginx.conf`)](#file-2-infranginxconf)
-   - [File 3: PM2 Process Config (`server/ecosystem.config.cjs`)](#file-3-serverecosystemconfigcjs)
-   - [File 4: GitHub Actions Workflow (`.github/workflows/deploy.yml`)](#file-4-githubworkflowsdeployyml)
-5. [Prerequisites & One-Time Setup](#5-prerequisites--one-time-setup)
-   - [Step 1: MongoDB Atlas (Free Cloud Database)](#step-1-mongodb-atlas-free-cloud-database)
-   - [Step 2: SMTP / Email Authentication (Optional / As needed)](#step-2-smtp--email-authentication)
-   - [Step 3: AWS Learner Lab Credentials](#step-3-aws-learner-lab-credentials)
-   - [Step 4: Configure GitHub Secrets & Variables](#step-4-configure-github-secrets--variables)
-6. [Step-by-Step: Deploying for the First Time](#6-step-by-step-deploying-for-the-first-time)
-7. [Operational Guide: Handling Learner Lab 4-Hour Timeouts](#7-operational-guide-handling-learner-lab-timeouts)
-8. [Real-World Issues Encountered & Concrete Fixes](#8-real-world-issues-encountered--concrete-fixes)
-9. [Copy-and-Paste AI Prompt for Your Friends](#9-copy-and-paste-ai-prompt-for-your-friends)
-10. [Quick-Reference Server Commands](#10-quick-reference-server-commands)
+1. [Hosting Architecture Overview](#1-hosting-architecture-overview)
+2. [Hosting Prerequisites & Requirements](#2-hosting-prerequisites--requirements)
+3. [The 4 Infrastructure Files Needed](#3-the-4-infrastructure-files-needed)
+   - [File 1: CloudFormation Infrastructure (`infra/ec2-instance.yaml`)](#file-1-infraec2-instanceyaml)
+   - [File 2: Nginx Web Server & Reverse Proxy (`infra/nginx.conf`)](#file-2-infranginxconf)
+   - [File 3: Process Manager Config (`server/ecosystem.config.cjs`)](#file-3-serverecosystemconfigcjs)
+   - [File 4: Automated CI/CD Pipeline (`.github/workflows/deploy.yml`)](#file-4-githubworkflowsdeployyml)
+4. [Step-by-Step Hosting Setup (From Scratch)](#4-step-by-step-hosting-setup-from-scratch)
+   - [Step 1: Set Up Cloud Database (MongoDB Atlas)](#step-1-set-up-cloud-database-mongodb-atlas)
+   - [Step 2: Collect AWS Credentials](#step-2-collect-aws-credentials)
+   - [Step 3: Configure GitHub Secrets & Variables](#step-3-configure-github-secrets--variables)
+   - [Step 4: Push Infrastructure Files & Deploy](#step-4-push-infrastructure-files--deploy)
+   - [Step 5: Verify Live Website](#step-5-verify-live-website)
+5. [Adapting Paths for Any Project Repository](#5-adapting-paths-for-any-project-repository)
+6. [Handling AWS Lab Expiration & Automatic Server Recovery](#6-handling-aws-lab-expiration--automatic-server-recovery)
+7. [Common Hosting Issues & Fixes](#7-common-hosting-issues--fixes)
+8. [Live Server Maintenance & Useful Commands](#8-live-server-maintenance--useful-commands)
+9. [Copy-Paste AI Prompt to Host Any Repository](#9-copy-paste-ai-prompt-to-host-any-repository)
 
 ---
 
-## 1. Architecture Overview
+## 1. Hosting Architecture Overview
+
+When a visitor opens your website in their browser, here is how traffic flows through the server:
 
 ```
-                      [ USER / BROWSER ]
-                              │
-                              │ HTTP (Port 80)
-                              ▼
-            ┌────────────────────────────────────┐
-            │       NGINX (Reverse Proxy)        │
-            │          on AWS EC2                │
-            └──────────────┬─────────────────────┘
-                           │
-             ┌─────────────┴─────────────┐
-             │                           │
-             ▼                           ▼
-    [ STATIC FRONTEND ]          [ EXPRESS BACKEND ]
-    Compiled Vite/React          Node.js API (Port 5000 / 4000)
-    (/var/www/.../dist)          Managed 24/7 by PM2 (Fork Mode)
-                                         │
-                                         │ Mongoose Connection
-                                         ▼
-                               [ MONGODB ATLAS (Cloud) ]
-                               (Persistent M0 24/7 Database)
+                            [ USER / BROWSER ]
+                                    │
+                                    │ HTTP Request (Port 80)
+                                    ▼
+                  ┌───────────────────────────────────┐
+                  │          AWS EC2 INSTANCE         │
+                  │         (Ubuntu 24.04 LTS)        │
+                  │                                   │
+                  │   ┌───────────────────────────┐   │
+                  │   │    NGINX (Reverse Proxy)  │   │
+                  │   └─────────────┬─────────────┘   │
+                  │                 │                 │
+                  │    ┌────────────┴───────────┐     │
+                  │    │                        │     │
+                  │    ▼                        ▼     │
+                  │  Static Files           Backend   │
+                  │  (Frontend React)       API (PM2) │
+                  │  /var/www/app/.../dist  Port 5000 │
+                  └─────────────────────────────┬─────┘
+                                                │
+                                                │ Database Connection
+                                                ▼
+                                    [ CLOUD DATABASE ]
+                                    (MongoDB Atlas M0 - 24/7)
 ```
 
-### Deployment Pipeline Workflow:
-
-```
-[ Developer pushes to main ]
-            │
-            ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   GITHUB ACTIONS CI/CD                      │
-├─────────────────────────────────────────────────────────────┤
-│ 1. BUILD JOB:                                               │
-│    - Checkout code & setup Node.js                          │
-│    - Install dependencies & compile React (npm run build)   │
-│    - Upload 'dist' artifact                                 │
-│                                                             │
-│ 2. DEPLOY JOB:                                              │
-│    - Authenticate to AWS using Learner Lab credentials      │
-│    - Run CloudFormation (Creates/updates EC2 & Security Grp)│
-│    - Read dynamically generated Public IP from Stack Output │
-│    - Retrieve SSH Key from AWS SSM Parameter Store          │
-│    - Wait for EC2 cloud-init (UserData) setup to finish     │
-│    - SSH into EC2 (via appleboy/ssh-action):                │
-│        • git pull latest code                               │
-│        • Install production backend dependencies (npm ci)   │
-│        • Inject secure .env from GitHub Secrets             │
-│        • Build React frontend bundle                        │
-│        • Start/Reload PM2 service cleanly in fork mode      │
-│        • Test & reload Nginx configuration                  │
-└─────────────────────────────────────────────────────────────┘
-```
+### Key Principles of this Hosting Setup:
+1. **Nginx Web Server (Port 80):** The public entry point. It serves the frontend static build files (HTML, JS, CSS) at lightning speed, and routes all `/api/*` and `/uploads/*` requests to the internal Node.js backend.
+2. **PM2 Process Manager:** Keeps the backend running continuously in the background. If the server reboots or code crashes, PM2 automatically revives it.
+3. **AWS CloudFormation (Infrastructure-as-Code):** You don't have to manually launch instances, configure security groups, or manage `.pem` keys in the AWS console. A single YAML template creates the EC2 instance and key pair automatically.
+4. **AWS Systems Manager (SSM) Parameter Store:** Stores the SSH private key inside AWS. GitHub Actions retrieves it dynamically on every deployment—no manual key copying.
+5. **GitHub Actions CI/CD:** Every time you push code to `main`, GitHub builds the frontend, verifies the EC2 server, SSH-es in, updates code, and reloads PM2 automatically.
 
 ---
 
-## 2. Why This Approach? (Advantages over Manual Hosting)
+## 2. Hosting Prerequisites & Requirements
 
-| Feature | Manual EC2 Hosting (Traditional) | Our CloudFormation + SSM Approach |
+Before deploying, ensure you have:
+
+| Requirement | Purpose | Cost |
 |---|---|---|
-| **EC2 Creation** | Manual clicking in AWS Console | **Infrastructure as Code (IaC)** via 1 YAML file |
-| **Learner Lab Reset** | Instance terminates $\rightarrow$ must recreate from scratch | Run GitHub Action $\rightarrow$ **Recreates instance automatically** |
-| **Changing IP Handling** | Must manually update `EC2_HOST` in secrets every restart | **Zero manual updates**: IP is fetched dynamically from CloudFormation outputs |
-| **SSH Key Security** | Download `.pem` $\rightarrow$ copy into GitHub Secrets | **AWS SSM Parameter Store** stores and provides key dynamically |
-| **Server Crash Protection** | Backend crashes $\rightarrow$ site stays offline | **PM2 process manager** restarts backend instantly on crash or reboot |
-| **Routing & SPA Support** | Refreshing `/dashboard` or `/login` returns 404 | Nginx `try_files $uri /index.html;` ensures React Router works |
+| **AWS Account / Learner Lab** | Hosts the EC2 virtual machine (Ubuntu 24.04, `t2.micro`) | Free Tier / Lab Credits |
+| **MongoDB Atlas Account** | 24/7 Cloud Database (not tied to EC2, persists across reboots) | 100% Free (M0 Cluster) |
+| **GitHub Repository** | Source code hosting and automated CI/CD deployment runner | Free for public repos |
+| **Node.js 20 or 22** | Runtime environment on the server | Open source |
 
 ---
 
-## 3. Universal Project Mapping
+## 3. The 4 Infrastructure Files Needed
 
-Different MERN projects have slightly different folder structures. Use this reference table to map paths for your specific application:
-
-| Component | Eventpatro (This Repo) | Standard MERN (Alternative) | Dual Frontend (Customer + Admin) |
-|---|---|---|---|
-| **Frontend Directory** | `client/` | `frontend/` | `frontend/` (Customer) & `admin/` (Admin) |
-| **Backend Directory** | `server/` | `backend/` | `backend/` |
-| **Backend Port** | `5000` | `5000` or `4000` | `4000` |
-| **Build Output** | `client/dist` | `frontend/dist` or `build` | `frontend/dist` & `admin/dist` |
-| **Nginx Document Root** | `/var/www/eventpatro/client/dist` | `/var/www/<project>/frontend/dist` | `/var/www/<project>/frontend/dist` |
-| **Admin Sub-path** | N/A (Admin is a page) | N/A | `/admin/` (Vite base: `'/admin/'`) |
-| **Uploaded Files** | `server/uploads/` | `backend/uploads/` | `backend/uploads/` |
-
----
-
-## 4. The 4 Reusable Infrastructure Files
-
-Place these 4 configuration files in your repository. They contain zero secrets and can be committed directly to Git.
+To host your project, add these 4 files to your repository:
 
 ### File 1: `infra/ec2-instance.yaml`
-*Provisions the EC2 instance, security firewall, and SSH key pair automatically in AWS.*
+*CloudFormation template that provisions the EC2 instance, security group, and key pair.*
 
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >
-  MERN stack infrastructure: EC2 key pair (private key stored in SSM Parameter Store),
-  Security Group (ports 80 & 22), and Ubuntu 24.04 EC2 instance with Node.js, PM2, and Nginx.
+Description: MERN Stack Hosting Infrastructure (EC2 + SSM KeyPair + Security Group)
 
 Parameters:
   InstanceType:
     Type: String
     Default: t2.micro
-    Description: EC2 instance type (t2.micro is free-tier eligible in Learner Lab)
+    Description: EC2 instance type (t2.micro is free-tier eligible)
 
   UbuntuAMI:
     Type: String
     Default: ami-0e86e20dae9224db8
-    Description: Ubuntu 24.04 LTS AMI for us-east-1
+    Description: Ubuntu 24.04 LTS AMI in us-east-1
 
   SSHLocation:
     Type: String
     Default: 0.0.0.0/0
-    Description: Allow SSH from anywhere (required because GitHub runner IPs change)
+    Description: Allow SSH from anywhere for GitHub Actions runners
 
 Resources:
-  # 1. Key Pair automatically saved in AWS Systems Manager (SSM)
+  # 1. SSH KeyPair auto-saved to Systems Manager Parameter Store
   ServerKeyPair:
     Type: AWS::EC2::KeyPair
     Properties:
       KeyName: !Sub "${AWS::StackName}-key"
 
-  # 2. Security Group allowing Web (80) and SSH (22)
+  # 2. Security Group opening Port 80 (HTTP) and Port 22 (SSH)
   ServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -167,7 +132,7 @@ Resources:
           ToPort: 22
           CidrIp: !Ref SSHLocation
 
-  # 3. Ubuntu EC2 Instance with First-Boot Provisioning Script
+  # 3. Ubuntu Virtual Machine with Startup Bootstrap (UserData)
   ServerInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -185,16 +150,17 @@ Resources:
           set -e
           exec > /var/log/userdata.log 2>&1
 
+          # Install Node.js 22, Git, Nginx, PM2
           apt-get update -y
           curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
           apt-get install -y nodejs nginx git
-
           npm install -g pm2
 
+          # Clone repository into web directory
           mkdir -p /var/www/app
-          # Replace with your repository URL:
           git clone https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>.git /var/www/app
 
+          # Enable Nginx configuration
           cp /var/www/app/infra/nginx.conf /etc/nginx/sites-available/app
           ln -sf /etc/nginx/sites-available/app /etc/nginx/sites-enabled/app
           rm -f /etc/nginx/sites-enabled/default
@@ -208,22 +174,22 @@ Resources:
 
 Outputs:
   PublicIP:
-    Description: Public IP address of the EC2 instance
+    Description: Public IP of the server
     Value: !GetAtt ServerInstance.PublicIp
 
   PublicURL:
-    Description: Live HTTP URL
+    Description: Live Web Application URL
     Value: !Sub "http://${ServerInstance.PublicIp}"
 
   SSMKeyPath:
-    Description: Path in SSM Parameter Store where private key is stored
+    Description: Parameter Store path for private SSH key
     Value: !Sub "/ec2/keypair/${ServerKeyPair.KeyPairId}"
 ```
 
 ---
 
 ### File 2: `infra/nginx.conf`
-*Routes traffic between compiled frontend static assets, uploaded media, and Express backend.*
+*Nginx web server configuration file.*
 
 ```nginx
 server {
@@ -231,21 +197,20 @@ server {
     listen [::]:80;
     server_name _;
 
-    # Maximum file upload size (e.g. for profile/cover photos)
     client_max_body_size 15M;
 
-    # 1. FRONTEND: Serve compiled React/Vite assets
+    # 1. FRONTEND: Serve compiled React static files
     root /var/www/app/client/dist; # <-- adjust to your frontend dist path
     index index.html;
 
-    # React Router fallback: prevent 404 on page refresh
+    # SPA routing fallback: prevents 404 error when refreshing pages
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # 2. BACKEND API: Reverse proxy to Express
+    # 2. BACKEND API: Reverse proxy requests to Express on internal port
     location /api/ {
-        proxy_pass http://127.0.0.1:5000/api/; # <-- adjust port to match backend
+        proxy_pass http://127.0.0.1:5000/api/; # <-- adjust port if backend uses 4000
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -256,8 +221,8 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 
-    # 3. UPLOADS: Priority reverse proxy for local uploaded images
-    # The '^~' ensures this rule takes precedence over static regex caching
+    # 3. UPLOADS: Serve uploaded user media/images
+    # '^~' gives priority so static regex caching doesn't intercept it
     location ^~ /uploads/ {
         proxy_pass http://127.0.0.1:5000/uploads/;
         proxy_set_header Host $host;
@@ -266,7 +231,7 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # 4. STATIC ASSET CACHING: Improves performance for JS/CSS/Fonts
+    # 4. STATIC CACHING: Speeds up CSS, JS, fonts, and images
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$ {
         expires 30d;
         add_header Cache-Control "public, no-transform";
@@ -277,16 +242,16 @@ server {
 ---
 
 ### File 3: `server/ecosystem.config.cjs`
-*Configures PM2 daemon to keep the backend running reliably without memory leaks or SIGINT crashes.*
+*PM2 configuration to manage and run the backend continuously.*
 
 ```javascript
 module.exports = {
   apps: [
     {
-      name: 'mern-backend',
-      script: 'src/server.js',                // Entry point
-      cwd: '/var/www/app/server',             // Backend working directory on EC2
-      exec_mode: 'fork',                      // MUST be 'fork' on single-core t2.micro
+      name: 'web-backend',
+      script: 'src/server.js',          // Path to your backend start file
+      cwd: '/var/www/app/server',       // Backend folder on the server
+      exec_mode: 'fork',                // MUST be 'fork' on single-core t2.micro
       instances: 1,
       autorestart: true,
       watch: false,
@@ -303,10 +268,10 @@ module.exports = {
 ---
 
 ### File 4: `.github/workflows/deploy.yml`
-*Automated GitHub Actions CI/CD pipeline triggering on push to `main`.*
+*Automated GitHub Actions CI/CD deployment pipeline.*
 
 ```yaml
-name: Deploy MERN Application (CloudFormation + SSH)
+name: Deploy Web Application (CloudFormation + SSH)
 
 on:
   push:
@@ -316,7 +281,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  STACK_NAME: mern-app-stack
+  STACK_NAME: web-app-stack
 
 jobs:
   build:
@@ -376,7 +341,7 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" \
             --output text)
           echo "EC2_IP=$IP" >> $GITHUB_OUTPUT
-          echo "Deploying to IP: $IP"
+          echo "Server Public IP: $IP"
 
       - name: Retrieve SSH Key from SSM Parameter Store
         id: get-key
@@ -407,7 +372,7 @@ jobs:
           done
           exit 1
 
-      - name: Deploy Code & Restart PM2 via SSH
+      - name: Deploy Code & Restart Services via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
           EC2_IP: ${{ steps.get-ip.outputs.EC2_IP }}
@@ -420,10 +385,10 @@ jobs:
           script_stop: true
           envs: EC2_IP,MONGODB_URI,JWT_SECRET
           script: |
-            echo ">>> [1/6] Waiting for initial cloud-init bootstrap to finish..."
+            echo ">>> [1/6] Waiting for cloud-init instance bootstrap..."
             sudo cloud-init status --wait || true
 
-            echo ">>> [2/6] Pulling latest changes from git..."
+            echo ">>> [2/6] Pulling latest code..."
             cd /var/www/app
             git fetch origin main
             git reset --hard origin/main
@@ -432,7 +397,7 @@ jobs:
             cd /var/www/app/server
             npm ci --omit=dev
 
-            echo ">>> [4/6] Injecting environment variables..."
+            echo ">>> [4/6] Generating server .env file..."
             printf "%s\n" \
               "PORT=5000" \
               "NODE_ENV=production" \
@@ -455,225 +420,191 @@ jobs:
             sudo nginx -t && sudo systemctl reload nginx
 
       - name: Print Live Web Application URL
-        run: echo "🎉 Application is live at http://${{ steps.get-ip.outputs.EC2_IP }}"
+        run: echo "🎉 Website is live at http://${{ steps.get-ip.outputs.EC2_IP }}"
 
-      - name: Cleanup Temporary Key
+      - name: Clean up temporary SSH key
         if: always()
         run: rm -f /tmp/server-key.pem
 ```
 
 ---
 
-## 5. Prerequisites & One-Time Setup
+## 4. Step-by-Step Hosting Setup (From Scratch)
 
-### Step 1: MongoDB Atlas (Free Cloud Database)
-1. Log into [MongoDB Atlas](https://cloud.mongodb.com/).
-2. Create a free **M0 Cluster** (permanent free tier).
-3. Under **Security $\rightarrow$ Database Access**: Create a username and password.
-4. Under **Security $\rightarrow$ Network Access**: Click **Add IP Address** $\rightarrow$ Select **Allow Access from Anywhere (`0.0.0.0/0`)**.
-   > *Why?* Because AWS Learner Lab changes public IP addresses on each reset; restricting access to a specific IP will cause backend crashes when the IP changes.
-5. Under **Database $\rightarrow$ Connect $\rightarrow$ Drivers**: Copy your connection URI string:
+Follow these 5 steps to take your project from local files to live hosting on the internet:
+
+### Step 1: Set Up Cloud Database (MongoDB Atlas)
+1. Go to [MongoDB Atlas](https://cloud.mongodb.com/) and create a free account.
+2. Create an **M0 Free Cluster**.
+3. Under **Database Access**: Create a database user and password.
+4. Under **Network Access**: Click **Add IP Address** $\rightarrow$ Click **Allow Access from Anywhere (`0.0.0.0/0`)** $\rightarrow$ Confirm.  
+   *(Crucial: EC2 IP changes when restarted; this ensures the server never gets blocked).*
+5. Under **Database $\rightarrow$ Connect $\rightarrow$ Drivers**: Copy your connection string:
    ```
    mongodb+srv://<USERNAME>:<PASSWORD>@<CLUSTER>.mongodb.net/<DB_NAME>?retryWrites=true&w=majority
    ```
 
-### Step 2: SMTP / Email Authentication (Optional)
-If your app sends emails (e.g., OTP verification):
-1. In Google Account: Navigate to **Security $\rightarrow$ 2-Step Verification $\rightarrow$ App Passwords**.
-2. Generate an App Password for "Mail".
-3. Save the 16-character code (e.g. `abcd efgh ijkl mnop`).
-
-### Step 3: AWS Learner Lab Credentials
-1. In AWS Academy / VocLabs: Click **Start Lab** and wait for the circle to turn **green**.
-2. Click **AWS Details** $\rightarrow$ Click **Show** next to AWS CLI.
-3. Keep the 3 lines from the `[default]` block open:
+### Step 2: Collect AWS Credentials
+1. In your AWS Learner Lab / VocLabs console: Click **Start Lab** and wait for the circle to turn **green**.
+2. Click **AWS Details $\rightarrow$ Show** (next to AWS CLI).
+3. Copy the 3 values from the `[default]` block:
    - `aws_access_key_id`
    - `aws_secret_access_key`
-   - `aws_session_token` (long string)
+   - `aws_session_token` (very long string)
 
-### Step 4: Configure GitHub Secrets & Variables
-In your GitHub Repository, navigate to **Settings $\rightarrow$ Secrets and variables $\rightarrow$ Actions**:
+### Step 3: Configure GitHub Secrets & Variables
+In your GitHub Repository, open **Settings $\rightarrow$ Secrets and variables $\rightarrow$ Actions**:
 
 #### Add Repository Secrets:
-| Secret Name | Value | Description |
-|---|---|---|
-| `AWS_ACCESS_KEY_ID` | `ASIA...` | Temporary AWS access key from Learner Lab |
-| `AWS_SECRET_ACCESS_KEY` | `xxxx...` | Temporary AWS secret key |
-| `AWS_SESSION_TOKEN` | `FwoGZX...` | Temporary AWS session token |
-| `MONGODB_URI` | `mongodb+srv://...` | Full MongoDB Atlas connection string |
-| `JWT_SECRET` | `your_secret_string` | Random long string used for signing authentication tokens |
-
-*(Add any additional project secrets as needed, such as `SMTP_USER`, `SMTP_PASS`, or Cloudinary keys).*
+| Secret Name | Value |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | `ASIA...` (from Step 2) |
+| `AWS_SECRET_ACCESS_KEY` | `xxxx...` (from Step 2) |
+| `AWS_SESSION_TOKEN` | `FwoGZX...` (full long string from Step 2) |
+| `MONGODB_URI` | Full connection string (from Step 1) |
+| `JWT_SECRET` | Any long random string for auth tokens |
 
 #### Add Repository Variable:
-Under the **Variables** tab (next to Secrets):
+Click the **Variables** tab $\rightarrow$ Click **New repository variable**:
 - Name: `AWS_REGION`
 - Value: `us-east-1`
 
+### Step 4: Push Infrastructure Files & Deploy
+1. Place the 4 files (`infra/ec2-instance.yaml`, `infra/nginx.conf`, `server/ecosystem.config.cjs`, `.github/workflows/deploy.yml`) into your repository.
+2. Commit and push to `main`:
+   ```bash
+   git add .
+   git commit -m "feat(hosting): add AWS CloudFormation and automated CI/CD pipeline"
+   git push origin main
+   ```
+3. Open your GitHub repository $\rightarrow$ Click the **Actions** tab.
+4. The workflow will run automatically! (First run takes 6–8 minutes to create the server).
+
+### Step 5: Verify Live Website
+Once the workflow has a green checkmark:
+- Expand the step **Print Live Web Application URL**.
+- Click the printed link (e.g. `http://54.x.x.x`) to view your live, running web application!
+
 ---
 
-## 6. Step-by-Step: Deploying for the First Time
+## 5. Adapting Paths for Any Project Repository
 
-1. **Commit and Push Infrastructure Files:**
-   Add `infra/ec2-instance.yaml`, `infra/nginx.conf`, `server/ecosystem.config.cjs`, and `.github/workflows/deploy.yml` to your Git repo and push to `main`.
-2. **Trigger Workflow:**
-   Navigate to GitHub $\rightarrow$ **Actions** $\rightarrow$ Select **Deploy MERN Application** $\rightarrow$ Click **Run workflow**.
-3. **Monitor the First Run:**
-   - The first run takes **6 to 8 minutes** because AWS creates the virtual machine, sets up the security group, and `cloud-init` installs Node.js, PM2, and Nginx.
-   - Subsequent code-only deployments take **under 2 minutes** because CloudFormation detects the server already exists and skips directly to pulling and restarting the app.
-4. **Access the Application:**
-   Click on the completed job, open the **Print Live Web Application URL** step, and open the URL in your browser!
+If your project folders differ from this template, adjust these exact lines:
+
+| What to change | Where to change it | What to change it to |
+|---|---|---|
+| **Frontend folder is `frontend/` instead of `client/`** | `deploy.yml` & `nginx.conf` | Change `cd client` to `cd frontend`, and root to `/var/www/app/frontend/dist` |
+| **Backend folder is `backend/` instead of `server/`** | `deploy.yml` & `ecosystem.config.cjs` | Change `cd server` to `cd backend`, and `cwd` to `/var/www/app/backend` |
+| **Backend runs on port 4000 instead of 5000** | `nginx.conf`, `deploy.yml`, `ecosystem.config.cjs` | Change `5000` to `4000` |
+| **App has an Admin portal (e.g. `/admin`)** | `nginx.conf` | Add: `location /admin/ { try_files $uri $uri/ /admin/index.html; }` |
 
 ---
 
-## 7. Operational Guide: Handling Learner Lab Timeouts
+## 6. Handling AWS Lab Expiration & Automatic Server Recovery
 
-In student environments like AWS Academy Learner Lab or VocLabs, sessions automatically expire after 4 hours.
+In student environments (VocLabs / AWS Academy), sessions automatically expire after 4 hours.
 
 ### What happens when the lab times out?
-- The EC2 instance powers off.
-- The previous AWS temporary keys expire (resulting in `voc-cancel-cred` or `403 AccessDenied`).
-- The website temporarily becomes unreachable.
+AWS shuts down the virtual machine and revokes the temporary credentials.
 
-### How to bring it back up in 60 seconds:
-1. Open Learner Lab and click **Start Lab**.
-2. Click **AWS Details $\rightarrow$ Show** and copy the fresh `[default]` credentials.
-3. In GitHub Settings $\rightarrow$ Secrets, update:
-   - `AWS_ACCESS_KEY_ID`
-   - `AWS_SECRET_ACCESS_KEY`
-   - `AWS_SESSION_TOKEN`
-4. In GitHub Actions, click **Re-run all jobs** on the latest workflow.
-5. CloudFormation will detect the instance, start it up, update the IP address, deploy your code, and your site is back online!
+### How to bring your website back up in 60 seconds:
+1. Open the lab and click **Start Lab**.
+2. Click **AWS Details $\rightarrow$ Show** and copy the new `[default]` keys.
+3. Update `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN` in GitHub Secrets.
+4. Go to **Actions** in GitHub and click **Re-run all jobs**.
+5. CloudFormation automatically finds your instance, updates the IP, and brings your site back online!
 
 ---
 
-## 8. Real-World Issues Encountered & Concrete Fixes
+## 7. Common Hosting Issues & Fixes
 
-Below are the 8 real-world issues encountered and resolved during implementation. This troubleshooting section serves as a direct reference for common bugs:
-
-### 1. Hardcoded `localhost:5000` in React Production Build
-* **Symptom:** The site loads, but API calls fail with `ERR_CONNECTION_REFUSED localhost:5000`.
-* **Cause:** Frontend utility files (like `api.js` or Axios instances) had `http://localhost:5000` hardcoded. When built for production, the user's browser tried to reach their own laptop instead of the server.
-* **Fix:** Use relative paths in production:
+### 1. `ERR_CONNECTION_REFUSED localhost:5000`
+* **Cause:** Frontend code calls `http://localhost:5000/api` directly instead of a relative path. In production, this tells the user's browser to connect to their own computer!
+* **Fix:** In your frontend API utility, use relative paths in production:
   ```javascript
-  const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
+  const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:5000/api';
   ```
 
-### 2. Uploaded Media / Images Returning 404
-* **Symptom:** Images uploaded to `/uploads/` do not render or return 404.
-* **Cause:** In Nginx, regex rules like `location ~* \.(jpg|png)` take priority over standard prefix rules like `location /uploads/`. Nginx looked for uploaded files in the frontend's static `dist/` directory instead of forwarding to Express.
-* **Fix:** Add the `^~` priority modifier in Nginx:
+### 2. `502 Bad Gateway` / `Unexpected token '<'`
+* **Cause:** Nginx is running, but Express is down or crashed on port 5000.
+* **Fix:** Connect to EC2 and inspect backend error logs: `pm2 logs --lines 50`. Usually caused by a missing `.env` variable or MongoDB Atlas blocking the connection.
+
+### 3. Uploaded Images Return 404
+* **Cause:** Nginx static regex rules (`\.(jpg|png)`) intercept image requests before the `/uploads/` rule.
+* **Fix:** Use the `^~` modifier in `nginx.conf`:
   ```nginx
   location ^~ /uploads/ {
       proxy_pass http://127.0.0.1:5000/uploads/;
   }
   ```
 
-### 3. PM2 Cluster Mode Unstable Restarts (SIGINT / Exit Code 0)
-* **Symptom:** Backend repeatedly restarts in PM2 logs: `Script had too many unstable restarts (16). Stopped. "errored"`.
-* **Cause:** On single-vCPU instances (`t2.micro`), cluster mode attempts multi-core IPC messaging that can trigger immediate SIGINT shutdowns.
-* **Fix:** Explicitly configure fork mode in `ecosystem.config.cjs`:
-  ```javascript
-  exec_mode: 'fork',
-  instances: 1,
-  ```
+### 4. PM2 Crashes with `SIGINT` (16 Restarts Errored)
+* **Cause:** Running PM2 in cluster mode on a single-core `t2.micro` machine.
+* **Fix:** Always set `exec_mode: 'fork'` and `instances: 1` in `ecosystem.config.cjs`.
 
-### 4. Zod `.partial()` Crash on Refined Schemas
-* **Symptom:** Express crashed on startup with `Error: .partial() cannot be used on object schemas containing refinements`.
-* **Cause:** Calling `.refine()` directly on an object schema turns it into a `ZodEffects` wrapper, which does not support `.partial()`.
-* **Fix:** Define the base schema first:
-  ```javascript
-  const baseEventSchema = z.object({ ... });
-  const createEventSchema = baseEventSchema.refine(...);
-  const updateEventSchema = baseEventSchema.partial().refine(...);
-  ```
-
-### 5. `502 Bad Gateway` / `Unexpected token '<'`
-* **Symptom:** Logging in or fetching data returns an HTML error page instead of JSON.
-* **Cause:** Nginx is running, but Express on port 5000 crashed or stopped (frequently due to MongoDB connection failure or lab timeout).
-* **Fix:** Verify `0.0.0.0/0` is active in MongoDB Atlas Network Access, verify credentials, and inspect logs on EC2: `pm2 logs --lines 50`.
-
-### 6. Drone-SSH Heredoc Injection Corrupting `.env`
-* **Symptom:** Secrets contained trailing strings like `DRONE_SSH_PREV_COMMAND_EXIT_CODE`.
-* **Cause:** The `appleboy/ssh-action` runner injects shell status variables when using multiline `cat << 'EOF'`.
-* **Fix:** Use formatted `printf "%s\n"` statements instead of heredocs when writing `.env` files.
-
-### 7. PM2 Caching Old Environment Variables
-* **Symptom:** Updated GitHub Secrets were not reflected on the server after redeploying.
-* **Cause:** Running plain `pm2 restart` retains cached environment variables from the initial launch.
-* **Fix:** Always include the `--update-env` flag when restarting PM2:
-  ```bash
-  pm2 restart all --update-env
-  ```
-
-### 8. Premature SSH Execution Before EC2 Bootstrap Finishes
-* **Symptom:** Deployments failed with `cd: /var/www/...: No such file or directory`.
-* **Cause:** SSH opened before the initial `UserData` script finished cloning the repo and installing packages.
-* **Fix:** Add `sudo cloud-init status --wait || true` at the beginning of the deployment script.
+### 5. Page Refresh Returns 404 on React Router Paths
+* **Cause:** Nginx looks on disk for a folder named `/dashboard`, which doesn't exist.
+* **Fix:** Ensure `try_files $uri $uri/ /index.html;` is present in `nginx.conf`.
 
 ---
 
-## 9. Copy-and-Paste AI Prompt for Your Friends
+## 8. Live Server Maintenance & Useful Commands
 
-If a friend wants their AI coding assistant to implement this architecture in their own project repository, they can copy and paste the prompt below:
-
-```markdown
-I want to host my MERN stack application on AWS EC2 using an automated CloudFormation + GitHub Actions CI/CD pipeline.
-
-Please inspect my repository structure and implement the following architecture:
-
-1. CloudFormation Template (infra/ec2-instance.yaml):
-   - Provisions an Ubuntu 24.04 LTS t2.micro EC2 instance.
-   - Creates a key pair automatically stored in AWS Systems Manager (SSM) Parameter Store (/ec2/keypair/*).
-   - Configures a Security Group allowing port 80 (HTTP) and port 22 (SSH).
-   - Includes UserData to install Node.js 22, PM2, Git, and Nginx, clones this repository, and links Nginx configs.
-   - Exports PublicIP, PublicURL, and SSMKeyPath.
-
-2. Nginx Reverse Proxy (infra/nginx.conf):
-   - Serves the compiled React frontend from the production build directory with try_files $uri $uri/ /index.html.
-   - Reverse proxies /api/ requests to Express on internal port (e.g. 5000 or 4000).
-   - Uses location ^~ /uploads/ priority proxying so uploaded files are served from Express without getting blocked by static asset caching regexes.
-
-3. PM2 Process Manager (server/ecosystem.config.cjs or backend/ecosystem.config.cjs):
-   - Sets exec_mode: 'fork' and instances: 1 to ensure stability on single-core t2.micro instances.
-
-4. GitHub Actions CI/CD (.github/workflows/deploy.yml):
-   - Triggers on push to main.
-   - Build job: compiles the frontend bundle.
-   - Deploy job: authenticates using temporary AWS credentials, runs aws cloudformation deploy, retrieves the PublicIP dynamically from stack outputs, fetches the SSH key from SSM, waits for cloud-init bootstrap, SSH-es into EC2, pulls code, injects .env from GitHub Secrets, builds frontend, and restarts PM2 with --update-env.
-
-Please adapt paths and ports to match my repository structure, and guide me through the required GitHub Secrets.
-```
-
----
-
-## 10. Quick-Reference Server Commands
-
-Connect to your EC2 instance via **EC2 Instance Connect** (AWS Console) or SSH, and use these commands for live maintenance:
+Connect to your EC2 instance via **EC2 Instance Connect** in the AWS Console and run these commands to inspect the live server:
 
 ```bash
-# Check status of Express backend
+# Check if the Node.js backend is running
 pm2 status
 
-# View live backend console logs
+# View live backend error and console logs
 pm2 logs --lines 50
 
-# Restart backend and force reload fresh .env variables
+# Restart backend with fresh environment variables
 pm2 restart all --update-env
 
-# Inspect active environment variables
-cat /var/www/app/server/.env
-
-# Monitor live web traffic arriving through Nginx in real-time
+# View real-time incoming web traffic through Nginx
 sudo tail -f /var/log/nginx/access.log
 
-# Monitor live Nginx errors (e.g. 502 Bad Gateway)
+# View Nginx web server error logs
 sudo tail -f /var/log/nginx/error.log
 
-# Test and reload Nginx configuration
+# Test Nginx syntax and reload after configuration changes
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
 ---
 
-*Universal MERN DevOps Guide — Maintained and tested with AWS CloudFormation & GitHub Actions CI/CD.*
+## 9. Copy-Paste AI Prompt to Host Any Repository
+
+If your classmates or friends want their AI assistant to set up this exact hosting pipeline for their repository, they can copy and paste this prompt:
+
+```markdown
+I want to host my full-stack web application on AWS EC2 using an automated CloudFormation + GitHub Actions CI/CD pipeline.
+
+Please inspect my repository structure and implement the following hosting architecture:
+
+1. CloudFormation Template (infra/ec2-instance.yaml):
+   - Provisions an Ubuntu 24.04 LTS t2.micro EC2 instance.
+   - Automatically generates an SSH KeyPair stored in AWS Systems Manager Parameter Store (/ec2/keypair/*).
+   - Configures a Security Group opening Port 80 (HTTP) and Port 22 (SSH).
+   - Injects UserData script to install Node.js 22, Git, Nginx, PM2, and clone this repository.
+   - Outputs PublicIP, PublicURL, and SSMKeyPath.
+
+2. Nginx Web Server (infra/nginx.conf):
+   - Serves the compiled frontend build with try_files $uri $uri/ /index.html (SPA routing).
+   - Reverse proxies /api/ requests to Express on internal port (e.g. 5000 or 4000).
+   - Reverse proxies /uploads/ with the '^~' priority modifier so media uploads are not blocked by static regex rules.
+
+3. PM2 Configuration (server/ecosystem.config.cjs or backend/ecosystem.config.cjs):
+   - Configures exec_mode: 'fork' and instances: 1 to ensure stability on single-core t2.micro instances.
+
+4. GitHub Actions Workflow (.github/workflows/deploy.yml):
+   - Build job: compiles the frontend bundle.
+   - Deploy job: authenticates to AWS, deploys CloudFormation stack, dynamically retrieves PublicIP and SSM SSH key, waits for cloud-init bootstrap, connects via SSH, pulls code, generates .env from GitHub Secrets, builds frontend, and restarts PM2 cleanly with --update-env.
+
+Please adapt all directory paths and ports to match my specific project structure, and list the exact GitHub Secrets I need to configure.
+```
+
+---
+
+*Web Application Hosting & DevOps Deployment Guide — Automated with AWS CloudFormation, SSM Parameter Store, Nginx, PM2 & GitHub Actions.*
