@@ -9,13 +9,15 @@
 ## Table of Contents
 
 1. [What is MERN? (The 1-Minute Explanation)](#1-what-is-mern-the-1-minute-explanation)
-2. [High-Level Architecture (How Everything Connects)](#2-high-level-architecture-how-everything-connects)
-3. [Where is What? (Codebase Tour & File Guide)](#3-where-is-what-codebase-tour--file-guide)
-4. [Authentication & Security Flow (Signup, OTP, Login, JWT)](#4-authentication--security-flow-signup-otp-login-jwt)
-5. [Image Uploads: Cloudinary vs Local Disk (How It Works)](#5-image-uploads-cloudinary-vs-local-disk-how-it-works)
-6. [Events, Forms & Registrations (Core Business Logic)](#6-events-forms--registrations-core-business-logic)
-7. [Data Validation with Zod (Why and Where)](#7-data-validation-with-zod-why-and-where)
-8. [Common Teacher Viva Questions & Exact Answers](#8-common-teacher-viva-questions--exact-answers)
+2. [Project Initialization & Packages Installed (From Scratch)](#2-project-initialization--packages-installed-from-scratch)
+3. [Package Dictionary: What Every Library Does and Why](#3-package-dictionary-what-every-library-does-and-why)
+4. [High-Level Architecture (How Everything Connects)](#4-high-level-architecture-how-everything-connects)
+5. [Where is What? (Codebase Tour & File Guide)](#5-where-is-what-codebase-tour--file-guide)
+6. [Authentication & Security Flow (Signup, OTP, Login, JWT)](#6-authentication--security-flow-signup-otp-login-jwt)
+7. [Image Uploads: Cloudinary vs Local Disk (How It Works)](#7-image-uploads-cloudinary-vs-local-disk-how-it-works)
+8. [Events, Forms & Registrations (Core Business Logic)](#8-events-forms--registrations-core-business-logic)
+9. [Data Validation with Zod (Why and Where)](#9-data-validation-with-zod-why-and-where)
+10. [Common Teacher Viva Questions & Exact Answers](#10-common-teacher-viva-questions--exact-answers)
 
 ---
 
@@ -36,7 +38,96 @@ MERN is an acronym for four technologies working together to make a full-stack w
 
 ---
 
-## 2. High-Level Architecture (How Everything Connects)
+## 2. Project Initialization & Packages Installed (From Scratch)
+
+If your teacher asks: *"How did you start this project from an empty folder?"* or *"Show me how to create a Vite React app and initialize an Express server"*, here are the exact commands:
+
+### Part A: Initializing the Frontend (`client/`)
+
+```bash
+# 1. Create the React + Vite frontend inside a folder called 'client'
+npm create vite@latest client -- --template react
+
+# 2. Move into the client folder
+cd client
+
+# 3. Install core dependencies
+npm install react-router-dom lucide-react
+
+# 4. Install dev dependencies (development tools)
+npm install -D vite @vitejs/plugin-react oxlint
+
+# 5. Start the frontend development server
+npm run dev
+# -> Opens http://localhost:5173
+```
+
+### Part B: Initializing the Backend (`server/`)
+
+```bash
+# 1. Create and move into the server folder
+mkdir server
+cd server
+
+# 2. Initialize a Node.js project (creates package.json)
+npm init -y
+
+# 3. Install all production packages
+npm install express mongoose dotenv cors bcryptjs jsonwebtoken zod multer nodemailer cloudinary helmet express-rate-limit
+
+# 4. Install development tool (Nodemon for auto-reloading on save)
+npm install -D nodemon
+
+# 5. Add scripts to package.json:
+# "scripts": {
+#   "start": "node src/server.js",
+#   "dev": "nodemon src/server.js"
+# }
+
+# 6. Start the backend development server
+npm run dev
+# -> Server running on http://localhost:5000
+```
+
+---
+
+## 3. Package Dictionary: What Every Library Does and Why
+
+If the teacher points to any package in `package.json` and asks: *"What does this package do in your project?"*, give them these exact 1-sentence answers:
+
+### Backend Packages (`server/package.json`)
+
+| Package Name | What it does in Eventpatro | Why we need it |
+|---|---|---|
+| **`express`** | The web server framework for Node.js. | Allows us to define URL routes (like `app.get('/api/events')`), middleware, and handle HTTP JSON requests. |
+| **`mongoose`** | Object Data Modeling (ODM) library for MongoDB. | Lets us write structured JavaScript schemas/models (`User.js`, `Event.js`) to interact with MongoDB collections easily. |
+| **`dotenv`** | Environment variable loader. | Reads the `.env` file and loads sensitive secrets (like `MONGODB_URI`, `JWT_SECRET`, and email passwords) into `process.env`. |
+| **`cors`** | Cross-Origin Resource Sharing middleware. | Allows the frontend on port 5173 to request data from the backend on port 5000 during local development without browser security blocks. |
+| **`bcryptjs`** | Password hashing library. | Securely hashes passwords with 10 salt rounds before saving to the database so passwords are never stored in plain text. |
+| **`jsonwebtoken`** | JSON Web Token (JWT) generator and verifier. | Signs secure digital tokens on user login so the server can authenticate subsequent requests without database session lookups. |
+| **`zod`** | TypeScript-first schema validation library. | Validates incoming form request bodies (checking string lengths, email formats, future event dates) before controllers process them. |
+| **`multer`** | Multipart/form-data middleware for file uploads. | Handles incoming file uploads (event cover photos, payment QR receipts) in memory so they can be processed or saved. |
+| **`nodemailer`** | Email sending utility for Node.js. | Connects to Gmail SMTP to send 6-digit OTP codes to students during signup and password verification. |
+| **`cloudinary`** | Cloud-based media storage SDK. | Automatically uploads event cover images to Cloudinary's global media servers when API credentials are provided. |
+| **`helmet`** | HTTP security headers middleware. | Sets secure HTTP headers (like hiding `X-Powered-By: Express` and preventing clickjacking) to guard against web vulnerabilities. |
+| **`express-rate-limit`** | Rate limiting middleware. | Limits how many requests an IP can make per minute to protect the API and login routes from brute-force spam attacks. |
+| **`nodemon`** (devDep) | Development server watcher. | Automatically restarts the Node server whenever we save changes in backend files, speeding up development. |
+
+### Frontend Packages (`client/package.json`)
+
+| Package Name | What it does in Eventpatro | Why we need it |
+|---|---|---|
+| **`react`** | The core React UI library. | Lets us build reusable, component-based user interfaces with state (`useState`, `useEffect`). |
+| **`react-dom`** | React rendering engine for browsers. | Renders React components directly into the browser's Document Object Model (DOM). |
+| **`react-router-dom`** | Client-side routing library for React. | Enables multi-page navigation (`/`, `/dashboard`, `/admin`, `/login`) without reloading the browser tab (Single Page Application). |
+| **`lucide-react`** | Modern SVG icon library for React. | Provides clean, lightweight icons (Calendar, MapPin, Search, Clock, Eye, AlertCircle) used across the UI. |
+| **`vite`** (devDep) | Lightning-fast frontend build tool and dev server. | Provides instant Hot Module Replacement (HMR) during coding and compiles React into optimized static JS/CSS for production. |
+| **`@vitejs/plugin-react`** (devDep) | Vite plugin for React. | Enables JSX parsing and Fast Refresh in Vite. |
+| **`oxlint`** (devDep) | Ultra-fast JavaScript linter. | Catches code syntax bugs and bad practices across the frontend code. |
+
+---
+
+## 4. High-Level Architecture (How Everything Connects)
 
 ```
 [ USER BROWSER ] 
@@ -73,7 +164,7 @@ MERN is an acronym for four technologies working together to make a full-stack w
 
 ---
 
-## 3. Where is What? (Codebase Tour & File Guide)
+## 5. Where is What? (Codebase Tour & File Guide)
 
 Whenever your teacher asks: *"Where is the code that does X?"*, here is your cheat sheet:
 
@@ -111,7 +202,7 @@ Whenever your teacher asks: *"Where is the code that does X?"*, here is your che
 
 ---
 
-## 4. Authentication & Security Flow (Signup, OTP, Login, JWT)
+## 6. Authentication & Security Flow (Signup, OTP, Login, JWT)
 
 ### Step 1: User Signup
 1. User enters name, email (`@sunway.edu.np` or standard email), student ID, and password on `Signup.jsx`.
@@ -145,7 +236,7 @@ Whenever your teacher asks: *"Where is the code that does X?"*, here is your che
 
 ---
 
-## 5. Image Uploads: Cloudinary vs Local Disk (How It Works)
+## 7. Image Uploads: Cloudinary vs Local Disk (How It Works)
 
 Our upload system in [`server/src/routes/upload.routes.js`](file:///home/kash/year1/training-sem/mern_project/server/src/routes/upload.routes.js) has an **intelligent dual-mode design**:
 
@@ -171,7 +262,7 @@ cloudinary.com/...         Nginx proxies /uploads/ to Express static folder
 
 ---
 
-## 6. Events, Forms & Registrations (Core Business Logic)
+## 8. Events, Forms & Registrations (Core Business Logic)
 
 ### Dynamic Form Builder
 Unlike simple apps that only collect name and email, Eventpatro allows admins to build **custom registration forms** per event:
@@ -186,7 +277,7 @@ Unlike simple apps that only collect name and email, Eventpatro allows admins to
 
 ---
 
-## 7. Data Validation with Zod (Why and Where)
+## 9. Data Validation with Zod (Why and Where)
 
 Instead of relying solely on Mongoose or letting bad data crash the server, we use **Zod** schema validation middleware:
 - Located in `server/src/validations/`.
@@ -196,7 +287,7 @@ Instead of relying solely on Mongoose or letting bad data crash the server, we u
 
 ---
 
-## 8. Common Teacher Viva Questions & Exact Answers
+## 10. Common Teacher Viva Questions & Exact Answers
 
 ### Q1: What is the difference between SQL and NoSQL (MongoDB)?
 > **Answer:** "SQL databases (like MySQL/PostgreSQL) are relational and store data in rigid tables with fixed rows and columns. MongoDB is a NoSQL database that stores data in flexible, JSON-like BSON documents. We chose MongoDB because our data structures—like custom event form questions and nested registrations—are dynamic and schema-flexible."
