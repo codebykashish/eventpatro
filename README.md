@@ -1,306 +1,171 @@
-# Eventpatro
+# Eventpatro — Architecture & Deployment Guide
 
-A campus event management platform for Sunway College Kathmandu. Students can browse, register, and track events. Admins can create and manage events, review applications, and mark attendance.
-
----
-
-## What it does
-
-Eventpatro lets the college publish workshops, seminars, competitions, and other events in one place. Students sign up with their college email, browse upcoming events, and register or apply. Admins manage the full lifecycle — from creating an event to selecting applicants and recording attendance. After attending, students can leave feedback.
+This project is a full-stack MERN (MongoDB, Express, React, Node.js) event management web application. This document details **how the application is deployed, how the infrastructure works, how the CI/CD pipeline runs, and how secrets are handled**.
 
 ---
 
-## Features
+## 1. High-Level Architecture
 
-| Students | Admins |
-|---|---|
-| Browse and search events | Create, edit, and delete events |
-| Filter by category and timeline | Set registration type (open or application-based) |
-| Register or apply for events | Build custom application forms |
-| Cancel registrations | Review and select/reject applicants |
-| View registration code (EP-XXXXXX) | Mark attendance for registered students |
-| Track registered and attended events | View and manage all users |
-| Submit feedback after attending | View all registrations per event |
-| Update profile and profile picture | Delete user accounts |
-| Email OTP verification on signup | — |
+The production setup uses a single Ubuntu EC2 instance on AWS managed through Infrastructure as Code (CloudFormation) and automated GitHub Actions CI/CD.
+
+```
+                      Internet / Users
+                             │
+                             ▼ (Port 80 HTTP)
+             ┌────────────────────────────────┐
+             │       AWS EC2 (Ubuntu 24)      │
+             │                                │
+             │  ┌──────────────────────────┐  │
+             │  │       Nginx Proxy        │  │
+             │  └──────┬────────────┬──────┘  │
+             │         │            │         │
+             │         │ /api/*     │ /*      │
+             │         ▼            ▼         │
+             │  ┌────────────┐ ┌───────────┐  │
+             │  │ PM2 Node.js│ │ Static    │  │
+             │  │   Express  │ │ React App │  │
+             │  │ (Port 5000)│ │  (dist/)  │  │
+             │  └──────┬─────┘ └───────────┘  │
+             └─────────┼──────────────────────┘
+                       ▼
+             ┌───────────────────┐
+             │   MongoDB Atlas   │
+             │ (Database Cloud)  │
+             └───────────────────┘
+```
+
+### How Traffic Flows:
+1. When a user opens `http://<EC2-IP>/`, **Nginx** handles the request and directly serves the compiled, optimized React static files (`/var/www/eventpatro/client/dist`).
+2. When the React app makes an API request (e.g., `GET /api/events`), **Nginx** acts as a reverse proxy, forwarding traffic internally to `http://localhost:5000`.
+3. The **Express API** (kept running 24/7 by **PM2**) processes the business logic and queries **MongoDB Atlas**.
 
 ---
 
-## Tech Stack
+## 2. Infrastructure as Code (AWS CloudFormation)
 
-| Layer | Technology | Purpose |
+Instead of manually clicking through the AWS console every time, the infrastructure is defined as code in [`infra/ec2-instance.yaml`](file:///home/kash/year1/training-sem/mern_project/infra/ec2-instance.yaml).
+
+### Resources Provisioned by CloudFormation:
+* **EC2 Instance (`t2.micro`)**: Runs Ubuntu 24.04 LTS.
+* **Security Group (Firewall)**:
+  * Port `22` (SSH): Open for GitHub Actions deployment and manual terminal access.
+  * Port `80` (HTTP): Open to the public for web traffic.
+  * Port `5000`: Blocked from outside access; only reachable internally by Nginx.
+* **EC2 Key Pair (`AWS::EC2::KeyPair`)**: Automatically generates an SSH key pair.
+* **SSM Parameter Store**: Stores the generated private SSH key safely in AWS Systems Manager (`/ec2/keypair/<key-id>`) so GitHub Actions can retrieve it without hardcoding keys anywhere.
+* **UserData Startup Script**: Automatically runs on initial boot to install Node.js 22, Nginx, PM2, and clone the repository.
+
+---
+
+## 3. Automated CI/CD Pipeline (GitHub Actions)
+
+Every time code is pushed to the `main` branch, the workflow in [`.github/workflows/deploy.yml`](file:///home/kash/year1/training-sem/mern_project/.github/workflows/deploy.yml) triggers automatically.
+
+It runs in two distinct jobs:
+
+### Job 1: Build (Runs in GitHub's Cloud Runner)
+1. Checks out the code.
+2. Sets up Node.js 22.
+3. Installs frontend dependencies (`npm ci` in `client`).
+4. Runs `npm run build` with `VITE_API_URL=/api` to compile the React code into static HTML/CSS/JS (`client/dist`).
+5. Uploads `client/dist` as a workflow artifact.
+
+### Job 2: Deploy (Provisions & Updates EC2)
+1. Authenticates to AWS using temporary or permanent IAM credentials.
+2. Runs `aws cloudformation deploy` to create or update the EC2 instance stack.
+3. Queries CloudFormation stack outputs to get:
+   * The EC2 instance's **Public IP**.
+   * The **SSM Parameter Store path** of the SSH private key.
+4. Retrieves the SSH private key dynamically from SSM Parameter Store.
+5. Waits for SSH port 22 on the EC2 instance to be ready.
+6. Connects to EC2 using `appleboy/ssh-action` and runs the deploy script:
+   * Pulls the latest code from `main` (`git reset --hard origin/main`).
+   * Installs production dependencies in `server` (`npm ci --omit=dev`).
+   * Writes the production `.env` file using GitHub repository secrets.
+   * Restarts the Node.js backend using **PM2** (`pm2 restart eventpatro-api`).
+   * Copies the fresh React `dist/` build and reloads **Nginx** (`sudo systemctl reload nginx`).
+
+---
+
+## 4. Secrets & Configuration Management
+
+To keep credentials secure, **no passwords, tokens, or database strings are committed into GitHub**. Everything is stored in **GitHub Repository Secrets**:
+
+| Secret Name | Purpose | Where It Is Used |
 |---|---|---|
-| Frontend framework | React 19 | UI rendering |
-| Build tool | Vite | Local development and asset bundling |
-| Routing | React Router v7 | Client-side navigation |
-| Styling | Plain CSS | Component and page styles |
-| Icons | Lucide React | UI icons |
-| HTTP client | Fetch API | Browser-native API communication |
-| Backend | Node.js with Express | REST API server |
-| Authentication | JWT | Token-based session handling |
-| Password hashing | bcryptjs | Secure password hashing |
-| Input validation | Zod | Server-side request schema validation |
-| Email | Nodemailer | OTP delivery via Gmail SMTP |
-| Image storage | Cloudinary | Profile pictures and event cover images |
-| Security | Helmet, CORS, express-rate-limit | HTTP protection and rate limiting |
-| Database | MongoDB Atlas with Mongoose | Cloud document database and schema modeling |
-| Unique codes | crypto / uuid | Registration code generation |
-| Environment | dotenv | Configuration and secret management |
+| `AWS_ACCESS_KEY_ID` | AWS IAM Access Key | GitHub Actions AWS authentication |
+| `AWS_SECRET_ACCESS_KEY` | AWS IAM Secret Key | GitHub Actions AWS authentication |
+| `AWS_SESSION_TOKEN` | Required if using AWS Learner Lab / temporary session | AWS CLI configuration |
+| `MONGODB_URI` | Connection string to cloud database (MongoDB Atlas) | Written to server's `.env` on EC2 |
+| `JWT_SECRET` | Secret key used to sign and verify user auth tokens | Written to server's `.env` on EC2 |
+| `SMTP_USER` | Gmail address for sending verification OTPs | Written to server's `.env` on EC2 |
+| `SMTP_PASS` | Gmail 16-character App Password | Written to server's `.env` on EC2 |
 
----
-
-## Architecture
-
-The project is split into two independent apps — `client` and `server` — that communicate over a REST API.
-
-- The client is a React SPA served by Vite. It stores the JWT in localStorage and sends it as a Bearer token on every authenticated request.
-- The server is an Express app. It validates requests with Zod, checks the JWT via middleware, and enforces role-based access (student vs admin) before hitting any controller.
-- MongoDB stores all data. Mongoose models define the schema and handle relationships via ObjectId references.
-
-```
-Browser  <──fetch──>  Express REST API  <──mongoose──>  MongoDB Atlas
-   |                        |
-React SPA             JWT middleware
-(client/)             Role checks
-                      (server/)
+### On the EC2 Server:
+During deployment, GitHub Actions generates `/var/www/eventpatro/server/.env` with these values:
+```env
+PORT=5000
+NODE_ENV=production
+MONGODB_URI=<From GitHub Secret>
+JWT_SECRET=<From GitHub Secret>
+CLIENT_URL=http://<EC2_PUBLIC_IP>
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=<From GitHub Secret>
+SMTP_PASS=<From GitHub Secret>
 ```
 
 ---
 
-## Folder Structure
+## 5. Local Development Quickstart
 
-```
-mern_project/
-├── client/
-│   └── src/
-│       ├── App.jsx               # Route definitions
-│       ├── main.jsx              # Entry point
-│       ├── index.css             # Global styles
-│       ├── context/
-│       │   └── AuthContext.jsx   # Auth state (user, token, login, logout)
-│       ├── components/
-│       │   ├── AuthModal.jsx     # Login/signup/OTP overlay
-│       │   ├── CampusIllustration.jsx
-│       │   ├── EventCard.jsx     # Reusable event card
-│       │   ├── FormBuilder.jsx   # Custom application form builder
-│       │   ├── Navbar.jsx        # Top nav + hamburger menu
-│       │   └── ProtectedRoute.jsx
-│       └── pages/
-│           ├── Home.jsx          # Landing page
-│           ├── Login.jsx
-│           ├── Signup.jsx
-│           ├── VerifyOtp.jsx
-│           ├── Events.jsx        # Public event listing
-│           ├── EventDetail.jsx   # Event detail + registration
-│           ├── Dashboard.jsx     # Student dashboard (tabs)
-│           ├── CreateEvent.jsx   # Admin: new event form
-│           ├── EditEvent.jsx     # Admin: edit event form
-│           ├── AdminEventsPage.jsx
-│           └── AdminUsersPage.jsx
-└── server/
-    └── src/
-        ├── app.js                # Express app setup (middleware, routes)
-        ├── server.js             # HTTP server entry point
-        ├── config/
-        │   └── db.js             # MongoDB connection
-        ├── controllers/
-        │   ├── auth.controller.js
-        │   ├── event.controller.js
-        │   └── registration.controller.js
-        ├── middleware/
-        │   ├── auth.js           # JWT protect + restrictTo
-        │   └── validate.js       # Zod validation wrapper
-        ├── models/
-        │   ├── User.js
-        │   ├── Event.js
-        │   └── Registration.js
-        ├── routes/
-        │   ├── auth.routes.js
-        │   ├── event.routes.js
-        │   ├── registration.routes.js
-        │   └── upload.routes.js
-        ├── scripts/
-        │   ├── seedAdmin.js      # Create initial admin account
-        │   └── seedEvents.js     # Seed sample events
-        ├── utils/
-        │   ├── AppError.js       # Custom error class
-        │   ├── generateToken.js  # JWT signing
-        │   └── sendEmail.js      # Nodemailer wrapper
-        └── validations/
-            ├── auth.validation.js
-            └── event.validation.js
-```
+If you need to run the project locally on your machine:
+
+### Prerequisites:
+* Node.js (v18+)
+* MongoDB (Local instance or MongoDB Atlas URI)
+
+### Setup:
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/codebykashish/eventpatro.git
+   cd mern_project
+   ```
+2. Setup environment variables:
+   ```bash
+   cp server/.env.example server/.env
+   # Fill in MONGODB_URI and JWT_SECRET in server/.env
+   ```
+3. Install dependencies:
+   ```bash
+   cd server && npm install
+   cd ../client && npm install
+   ```
+4. Start both servers:
+   ```bash
+   # Terminal 1 - Backend (port 5000)
+   cd server && npm run dev
+
+   # Terminal 2 - Frontend (port 5173)
+   cd client && npm run dev
+   ```
 
 ---
 
-## Database Schema
+## 6. Common Operations & Troubleshooting
 
-### User
-
-| Field | Type | Notes |
-|---|---|---|
-| firstName, lastName | String | required |
-| email | String | unique, must be @sunway.edu.np |
-| studentId | String | unique (sparse), students only |
-| password | String | bcrypt hashed, excluded from queries |
-| role | String | `student` or `admin` |
-| profilePicture | String | URL |
-| isVerified | Boolean | set true after OTP confirmation |
-| verificationOtp | String | 6-digit OTP (hashed) |
-| verificationOtpExpires | Date | OTP expiry |
-
-### Event
-
-| Field | Type | Notes |
-|---|---|---|
-| title | String | required |
-| description | String | — |
-| category | String | academic, cultural, sports, workshop, seminar, social, club, other |
-| date | Date | event date/time |
-| location | String | — |
-| capacity | Number | max registrations |
-| registrationDeadline | Date | — |
-| registrationType | String | `open` (instant confirm) or `application` (pending → review) |
-| formFields | Array | custom form questions (label, type, options, required) |
-| coverImage | String | URL |
-| isPublished | Boolean | controls visibility |
-| createdBy | ObjectId | ref User (admin) |
-| spotsLeft | Virtual | capacity minus confirmed registrations |
-
-### Registration
-
-| Field | Type | Notes |
-|---|---|---|
-| event | ObjectId | ref Event |
-| student | ObjectId | ref User |
-| status | String | confirmed, pending, selected, attended, rejected, cancelled |
-| attendance | String | present, absent, or null |
-| answers | Array | form answers (fieldId, label snapshot, value) |
-| registrationCode | String | EP-XXXXXX, auto-generated on save |
-
----
-
-## API Routes
-
-### Auth
-
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| POST | /api/auth/signup | Register a new student account | — |
-| POST | /api/auth/verify-otp | Verify email with OTP code | — |
-| POST | /api/auth/resend-otp | Resend OTP to email | — |
-| POST | /api/auth/login | Login and receive JWT | — |
-| GET | /api/auth/me | Get current user profile | Student / Admin |
-| PUT | /api/auth/profile | Update profile / profile picture URL | Student / Admin |
-| GET | /api/auth/users | List all users | Admin |
-| DELETE | /api/auth/users/:id | Delete a user | Admin |
-
-### Events
-
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| GET | /api/events | List all published events (with filters) | — |
-| GET | /api/events/:id | Get single event details | — |
-| POST | /api/events | Create a new event | Admin |
-| PUT | /api/events/:id | Update an event | Admin |
-| DELETE | /api/events/:id | Delete an event | Admin |
-
-### Registrations
-
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| POST | /api/events/:id/registrations | Register or apply for an event | Student |
-| DELETE | /api/events/:id/registrations | Cancel own registration | Student |
-| GET | /api/events/:id/registrations | List all registrations for an event | Admin |
-| PATCH | /api/events/:id/registrations/:regId | Update status or attendance | Admin |
-| GET | /api/registrations/me | Get own registration history | Student |
-| GET | /api/registrations/me/:eventId | Check registration for one event | Student |
-| GET | /api/registrations/all | List all registrations | Admin |
-| GET | /api/registrations/user/:userId | Registrations for a specific user | Admin |
-
-### Uploads
-
-| Method | Route | Description | Auth |
-|---|---|---|---|
-| POST | /api/upload | Upload an image (profile or cover) | Student / Admin |
-
----
-
-## Setup and Run
-
-### Prerequisites
-
-- Node.js 18+
-- MongoDB (local or Atlas URI)
-- Gmail account with App Password (optional, for email OTP)
-- Cloudinary account (optional, for image uploads)
-
-### 1. Clone the repository
-
-```bash
-git clone <repo-url>
-cd mern_project
-```
-
-### 2. Configure environment variables
-
-```bash
-cp server/.env.example server/.env
-```
-
-Edit `server/.env` with your values (see Environment Variables below).
-
-### 3. Install dependencies
-
-```bash
-# Server
-cd server && npm install
-
-# Client
-cd ../client && npm install
-```
-
-### 4. Seed the database
-
-```bash
-# From the server directory
-node src/scripts/seedAdmin.js    # creates the admin account
-node src/scripts/seedEvents.js   # loads sample events (optional)
-```
-
-### 5. Start the servers
-
-```bash
-# Terminal 1 — API server (runs on port 5000)
-cd server && npm run dev
-
-# Terminal 2 — React client (runs on port 5173)
-cd client && npm run dev
-```
-
-Open `http://localhost:5173` in your browser.
-
----
-
-## Environment Variables
-
-All variables go in `server/.env`. Copy from `server/.env.example`.
-
-| Variable | Required | Description |
-|---|---|---|
-| PORT | No | Server port (default: 5000) |
-| MONGODB_URI | Yes | MongoDB connection string |
-| JWT_SECRET | Yes | Secret key for signing JWTs |
-| JWT_EXPIRES_IN | No | Token expiry (default: 7d) |
-| CLIENT_URL | Yes | Frontend origin for CORS (e.g. http://localhost:5173) |
-| NODE_ENV | No | development or production |
-| SMTP_HOST | No | SMTP server (default: smtp.gmail.com) |
-| SMTP_PORT | No | SMTP port (default: 587) |
-| SMTP_USER | No | Gmail address for sending OTPs |
-| SMTP_PASS | No | Gmail App Password |
-| EMAIL_FROM_NAME | No | Sender display name |
-| CLOUDINARY_CLOUD_NAME | No | Cloudinary cloud name |
-| CLOUDINARY_API_KEY | No | Cloudinary API key |
-| CLOUDINARY_API_SECRET | No | Cloudinary API secret |
-
-If SMTP is not configured, OTP codes are printed to the terminal instead of emailed. If Cloudinary is not configured, images are saved to the local `server/uploads/` directory.
+* **Check backend status on EC2:**
+  ```bash
+  pm2 status
+  pm2 logs eventpatro-api
+  ```
+* **Check Nginx status on EC2:**
+  ```bash
+  sudo systemctl status nginx
+  sudo nginx -t
+  ```
+* **Verify API Health:**
+  Visit `http://<EC2-IP>/api/health` — it will return:
+  ```json
+  { "success": true, "message": "Eventpatro server is running." }
+  ```

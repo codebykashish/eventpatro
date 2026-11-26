@@ -196,6 +196,7 @@ jobs:
             done
 
             echo ">>> [1/5] Pulling latest code..."
+            git config --global --add safe.directory /var/www/eventpatro
             cd /var/www/eventpatro
             git fetch origin main
             git reset --hard origin/main
