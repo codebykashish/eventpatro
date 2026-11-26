@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { fetchEventById, updateEvent, deleteEvent, uploadImage } from '../utils/api'
+import { useToast } from '../context/ToastContext'
 import { derivePricing, linesToList } from '../utils/eventForm'
 import { mediaUrl } from '../utils/mediaUrl'
 import { AlertCircle, CheckCircle2, Trash2, Settings, Upload, Image as ImageIcon, X } from 'lucide-react'
@@ -73,6 +74,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
   const [submitting, setSubmitting]       = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting]           = useState(false)
+  const { success: toastSuccess, error: toastError, negative: toastNegative } = useToast()
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingQr, setUploadingQr]     = useState(false)
 
@@ -231,6 +233,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
 
       await updateEvent(id, payload)
       setSuccess('Event updated successfully!')
+      toastSuccess('Event updated successfully!')
       if (isModal) {
         setTimeout(() => {
           if (onSuccess) onSuccess()
@@ -241,6 +244,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
       }
     } catch (err) {
       setError(err.message)
+      toastError(err.message || 'Failed to update event')
     } finally {
       setSubmitting(false)
     }
@@ -251,6 +255,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
     try {
       await deleteEvent(id)
       setSuccess('Event deleted.')
+      toastNegative('Event deleted.')
       if (isModal) {
         setTimeout(() => {
           if (onClose) onClose()
@@ -261,6 +266,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
       }
     } catch (err) {
       setError(err.message)
+      toastError(err.message || 'Failed to delete event')
       setDeleting(false)
       setShowDeleteConfirm(false)
     }
@@ -796,7 +802,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
           {/* Delete confirmation inline */}
           {showDeleteConfirm && (
             <div className="delete-confirm-box">
-              <p>Are you sure? This will remove the event from the public listing.</p>
+              <p>Are you sure you want to delete?</p>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
@@ -804,7 +810,7 @@ const EditEventPage = ({ eventId: propEventId, isModal = false, onClose, onSucce
                   onClick={handleDelete}
                   disabled={deleting}
                 >
-                  {deleting ? 'Deleting…' : 'Yes, Delete'}
+                  {deleting ? 'Deleting…' : 'Yes'}
                 </button>
                 <button
                   type="button"

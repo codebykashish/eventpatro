@@ -14,6 +14,7 @@ import {
   uploadImage
 } from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import EditEventPage from './EditEvent'
 import { mediaUrl } from '../utils/mediaUrl'
 import './EventDetail.css'
@@ -89,6 +90,7 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
   const [actionError, setActionError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const { success: toastSuccess, error: toastError, negative: toastNegative } = useToast()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
 
@@ -305,12 +307,14 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     try {
       await deleteEvent(id)
       setActionMsg('Event deleted.')
+      toastNegative('Event deleted.')
       setTimeout(() => {
         if (onBack) onBack()
         else navigate(isAdmin ? '/admin' : '/dashboard')
       }, 1200)
     } catch (err) {
       setActionError(err.message)
+      toastError(err.message || 'Failed to delete event')
       setDeleting(false)
       setShowDeleteModal(false)
     }
@@ -322,10 +326,12 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     try {
       await updateRegistrationStatus(id, regId, { status })
       setRegActionMsg(`Applicant ${status} successfully.`)
+      toastSuccess(`Applicant marked as ${status}`)
       await loadRegistrations()
       if (onRegistrationChange) onRegistrationChange()
     } catch (err) {
       setRegActionMsg(`Error: ${err.message}`)
+      toastError(err.message || `Failed to ${status} applicant`)
     }
   }
 
@@ -334,10 +340,12 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
     try {
       await updateRegistrationStatus(id, regId, { attendance })
       setRegActionMsg(`Attendance marked ${attendance}.`)
+      toastSuccess(`Attendance updated to ${attendance}`)
       await loadRegistrations()
       if (onRegistrationChange) onRegistrationChange()
     } catch (err) {
       setRegActionMsg(`Error: ${err.message}`)
+      toastError(err.message || 'Failed to update attendance')
     }
   }
 
@@ -992,10 +1000,10 @@ const EventDetailPage = ({ eventId: propId, onBack, onRegistrationChange }) => {
               </div>
               {showDeleteModal && (
                 <div className="admin-delete-confirm-box">
-                  <p>Remove this event from public listing?</p>
+                  <p>Are you sure you want to delete?</p>
                   <div className="confirm-buttons">
                     <button type="button" className="btn-confirm-delete" onClick={handleDelete} disabled={deleting}>
-                      {deleting ? 'Deleting…' : 'Yes, Delete'}
+                      {deleting ? 'Deleting…' : 'Yes'}
                     </button>
                     <button type="button" className="btn-cancel-delete" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
                       Cancel

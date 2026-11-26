@@ -77,3 +77,4 @@ Once the secrets are in place:
   2. SSH into your EC2 instance.
   3. Pull the latest code, update the `.env`, and rebuild.
   4. Restart PM2 and reload Nginx with zero manual work.
+

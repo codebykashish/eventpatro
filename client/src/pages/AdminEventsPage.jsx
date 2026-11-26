@@ -5,6 +5,7 @@ import {
   ChevronDown, CheckCircle2, Check, UserCheck, FileText
 } from 'lucide-react'
 import { fetchEvents, getEventRegistrations, deleteEvent, updateRegistrationStatus } from '../utils/api'
+import { useToast } from '../context/ToastContext'
 import EditEventPage from './EditEvent'
 import './AdminEventsPage.css'
 
@@ -51,6 +52,7 @@ export default function AdminEventsPage() {
   // Delete confirm
   const [deleteItem, setDeleteItem] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const { success: toastSuccess, error: toastError, negative: toastNegative } = useToast()
   const [successMsg, setSuccessMsg] = useState('')
 
   // Edit Event modal
@@ -108,6 +110,7 @@ export default function AdminEventsPage() {
     if (!regPopupEvent) return
     try {
       const res = await updateRegistrationStatus(regPopupEvent._id, regId, { status: newStatus })
+      toastSuccess(`Registration marked as ${newStatus}`)
       setRegList(prev => prev.map(r => {
         if (r._id !== regId) return r
         return res.registration || {
@@ -117,7 +120,7 @@ export default function AdminEventsPage() {
         }
       }))
     } catch (err) {
-      alert(err.message || 'Failed to update registration status')
+      toastError(err.message || 'Failed to update registration status')
     }
   }
 
@@ -125,12 +128,13 @@ export default function AdminEventsPage() {
     if (!regPopupEvent) return
     try {
       const res = await updateRegistrationStatus(regPopupEvent._id, regId, { attendance })
+      toastSuccess(`Attendance updated to ${attendance ? 'Present' : 'Absent'}`)
       setRegList(prev => prev.map(r => {
         if (r._id !== regId) return r
         return res.registration || { ...r, attendance }
       }))
     } catch (err) {
-      alert(err.message || 'Failed to update attendance')
+      toastError(err.message || 'Failed to update attendance')
     }
   }
 
@@ -141,10 +145,11 @@ export default function AdminEventsPage() {
       await deleteEvent(deleteItem._id)
       setEvents(prev => prev.filter(e => e._id !== deleteItem._id))
       setSuccessMsg(`"${deleteItem.title}" deleted.`)
+      toastNegative(`"${deleteItem.title}" deleted.`)
       setDeleteItem(null)
       setTimeout(() => setSuccessMsg(''), 3500)
     } catch (err) {
-      alert(err.message || 'Delete failed')
+      toastError(err.message || 'Delete failed')
     } finally {
       setDeleting(false)
     }
@@ -737,11 +742,11 @@ export default function AdminEventsPage() {
               <h3>Delete Event</h3>
               <button className="aep-popup-close" onClick={() => setDeleteItem(null)} disabled={deleting}><X size={17}/></button>
             </div>
-            <p className="aep-delete-text">Delete <strong>"{deleteItem.title}"</strong>? This cannot be undone.</p>
+            <p className="aep-delete-text">Are you sure you want to delete?</p>
             <div className="aep-popup-actions">
               <button className="aep-btn-cancel" onClick={() => setDeleteItem(null)} disabled={deleting}>Cancel</button>
               <button className="aep-btn-delete" onClick={handleDelete} disabled={deleting}>
-                {deleting ? 'Deleting…' : 'Yes, Delete'}
+                {deleting ? 'Deleting…' : 'Yes'}
               </button>
             </div>
           </div>

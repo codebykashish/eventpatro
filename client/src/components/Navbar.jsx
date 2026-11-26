@@ -214,13 +214,7 @@ const Navbar = () => {
       {showLogoutConfirm && (
         <div className="modal-backdrop" onClick={() => setShowLogoutConfirm(false)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-icon-wrap">
-              <AlertTriangle size={24} color="#881421" />
-            </div>
-            <h3 className="modal-title">Confirm Logout</h3>
-            <p className="modal-desc">
-              Are you sure you want to log out of your Eventpatro account?
-            </p>
+            <h3 className="modal-title" style={{ textAlign: 'center', margin: '0 0 20px', fontSize: '18px', fontWeight: 600 }}>Log Out</h3>
             <div className="modal-actions">
               <button
                 type="button"
@@ -234,7 +228,7 @@ const Navbar = () => {
                 className="btn-modal-confirm"
                 onClick={confirmLogout}
               >
-                Yes, Log Out
+                Yes
               </button>
             </div>
           </div>

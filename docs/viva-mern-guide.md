@@ -12,12 +12,14 @@
 2. [Project Initialization & Packages Installed (From Scratch)](#2-project-initialization--packages-installed-from-scratch)
 3. [Package Dictionary: What Every Library Does and Why](#3-package-dictionary-what-every-library-does-and-why)
 4. [High-Level Architecture (How Everything Connects)](#4-high-level-architecture-how-everything-connects)
-5. [Where is What? (Codebase Tour & File Guide)](#5-where-is-what-codebase-tour--file-guide)
-6. [Authentication & Security Flow (Signup, OTP, Login, JWT)](#6-authentication--security-flow-signup-otp-login-jwt)
-7. [Image Uploads: Cloudinary vs Local Disk (How It Works)](#7-image-uploads-cloudinary-vs-local-disk-how-it-works)
-8. [Events, Forms & Registrations (Core Business Logic)](#8-events-forms--registrations-core-business-logic)
-9. [Data Validation with Zod (Why and Where)](#9-data-validation-with-zod-why-and-where)
-10. [Common Teacher Viva Questions & Exact Answers](#10-common-teacher-viva-questions--exact-answers)
+5. [Frontend Deep-Dive: What is JSX, Components, Pages, Context & Routing?](#5-frontend-deep-dive-what-is-jsx-components-pages-context--routing)
+6. [Backend Deep-Dive: Controllers, Models, Routes, Middleware & server.js vs app.js](#6-backend-deep-dive-controllers-models-routes-middleware--serverjs-vs-appjs)
+7. [Where is What? (Codebase Tour & File Guide)](#7-where-is-what-codebase-tour--file-guide)
+8. [Authentication & Security Flow (Signup, OTP, Login, JWT)](#8-authentication--security-flow-signup-otp-login-jwt)
+9. [Image Uploads: Cloudinary vs Local Disk (How It Works)](#9-image-uploads-cloudinary-vs-local-disk-how-it-works)
+10. [Events, Forms & Registrations (Core Business Logic)](#10-events-forms--registrations-core-business-logic)
+11. [Data Validation with Zod (Why and Where)](#11-data-validation-with-zod-why-and-where)
+12. [Common Teacher Viva Questions & Exact Answers](#12-common-teacher-viva-questions--exact-answers)
 
 ---
 
@@ -35,6 +37,23 @@ MERN is an acronym for four technologies working together to make a full-stack w
 - **Frontend (Client):** Lives in the `client/` folder. Built using React + Vite. Runs in the user's browser.
 - **Backend (Server):** Lives in the `server/` folder. Built using Node.js + Express. Runs on port `5000`.
 - **Bridge between them:** The browser sends HTTP requests (GET, POST, PUT, DELETE) using JavaScript `fetch` / Axios to `/api/...`, and Express replies with JSON data.
+
+### Local vs Cloud Database (How We Configure It)
+
+In [`server/.env`](file:///home/kash/year1/training-sem/mern_project/server/.env):
+- **For Local Development (on your laptop):**
+  ```env
+  MONGODB_URI=mongodb://127.0.0.1:27017/campuspulse
+  ```
+  Here we use **Local MongoDB** running as a local service on port `27017`. All collections (`users`, `events`, `registrations`) live right on your machine in the `campuspulse` database.
+- **For Cloud Production Deployment (on AWS EC2):**
+  ```env
+  MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/campuspulse
+  ```
+  On AWS EC2, the instance connects to **MongoDB Atlas** (a managed 24/7 cloud cluster) so data isn't wiped out when instances stop or restart.
+
+> **Viva Tip:** If the teacher asks *"Where is your database stored?"*, answer:  
+> *"When developing and testing locally on my computer, we use local MongoDB on `127.0.0.1:27017`. When deployed on AWS EC2, we point `MONGODB_URI` to a 24/7 cloud MongoDB Atlas cluster so data persists across server reboots."*
 
 ---
 
@@ -164,7 +183,205 @@ If the teacher points to any package in `package.json` and asks: *"What does thi
 
 ---
 
-## 5. Where is What? (Codebase Tour & File Guide)
+## 5. Frontend Deep-Dive: What is JSX, Components, Pages, Context & Routing?
+
+This section answers the exact conceptual questions teachers love to ask about React:
+
+### 1. What is `.jsx`? (Why not `.js` or `.html`?)
+- **JSX** stands for **JavaScript XML**.
+- In standard JavaScript, writing HTML like `<h1>Hello</h1>` causes a syntax error.
+- In pure HTML, you cannot use JavaScript variables, functions, or loops directly inside tags.
+- **JSX is the best of both worlds:** It allows us to write HTML-like tags directly inside JavaScript!
+- Example:
+  ```jsx
+  const userName = "Kashish";
+  return <h1>Welcome, {userName}!</h1>; // JSX allows {variables} right inside HTML tags
+  ```
+- Under the hood, the build tool (**Vite**) converts this JSX into standard JavaScript functions (`React.createElement(...)`) so any browser can render it.
+
+---
+
+### 2. Why do we have `components/`, `pages/`, and `context/` folders?
+React projects are organized by responsibility so code doesn't become one gigantic, unreadable file:
+
+#### A. The `pages/` Folder (Full Views)
+- Contains full-screen views that match a specific URL route.
+- Each file here represents a complete "page" a user visits:
+  - `Home.jsx` $\rightarrow$ the landing page (`/`).
+  - `Login.jsx` & `Signup.jsx` $\rightarrow$ authentication pages (`/login`, `/signup`).
+  - `Dashboard.jsx` $\rightarrow$ user or admin dashboard (`/dashboard`, `/admin`).
+  - `EventDetail.jsx` $\rightarrow$ viewing a single event (`/events/:id`).
+  - `CreateEvent.jsx` $\rightarrow$ the form to create a workshop.
+- **Rule of thumb:** If a file represents a destination that has its own route in the browser, it belongs in `pages/`.
+
+#### B. The `components/` Folder (Reusable Building Blocks)
+- Contains smaller, reusable UI puzzle pieces used across multiple pages.
+- Instead of copying and pasting the same 50 lines of HTML across 5 different pages, we write a Component once and import it anywhere:
+  - `Navbar.jsx` $\rightarrow$ the top navigation bar with logo, links, and user avatar. Used on every page.
+  - `EventCard.jsx` $\rightarrow$ the card showing an event's picture, date, and "View" button. Used on `Home.jsx` and `Dashboard.jsx`.
+  - `AuthModal.jsx` $\rightarrow$ the popup modal for logging in or signing up without leaving the current page.
+  - `ProtectedRoute.jsx` $\rightarrow$ a security wrapper component that checks if a user is logged in before rendering a private page.
+- **Rule of thumb:** If a UI piece is reused or is just a sub-part of a bigger page, it belongs in `components/`.
+
+#### C. The `context/` Folder (Global Application State)
+- In standard React, passing data between pages or deeply nested components requires passing props down manually ("prop drilling").
+- `context/` creates a **global broadcast channel** accessible by *any* page or component without passing props:
+  - `AuthContext.jsx` $\rightarrow$ Holds the logged-in user's data (`user`, `token`, `isAdmin`). Any page (Navbar, Dashboard, EventDetail) can simply call `useAuth()` to know who is logged in and whether to show login or logout buttons.
+  - `ToastContext.jsx` $\rightarrow$ Holds the top notification alerts. Any page or button can call `toastSuccess("Event deleted!")` or `toastError(...)` without creating its own popup HTML.
+
+#### D. The `utils/` Folder (Helper Functions)
+- Contains pure JavaScript logic with no visual UI:
+  - `api.js` $\rightarrow$ The centralized `fetch` helper that adds the backend base URL and attaches the `Authorization: Bearer <token>` header.
+  - `mediaUrl.js` $\rightarrow$ Formats image paths whether they come from Cloudinary (`https://...`) or local disk (`/uploads/...`).
+
+---
+
+### 3. Why are some files outside `src/`? (Root Folder Files)
+If you look at the `client/` folder, some files sit outside `src/`:
+- **`index.html`** $\rightarrow$ The single HTML page loaded by the browser. It contains `<div id="root"></div>`. React takes over this `div` and dynamically inserts all your pages into it!
+- **`package.json`** $\rightarrow$ The project manifest. Lists all installed libraries (`react`, `react-router-dom`, `lucide-react`) and scripts (`npm run dev`, `npm run build`).
+- **`vite.config.js`** $\rightarrow$ Configuration for Vite. Tells it how to bundle React and what plugins to use.
+- **`node_modules/`** $\rightarrow$ Contains the downloaded source code of all packages installed via `npm`. Ignored by Git.
+
+---
+
+### 4. What is `main.jsx` vs `App.jsx`?
+- **`client/src/main.jsx` (The Ignition Key):**
+  - The very first JavaScript file that runs.
+  - Finds `<div id="root">` in `index.html` using `document.getElementById('root')`.
+  - Renders `<App />` inside it using `ReactDOM.createRoot()`.
+- **`client/src/App.jsx` (The Master Controller / Router):**
+  - Defines the global wrappers: `<BrowserRouter>`, `<AuthProvider>`, `<ToastProvider>`.
+  - Defines the routing map (`<Routes>` and `<Route>`): which page shows for which URL.
+
+---
+
+### 5. What is `BrowserRouter` & Client-Side Routing? (SPA Explanation)
+- In old traditional websites (PHP/HTML), clicking a link like `<a href="/about">` sends a request to the server, the screen goes white for a second, and the whole page reloads.
+- Eventpatro is a **Single Page Application (SPA)**:
+  - The browser loads `index.html` only **once**.
+  - **`BrowserRouter`** listens to URL changes in the address bar (e.g. `/dashboard` $\rightarrow$ `/events/123`).
+  - Instead of asking the server for a new HTML file, React instantly swaps the component on screen using JavaScript!
+  - **Result:** Instant page transitions with zero screen flickering or reloading.
+
+---
+
+## 6. Backend Deep-Dive: Controllers, Models, Routes, Middleware & server.js vs app.js
+
+Just like the frontend, the backend is organized into standard layers of responsibility (MVC pattern: Model-View-Controller). Here is what each folder does, why it exists, and why files are placed where they are:
+
+### 1. The Request Journey (How Backend Layers Work Together)
+Whenever a user does something (e.g. registers for an event), the request flows through 4 distinct layers:
+```
+[ Incoming HTTP Request: POST /api/events ]
+                     │
+                     ▼
+       1. [ ROUTES (server/src/routes/) ]
+          "Traffic cop": Matches the URL and method (`/api/events`), 
+          attaches middlewares, and hands off to the controller.
+                     │
+                     ▼
+       2. [ MIDDLEWARE (server/src/middleware/ & validations/) ]
+          "Security & validation checkpoint": 
+          - Checks if the user sent a valid JWT token (`auth.js`).
+          - Checks if user is an Admin (`requireAdmin`).
+          - Validates that request data matches Zod rules before touching database.
+                     │
+                     ▼
+       3. [ CONTROLLERS (server/src/controllers/) ]
+          "The brain / business logic":
+          - Receives request (`req`), does calculations, enforces limits (e.g. check if seats are full).
+          - Calls the database through Models.
+          - Sends back JSON response (`res.status(200).json(...)`).
+                     │
+                     ▼
+       4. [ MODELS (server/src/models/) ]
+          "The database blueprints":
+          - Defines Mongoose schemas for MongoDB (data types, defaults, required fields).
+          - Executes actual queries (`Event.create()`, `User.findOne()`, etc.).
+```
+
+---
+
+### 2. What Does Each Backend Folder Do?
+
+#### A. The `models/` Folder (Blueprints for MongoDB)
+- MongoDB is a schema-less database by nature, meaning it will accept any messy data you throw at it.
+- **Mongoose models** give MongoDB strict rules and structure:
+  - `User.js` $\rightarrow$ defines fields like `name`, `email` (unique, lowercase), `password` (hashed string), `role` (`student` or `admin`), `isVerified`, `otp`.
+  - `Event.js` $\rightarrow$ defines `title`, `date`, `capacity`, `registeredUsers`, `pricing`, `coverImage`, dynamic questions.
+  - `Registration.js` $\rightarrow$ links a `user` ID to an `event` ID with a `status` (`pending`, `confirmed`, `attended`).
+- **Rule of thumb:** If it defines what data looks like in the database, it belongs in `models/`.
+
+#### B. The `routes/` Folder (The URL Dispatchers)
+- Clean URL routers created with `express.Router()`.
+- They do **not** write database logic or math. They simply connect a URL path to the right controller function:
+  - `auth.routes.js` $\rightarrow$ maps `/register`, `/login`, `/verify-otp`.
+  - `event.routes.js` $\rightarrow$ maps `GET /`, `POST /`, `PUT /:id`, `DELETE /:id`.
+  - `registration.routes.js` $\rightarrow$ maps event registration and approval actions.
+  - `upload.routes.js` $\rightarrow$ maps image upload endpoints.
+- **Rule of thumb:** If it maps a URL (`/api/...`) to a function, it belongs in `routes/`.
+
+#### C. The `controllers/` Folder (The Business Logic Brains)
+- Contains all the actual backend functions that receive `(req, res)`:
+  - `auth.controller.js` $\rightarrow$ hashes passwords with bcrypt, checks credentials, generates OTPs and JWT tokens.
+  - `event.controller.js` $\rightarrow$ creates events, checks date limits, handles soft-deletes, filters categories.
+  - `registration.controller.js` $\rightarrow$ handles student seat booking, prevents double booking, checks event capacity, confirms/rejects applicants.
+- **Rule of thumb:** If it makes business decisions, validates business rules, or communicates with the database, it belongs in `controllers/`.
+
+#### D. The `middleware/` Folder (The Gatekeepers)
+- Middlewares are functions that run **between** the incoming request and the final controller:
+  - `auth.js` (`authenticate`) $\rightarrow$ reads `req.headers.authorization`, extracts the Bearer token, verifies it with `jwt.verify()`, and attaches `req.user = decoded`. If token is missing/fake, it halts with `401 Unauthorized`.
+  - `requireAdmin` $\rightarrow$ checks `if (req.user.role !== 'admin') return res.status(403)`.
+  - `upload.js` $\rightarrow$ Multer configuration that intercepts `multipart/form-data` file uploads before passing the file info to the controller.
+- **Rule of thumb:** If it intercepts requests to inspect, secure, or transform them, it belongs in `middleware/`.
+
+#### E. The `validations/` Folder (Zod Schemas)
+- Validates that the body sent by the user contains what we expect:
+  - `event.validation.js` $\rightarrow$ ensures event title is at least 3 characters, date is valid, capacity is a positive number.
+  - `auth.validation.js` $\rightarrow$ ensures email format is valid and password has minimum required length.
+
+#### F. The `utils/` Folder (Pure Helper Tools)
+- Helper tools that don't belong to any single route or controller:
+  - `sendEmail.js` $\rightarrow$ Nodemailer email sender helper for sending 6-digit OTPs.
+  - `generateToken.js` $\rightarrow$ Signs new JWT tokens with `jwt.sign()`.
+
+#### G. The `config/` Folder (Setup & Connections)
+- Holds static configuration helpers:
+  - `db.js` $\rightarrow$ connects Mongoose to MongoDB using `process.env.MONGODB_URI`.
+
+---
+
+### 3. What is `server.js` vs `app.js`? (Why Two Entry Files?)
+Teachers often ask: *"Why do you have both `server.js` and `app.js` instead of putting everything into one file?"*
+
+- **`server/src/app.js` (The Express Application Configuration):**
+  - Configures all middlewares (`cors()`, `express.json()`, `helmet()`, `express-rate-limit`).
+  - Serves static folders (`/uploads` for images).
+  - Mounts all routes (`app.use('/api/auth', authRoutes)`, etc.).
+  - Configures 404 not found handler and global error handler.
+  - **Does NOT start listening on a network port.** It just configures the Express app object.
+  - *Why separate it?* This allows automated testing tools (like Jest or Supertest) to test the API routes without actually opening a real network port.
+
+- **`server/src/server.js` (The Ignition & Network Listener):**
+  - Loads the environment variables from `.env` (`dotenv.config()`).
+  - Calls `connectDB()` to connect to MongoDB.
+  - Imports `app` from `app.js`.
+  - Calls `app.listen(PORT, ...)` to actually start listening for network requests on port `5000`.
+
+---
+
+### 4. What are the Files Outside `src/` in `server/`?
+- **`.env`** $\rightarrow$ Secret environment variables (`PORT=5000`, `MONGODB_URI`, `JWT_SECRET`, `EMAIL_USER`, `EMAIL_PASS`). Never committed to Git.
+- **`.env.example`** $\rightarrow$ Safe template committed to Git showing team members and teachers what environment variables are needed, with dummy values.
+- **`package.json`** $\rightarrow$ Lists all backend dependencies (`express`, `mongoose`, `jsonwebtoken`, `bcryptjs`, `dotenv`, etc.) and start scripts (`npm start`, `npm run dev`).
+- **`package-lock.json`** $\rightarrow$ Locks exact dependency versions so it installs identically on Windows, Linux, and AWS EC2.
+- **`ecosystem.config.cjs`** $\rightarrow$ PM2 process manager configuration used on AWS EC2 to keep the Node server running 24/7 and auto-restart on crashes or server reboot.
+- **`uploads/`** $\rightarrow$ The local folder on disk where Multer saves event cover banners and payment QR codes when not using cloud storage.
+
+---
+
+## 7. Where is What? (Codebase Tour & File Guide)
 
 Whenever your teacher asks: *"Where is the code that does X?"*, here is your cheat sheet:
 
@@ -174,12 +391,19 @@ Whenever your teacher asks: *"Where is the code that does X?"*, here is your che
 |---|---|
 | [`client/src/App.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/App.jsx) | The main router. Defines all pages and URL routes (`/`, `/login`, `/dashboard`, `/admin`, etc.) and handles role-based redirects. |
 | [`client/src/context/AuthContext.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/context/AuthContext.jsx) | Global state for the logged-in user. Stores user info, JWT token in `localStorage`, and provides `login()`, `logout()`, `user`, and `isAuthenticated` to all pages. |
+| [`client/src/context/ToastContext.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/context/ToastContext.jsx) | Global toast alert provider. Provides top-of-screen green (positive) and red (negative) feedback for all actions (create, edit, delete, status change). |
 | [`client/src/utils/api.js`](file:///home/kash/year1/training-sem/mern_project/client/src/utils/api.js) | Central file for all HTTP requests to the backend. Automatically attaches `Authorization: Bearer <token>` to requests. |
 | [`client/src/utils/mediaUrl.js`](file:///home/kash/year1/training-sem/mern_project/client/src/utils/mediaUrl.js) | Helper that resolves image URLs (handles relative `/uploads/` paths and strips local URLs). |
+| [`client/src/components/Navbar.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/components/Navbar.jsx) | Reusable top navigation bar with brand logo, links, and avatar / logout trigger. |
+| [`client/src/components/EventCard.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/components/EventCard.jsx) | Reusable card displaying an event summary (image, dates, seats, registration button). |
+| [`client/src/components/ProtectedRoute.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/components/ProtectedRoute.jsx) | Route wrapper preventing unauthorized or non-admin access to protected pages. |
 | [`client/src/pages/Home.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/Home.jsx) | Landing page. Shows upcoming events, quick registration form, and redirects logged-in users to `/dashboard` or `/admin`. |
 | [`client/src/pages/Dashboard.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/Dashboard.jsx) | Unified dashboard for both students and admins (shows registered events, tickets, stats, approval queues). |
+| [`client/src/pages/AdminEventsPage.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/AdminEventsPage.jsx) | Admin management view for all events, attendee lists, attendance marking, and deletion. |
+| [`client/src/pages/AdminUsersPage.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/AdminUsersPage.jsx) | Admin view of all registered student accounts, attendance metrics, and profile details. |
 | [`client/src/pages/CreateEvent.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/CreateEvent.jsx) | Admin page to create new events, upload cover photos, payment QR codes, and dynamically build custom questions. |
 | [`client/src/pages/EditEvent.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/EditEvent.jsx) | Admin page to update existing events. |
+| [`client/src/pages/EventDetail.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/EventDetail.jsx) | Detailed view of an individual event, registration form submission, ticket preview, and admin applicant manager. |
 | [`client/src/pages/Login.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/Login.jsx) & [`Signup.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/Signup.jsx) | Authentication screens. |
 | [`client/src/pages/VerifyOtp.jsx`](file:///home/kash/year1/training-sem/mern_project/client/src/pages/VerifyOtp.jsx) | OTP input page where users enter the 6-digit code received via email to activate their account. |
 

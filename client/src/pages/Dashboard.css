@@ -539,9 +539,9 @@
   color: #1e293b;
 }
 
-/* ── Hover-Expandable Left Sidebar ─────────────────────────────────────── */
+/* ── Stationary Left Sidebar ─────────────────────────────────────────── */
 .portal-sidebar {
-  width: 78px;
+  width: 250px;
   background-color: #ffffff;
   border-right: 1px solid #edf2f7;
   display: flex;
@@ -551,20 +551,12 @@
   top: 0;
   z-index: 40;
   flex-shrink: 0;
-  overflow: hidden; /* clips expanding content, no scrollbar */
-  scrollbar-width: none; /* Firefox */
-  transition: width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.04);
 }
 
 .portal-sidebar::-webkit-scrollbar {
-  display: none; /* Chrome / Safari */
-}
-
-/* Hover or expanded state */
-.portal-sidebar:hover,
-.portal-sidebar.expanded {
-  width: 250px;
-  box-shadow: 6px 0 24px rgba(15, 23, 42, 0.08);
+  display: none;
 }
 
 .portal-sidebar-header {
@@ -573,7 +565,7 @@
   align-items: center;
   border-bottom: 1px solid #f8fafc;
   min-height: 76px;
-  width: 250px; /* fixed inner width to prevent layout jitter */
+  width: 250px;
 }
 
 .portal-brand {
@@ -602,14 +594,6 @@
   font-family: 'Playfair Display', serif;
   white-space: nowrap;
   letter-spacing: -0.01em;
-  opacity: 0;
-  transform: translateX(-8px);
-  transition: opacity 0.22s ease, transform 0.22s ease;
-  pointer-events: none;
-}
-
-.portal-sidebar:hover .portal-brand-title,
-.portal-sidebar.expanded .portal-brand-title {
   opacity: 1;
   transform: translateX(0);
   pointer-events: auto;
@@ -672,13 +656,6 @@
 .nav-label {
   white-space: nowrap;
   font-size: 14px;
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.22s ease, transform 0.22s ease;
-}
-
-.portal-sidebar:hover .nav-label,
-.portal-sidebar.expanded .nav-label {
   opacity: 1;
   transform: translateX(0);
 }
@@ -714,12 +691,6 @@
   border-radius: 999px;
   padding: 2px 7px;
   line-height: 1.2;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.portal-sidebar:hover .nav-count-badge,
-.portal-sidebar.expanded .nav-count-badge {
   opacity: 1;
 }
 
@@ -738,17 +709,11 @@
 }
 
 .portal-sidebar-watermark {
-  opacity: 0;
+  opacity: 0.12;
   margin: 0 auto 10px;
   max-width: 160px;
   pointer-events: none;
   filter: grayscale(1);
-  transition: opacity 0.25s ease;
-}
-
-.portal-sidebar:hover .portal-sidebar-watermark,
-.portal-sidebar.expanded .portal-sidebar-watermark {
-  opacity: 0.12;
 }
 
 .portal-sidebar-watermark svg {
@@ -777,13 +742,6 @@
 }
 
 .portal-sidebar-logout span {
-  opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.22s ease, transform 0.22s ease;
-}
-
-.portal-sidebar:hover .portal-sidebar-logout span,
-.portal-sidebar.expanded .portal-sidebar-logout span {
   opacity: 1;
   transform: translateX(0);
 }
@@ -3607,18 +3565,10 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  opacity: 0;
-  max-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  pointer-events: none;
-  transition: opacity 0.22s ease, max-width 0.22s ease;
-}
-
-.portal-sidebar:hover .admin-sidebar-info,
-.portal-sidebar.expanded .admin-sidebar-info {
   opacity: 1;
   max-width: 170px;
+  overflow: hidden;
+  white-space: nowrap;
   pointer-events: auto;
 }
 
@@ -3666,18 +3616,10 @@
 }
 
 .admin-sidebar-logout-btn span {
-  opacity: 0;
-  max-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  transform: translateX(-6px);
-  transition: opacity 0.22s ease, transform 0.22s ease, max-width 0.22s ease;
-}
-
-.portal-sidebar:hover .admin-sidebar-logout-btn span,
-.portal-sidebar.expanded .admin-sidebar-logout-btn span {
   opacity: 1;
   max-width: 120px;
+  overflow: hidden;
+  white-space: nowrap;
   transform: translateX(0);
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { createEvent, uploadImage } from '../utils/api'
+import { useToast } from '../context/ToastContext'
 import { derivePricing, linesToList } from '../utils/eventForm'
 import { mediaUrl } from '../utils/mediaUrl'
 import { AlertCircle, CheckCircle2, Settings, Upload, Image as ImageIcon, Trash2 } from 'lucide-react'
@@ -54,6 +55,7 @@ const CreateEventPage = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [createdEventId, setCreatedEventId] = useState(null)
+  const { success: toastSuccess, error: toastError } = useToast()
   const [submitting, setSubmitting] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingQr, setUploadingQr] = useState(false)
@@ -173,11 +175,13 @@ const CreateEventPage = () => {
       const newId = res.event?._id || res.event?.id
       setCreatedEventId(newId)
       setSuccess('Event published successfully!')
+      toastSuccess('Event created and published successfully!')
       // Refresh / clear the create event form inputs
       setForm(INITIAL_FORM)
       setFormFields([])
     } catch (err) {
       setError(err.message)
+      toastError(err.message || 'Failed to create event')
     } finally {
       setSubmitting(false)
     }

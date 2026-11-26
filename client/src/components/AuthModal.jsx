@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, Eye, EyeOff, AlertCircle, CheckCircle2, Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import '../pages/Auth.css'
 import './AuthModal.css'
 
@@ -16,6 +17,7 @@ const AuthModal = () => {
     verifyOtp,
     resendOtp,
   } = useAuth()
+  const { success: toastSuccess, error: toastError } = useToast()
 
   // Mode: 'login' | 'signup' | 'verify'
   const [mode, setMode] = useState(authModal.mode || 'login')
@@ -121,16 +123,21 @@ const AuthModal = () => {
     setIsSubmitting(true)
     try {
       const loggedInUser = await login(loginEmail, loginPassword)
+      toastSuccess(`Welcome back, ${loggedInUser.firstName || 'User'}!`)
       resetFormFields()
       closeAuthModal()
-      window.location.href = loggedInUser.role === 'admin' ? '/admin' : '/dashboard'
+      setTimeout(() => {
+        window.location.href = loggedInUser.role === 'admin' ? '/admin' : '/dashboard'
+      }, 500)
     } catch (err) {
       if (err.isUnverified) {
         setVerifyEmail(err.email || loginEmail)
         setMode('verify')
         setError('Please enter the 6-digit verification code sent to your email.')
+        toastError('Please enter the verification code sent to your email.')
       } else {
         setError(err.message || 'Login failed')
+        toastError(err.message || 'Login failed')
       }
     } finally {
       setIsSubmitting(false)

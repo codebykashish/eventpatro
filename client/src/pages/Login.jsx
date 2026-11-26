@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../context/ToastContext'
 import './Auth.css'
 
 const Login = () => {
@@ -13,6 +14,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { user, isAuthenticated, login } = useAuth()
+  const { success: toastSuccess, error: toastError } = useToast()
   const navigate = useNavigate()
 
   // Redirect if already authenticated
@@ -35,19 +37,24 @@ const Login = () => {
 
     try {
       const user = await login(email, password)
+      toastSuccess(`Welcome back, ${user.firstName || 'User'}!`)
       setEmail('')
       setPassword('')
-      if (user.role === 'admin') {
-        window.location.href = '/admin'
-      } else {
-        window.location.href = '/dashboard'
-      }
+      setTimeout(() => {
+        if (user.role === 'admin') {
+          window.location.href = '/admin'
+        } else {
+          window.location.href = '/dashboard'
+        }
+      }, 500)
     } catch (err) {
       if (err.isUnverified) {
+        toastError('Please verify your email before logging in.')
         navigate('/verify-otp', { state: { email: err.email || email } })
         return
       }
       setError(err.message)
+      toastError(err.message || 'Login failed')
     } finally {
       setIsSubmitting(false)
     }

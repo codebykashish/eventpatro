@@ -1,6 +1,8 @@
 /* ── Admin Users Page ────────────────────────────────────────────────────── */
 .aup-root {
-  padding: 0;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -99,14 +101,14 @@
   color: #334155;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 14px 18px;
+  padding: 18px 22px;
   background: #fafafa;
   border-bottom: 1.5px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .aup-table td {
-  padding: 14px 18px;
+  padding: 20px 22px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
@@ -115,31 +117,75 @@
 
 .aup-idx {
   color: #881421;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 800;
   width: 36px;
+}
+
+.aup-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.aup-avatar-circle {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+  background: #f7e4e5;
+  color: #881421;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.03em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(136, 20, 33, 0.12);
+  border: 1.5px solid #ebd2d4;
+  user-select: none;
+}
+
+.aup-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .aup-name {
   font-weight: 700;
   color: #1e293b;
+  font-size: 14.5px;
   white-space: nowrap;
+}
+
+.aup-role-badge {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #881421;
+  background: #fdf2f2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  width: fit-content;
 }
 
 .aup-email {
   color: #475569;
-  font-size: 13px;
+  font-size: 13.5px;
 }
 
 .aup-joined {
   color: #94a3b8;
-  font-size: 12.5px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
 .aup-count-btn {
   min-width: 40px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 8px;
   border: 1.5px solid #e2e8f0;
   background: #ffffff;
@@ -155,15 +201,21 @@
   color: #ffffff;
 }
 
-.aup-count-btn--attended {
-  border-color: rgba(136, 20, 33, 0.22);
-  background: #fdf2f2;
-  color: #881421;
-}
-.aup-count-btn--attended:hover {
-  background: #881421;
-  border-color: #881421;
-  color: #ffffff;
+/* Attended count: clean static badge, not clickable */
+.aup-count-static {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: default;
+  user-select: none;
 }
 
 .aup-delete-btn {

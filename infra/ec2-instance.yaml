@@ -153,3 +153,4 @@ Outputs:
     Value: !Sub "/ec2/keypair/${EventpatroKeyPair.KeyPairId}"
     Export:
       Name: !Sub "${AWS::StackName}-SSMKeyPath"
+

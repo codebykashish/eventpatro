@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { X, Search, Trash2 } from 'lucide-react'
-import { deleteUser, fetchUserRegistrations, fetchAllRegistrations } from '../utils/api'
+import { X, Search } from 'lucide-react'
+import { fetchUserRegistrations, fetchAllRegistrations } from '../utils/api'
 import './AdminUsersPage.css'
 
 const formatDate = (iso) => {
@@ -32,12 +32,9 @@ const listedForType = (regs, type) => {
   return regs.filter((r) => r.status !== 'cancelled')
 }
 
-export default function AdminUsersPage({ users = [], allRegistrations = [], events = [], onUserDeleted }) {
+export default function AdminUsersPage({ users = [], allRegistrations = [], events = [] }) {
   const [search, setSearch] = useState('')
   const [userList, setUserList] = useState(users)
-  const [userToDelete, setUserToDelete] = useState(null)
-  const [deleting, setDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
   const [regCache, setRegCache] = useState(allRegistrations)
 
   const eventsMap = useMemo(() => {
@@ -77,23 +74,6 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
   }
 
   const regsForUser = (u, list = regCache) => list.filter((r) => matchesUser(r, u))
-
-  const handleDelete = async () => {
-    if (!userToDelete) return
-    const uid = idOf(userToDelete._id || userToDelete.id)
-    setDeleting(true)
-    setDeleteError('')
-    try {
-      await deleteUser(uid)
-      setUserList((prev) => prev.filter((u) => idOf(u._id || u.id) !== uid))
-      if (onUserDeleted) onUserDeleted(uid)
-      setUserToDelete(null)
-    } catch (err) {
-      setDeleteError(err.message || 'Failed to delete user')
-    } finally {
-      setDeleting(false)
-    }
-  }
 
   const filteredUsers = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -171,57 +151,59 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
             <thead>
               <tr>
                 <th>#</th>
-                <th>Name</th>
+                <th>User</th>
                 <th>Email</th>
-                <th>Registrations</th>
+                <th>Registered</th>
                 <th>Attended</th>
                 <th>Joined On</th>
-                <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="aup-empty">No users found.</td>
+                  <td colSpan={6} className="aup-empty">No users found.</td>
                 </tr>
               ) : filteredUsers.map((u, idx) => {
                 const uid = idOf(u._id || u.id)
                 const stats = userStats[uid] || { registered: [], attended: [] }
                 const regCount = stats.registered.length || u.registrationsCount || 0
+                const first = u.firstName || ''
+                const last = u.lastName || ''
+                const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase() || 'U'
+
                 return (
                   <tr key={uid || idx}>
                     <td className="aup-idx">{idx + 1}</td>
-                    <td className="aup-name">{u.firstName} {u.lastName}</td>
+                    <td className="aup-user-cell">
+                      <div className="aup-avatar-circle" title={`${first} ${last}`}>
+                        {initials}
+                      </div>
+                      <div className="aup-user-info">
+                        <span className="aup-name">{first} {last}</span>
+                        {u.role === 'admin' && <span className="aup-role-badge">Admin</span>}
+                      </div>
+                    </td>
                     <td className="aup-email">{u.email}</td>
                     <td>
                       <button
+                        type="button"
                         className="aup-count-btn"
                         onClick={() => openPopup(u, 'registered')}
-                        title="View registered events"
+                        title="Click to view registered events"
                       >
                         {regCount}
                       </button>
                     </td>
                     <td>
-                      <button
-                        className="aup-count-btn aup-count-btn--attended"
-                        onClick={() => openPopup(u, 'attended')}
-                        title="View attended events"
+                      {/* Attended events count: static badge, NOT clickable */}
+                      <span
+                        className="aup-count-static"
+                        title="Attended events count"
                       >
                         {stats.attended.length}
-                      </button>
+                      </span>
                     </td>
                     <td className="aup-joined">{formatDate(u.createdAt)}</td>
-                    <td>
-                      <button
-                        type="button"
-                        className="aup-delete-btn"
-                        title="Delete user"
-                        onClick={() => setUserToDelete(u)}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </td>
                   </tr>
                 )
               })}
@@ -249,14 +231,6 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
                     <span className="aup-mobile-user-name">{u.firstName} {u.lastName}</span>
                     <span className="aup-mobile-user-email">{u.email}</span>
                   </div>
-                  <button
-                    type="button"
-                    className="aup-delete-btn"
-                    title="Delete user"
-                    onClick={() => setUserToDelete(u)}
-                  >
-                    <Trash2 size={15} />
-                  </button>
                 </div>
 
                 <div className="aup-mobile-user-stats-row">
@@ -264,19 +238,16 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
                     type="button"
                     className="aup-mobile-stat-pill"
                     onClick={() => openPopup(u, 'registered')}
+                    title="Click to view registered events"
                   >
                     <span className="aup-mobile-stat-label">Registered</span>
                     <span className="aup-mobile-stat-badge">{regCount}</span>
                   </button>
 
-                  <button
-                    type="button"
-                    className="aup-mobile-stat-pill aup-mobile-stat-pill--attended"
-                    onClick={() => openPopup(u, 'attended')}
-                  >
+                  <div className="aup-mobile-stat-pill aup-mobile-stat-pill--static">
                     <span className="aup-mobile-stat-label">Attended</span>
                     <span className="aup-mobile-stat-badge attended">{stats.attended.length}</span>
-                  </button>
+                  </div>
                 </div>
 
                 <div className="aup-mobile-user-footer">
@@ -299,7 +270,7 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
               <div>
                 <h3>{popup.user.firstName} {popup.user.lastName}</h3>
                 <span className="aup-popup-sub">
-                  {popup.type === 'attended' ? 'Attended events' : 'Registered events'}
+                  Registered events
                   {popupEvents.length > 0 ? ` · ${popupEvents.length}` : ''}
                 </span>
               </div>
@@ -307,9 +278,9 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
             </div>
             <div className="aup-popup-body">
               {popupLoading && popupEvents.length === 0 ? (
-                <p className="aup-popup-empty">Loading {popup.type} events…</p>
+                <p className="aup-popup-empty">Loading registered events…</p>
               ) : popupEvents.length === 0 ? (
-                <p className="aup-popup-empty">No {popup.type} events found for this user.</p>
+                <p className="aup-popup-empty">No registered events found for this user.</p>
               ) : (
                 <ul className="aup-simple-event-list">
                   {popupEvents.map((reg, idx) => {
@@ -335,45 +306,6 @@ export default function AdminUsersPage({ users = [], allRegistrations = [], even
                   })}
                 </ul>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {userToDelete && (
-        <div className="aup-overlay" onClick={() => !deleting && setUserToDelete(null)}>
-          <div className="aup-popup aup-popup--sm" onClick={(e) => e.stopPropagation()}>
-            <div className="aup-popup-header">
-              <h3>Delete User</h3>
-              <button className="aup-popup-close" onClick={() => setUserToDelete(null)} disabled={deleting}><X size={16}/></button>
-            </div>
-            <div className="aup-popup-body">
-              {deleteError && (
-                <div style={{ color: '#dc2626', background: '#fef2f2', padding: '8px 12px', borderRadius: '8px', fontSize: '13px', marginBottom: '12px' }}>
-                  {deleteError}
-                </div>
-              )}
-              <p style={{ margin: '0 0 16px', color: '#1e293b', fontSize: '14px', lineHeight: 1.5 }}>
-                Are you sure you want to delete <strong>"{userToDelete.firstName} {userToDelete.lastName}"</strong> ({userToDelete.email})? This action cannot be undone and will remove all their registrations.
-              </p>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button
-                  type="button"
-                  style={{ padding: '8px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', background: '#fafafa', color: '#1e293b', cursor: 'pointer', fontWeight: 600 }}
-                  onClick={() => setUserToDelete(null)}
-                  disabled={deleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  style={{ padding: '8px 16px', border: 'none', borderRadius: '8px', background: '#dc2626', color: '#fff', cursor: 'pointer', fontWeight: 700 }}
-                  onClick={handleDelete}
-                  disabled={deleting}
-                >
-                  {deleting ? 'Deleting...' : 'Yes, Delete'}
-                </button>
-              </div>
             </div>
           </div>
         </div>

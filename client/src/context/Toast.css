@@ -1,0 +1,96 @@
+/* Standardized Global Toast Notification */
+.global-toast-container {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 90vw;
+  width: 420px;
+}
+
+.global-toast-item {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.06);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  animation: toastSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid transparent;
+}
+
+/* Positive (Green) */
+.global-toast-item.toast-positive {
+  background-color: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.global-toast-item.toast-positive .toast-icon {
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Negative (Red) */
+.global-toast-item.toast-negative {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.global-toast-item.toast-negative .toast-icon {
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.toast-content {
+  flex: 1;
+  word-break: break-word;
+}
+
+.toast-close-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  margin: -4px -6px -4px auto;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.65;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+  color: inherit;
+}
+
+.toast-close-btn:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+@keyframes toastSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { fetchEvents, getMyRegistrations, fetchUsers, fetchAllRegistrations, deleteEvent, getEventRegistrations, deleteUser } from '../utils/api'
+import { useToast } from '../context/ToastContext'
 import CampusIllustration from '../components/CampusIllustration'
 import EventDetailPage from './EventDetail'
 import AdminEventsPage from './AdminEventsPage'
@@ -128,6 +129,7 @@ const getRemainingDays = (iso) => {
 
 const Dashboard = ({ defaultTab = 'dashboard' }) => {
   const { user, logout, updateProfile } = useAuth()
+  const { success: toastSuccess, error: toastError, negative: toastNegative } = useToast()
   const isAdmin = user?.role === 'admin'
   const navigate = useNavigate()
   const { id: routeEventId } = useParams()
@@ -209,9 +211,11 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
     setEditSubmitting(true)
     try {
       await updateProfile(editFormData)
+      toastSuccess('Profile updated successfully!')
       setShowEditProfileModal(false)
     } catch (err) {
       setEditError(err.message || 'Failed to update profile')
+      toastError(err.message || 'Failed to update profile')
     } finally {
       setEditSubmitting(false)
     }
@@ -331,11 +335,13 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
     try {
       await deleteEvent(adminDeleteItem._id)
       setAdminSuccess(`"${adminDeleteItem.title}" deleted.`)
+      toastNegative(`"${adminDeleteItem.title}" deleted.`)
       setEvents((prev) => prev.filter((ev) => ev._id !== adminDeleteItem._id))
       setAdminDeleteItem(null)
       setTimeout(() => setAdminSuccess(''), 3500)
     } catch (err) {
       setAdminError(err.message || 'Failed to delete event')
+      toastError(err.message || 'Failed to delete event')
     } finally {
       setAdminDeleting(false)
     }
@@ -352,11 +358,13 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
     try {
       await deleteUser(uid)
       setAdminSuccess(`User "${adminDeleteUserItem.firstName} ${adminDeleteUserItem.lastName}" deleted.`)
+      toastNegative(`User "${adminDeleteUserItem.firstName} ${adminDeleteUserItem.lastName}" deleted.`)
       setAdminUsers((prev) => prev.filter((u) => (u._id || u.id) !== uid))
       setAdminDeleteUserItem(null)
       setTimeout(() => setAdminSuccess(''), 3500)
     } catch (err) {
       setAdminError(err.message || 'Failed to delete user')
+      toastError(err.message || 'Failed to delete user')
     } finally {
       setAdminDeletingUser(false)
     }
@@ -724,12 +732,8 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
 
   return (
     <div className="portal-layout">
-      {/* ── Hover-Expandable Left Sidebar ─────────────────────────────────── */}
-      <aside
-        className={`portal-sidebar ${isHovered ? 'expanded' : ''}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      {/* ── Stationary Left Sidebar ─────────────────────────────────────── */}
+      <aside className="portal-sidebar">
         {/* Brand Header */}
         <div
           className="portal-sidebar-header"
@@ -1248,10 +1252,10 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                           <h3>Delete Event</h3>
                           <button type="button" className="admin-modal-close-btn" onClick={() => setAdminDeleteItem(null)} disabled={adminDeleting}><X size={18} /></button>
                         </div>
-                        <p style={{ fontSize:'14px', color:'#475569', margin:'4px 0 16px' }}>Delete <strong>"{adminDeleteItem.title}"</strong>? This cannot be undone.</p>
+                        <p style={{ fontSize:'14px', color:'#475569', margin:'4px 0 16px' }}>Are you sure you want to delete?</p>
                         <div className="admin-modal-actions">
                           <button type="button" className="admin-btn-cancel" onClick={() => setAdminDeleteItem(null)} disabled={adminDeleting}>Cancel</button>
-                          <button type="button" className="admin-btn-confirm-delete" onClick={handleAdminDeleteEvent} disabled={adminDeleting}>{adminDeleting ? 'Deleting...' : 'Yes, Delete'}</button>
+                          <button type="button" className="admin-btn-confirm-delete" onClick={handleAdminDeleteEvent} disabled={adminDeleting}>{adminDeleting ? 'Deleting...' : 'Yes'}</button>
                         </div>
                       </div>
                     </div>
@@ -1266,12 +1270,12 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                           <button type="button" className="admin-modal-close-btn" onClick={() => setAdminDeleteUserItem(null)} disabled={adminDeletingUser}><X size={18} /></button>
                         </div>
                         <p style={{ fontSize:'14px', color:'#475569', margin:'4px 0 16px' }}>
-                          Are you sure you want to delete user <strong>"{adminDeleteUserItem.firstName} {adminDeleteUserItem.lastName}"</strong> ({adminDeleteUserItem.email})? This will also remove their event registrations.
+                          Are you sure you want to delete?
                         </p>
                         <div className="admin-modal-actions">
                           <button type="button" className="admin-btn-cancel" onClick={() => setAdminDeleteUserItem(null)} disabled={adminDeletingUser}>Cancel</button>
                           <button type="button" className="admin-btn-confirm-delete" onClick={handleAdminDeleteUser} disabled={adminDeletingUser}>
-                            {adminDeletingUser ? 'Deleting...' : 'Yes, Delete User'}
+                            {adminDeletingUser ? 'Deleting...' : 'Yes'}
                           </button>
                         </div>
                       </div>
@@ -2314,10 +2318,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
             role="dialog"
             aria-modal="true"
           >
-            <h3 className="modal-title">Sign Out of SSRC Events?</h3>
-            <p className="modal-subtitle">
-              You will need to sign in again to register for campus workshops and access your event passes.
-            </p>
+            <h3 className="modal-title" style={{ textAlign: 'center', margin: '0 0 20px', fontSize: '18px', fontWeight: 600 }}>Log Out</h3>
             <div className="modal-action-row">
               <button
                 type="button"
@@ -2331,7 +2332,7 @@ const Dashboard = ({ defaultTab = 'dashboard' }) => {
                 onClick={handleConfirmLogout}
                 className="modal-btn-confirm"
               >
-                Sign Out
+                Yes
               </button>
             </div>
           </div>
