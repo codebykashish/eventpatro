@@ -119,13 +119,26 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='SSMKeyPath'].OutputValue" \
             --output text)
           echo "Fetching key from SSM: $SSM_PATH"
-          aws ssm get-parameter \
+          KEY_VAL=$(aws ssm get-parameter \
             --name "$SSM_PATH" \
             --with-decryption \
             --region ${{ env.AWS_REGION }} \
             --query "Parameter.Value" \
-            --output text > /tmp/eventpatro-key.pem
+            --output text)
+          
+          if [ -z "$KEY_VAL" ] || [ "$KEY_VAL" = "None" ]; then
+            echo "::error::Retrieved private key from SSM is empty!"
+            exit 1
+          fi
+
+          echo "$KEY_VAL" > /tmp/eventpatro-key.pem
           chmod 600 /tmp/eventpatro-key.pem
+          echo "Private key saved. Size: $(wc -c < /tmp/eventpatro-key.pem) bytes"
+
+          # Mask and export key to step outputs as fallback
+          echo "KEY_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          echo "$KEY_VAL" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       # Wait for SSH to be available on the EC2 instance.
       # On first run, UserData may still be running (Node.js install takes ~3 min).
@@ -134,16 +147,25 @@ jobs:
         run: |
           IP=${{ steps.get-ip.outputs.EC2_IP }}
           echo "Waiting for SSH on $IP..."
+          SSH_READY=0
           for i in $(seq 1 36); do
             if nc -zw5 "$IP" 22 2>/dev/null; then
-              echo "SSH is ready after $i attempts"
-              exit 0
+              echo "SSH port is open after $i attempts."
+              SSH_READY=1
+              break
             fi
             echo "Attempt $i/36: SSH not ready yet, waiting 10s..."
             sleep 10
           done
-          echo "ERROR: SSH never became available after 6 minutes"
-          exit 1
+
+          if [ $SSH_READY -ne 1 ]; then
+            echo "ERROR: SSH never became available after 6 minutes"
+            exit 1
+          fi
+
+          # Give sshd extra time to finish host-key generation and initialization
+          echo "Waiting 15s to allow sshd handshake stabilization..."
+          sleep 15
 
       # SSH into the EC2 and deploy the latest code.
       # On first run, also installs server dependencies.
@@ -159,7 +181,7 @@ jobs:
         with:
           host: ${{ steps.get-ip.outputs.EC2_IP }}
           username: ubuntu
-          key_path: /tmp/eventpatro-key.pem
+          key: ${{ steps.get-key.outputs.KEY_CONTENT }}
           script_stop: true
           envs: EC2_IP,MONGODB_URI,JWT_SECRET,SMTP_USER,SMTP_PASS
           script: |
